@@ -32,6 +32,7 @@ class BlockPuzzleState {
     required this.showPerfectText,
     required this.showParticleBurst,
     required this.pulseBoard,
+    required this.showInvalidPlacement,
   });
 
   final int size;
@@ -45,6 +46,7 @@ class BlockPuzzleState {
   final bool showPerfectText;
   final bool showParticleBurst;
   final bool pulseBoard;
+  final bool showInvalidPlacement;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -68,6 +70,7 @@ class BlockPuzzleState {
     bool? showPerfectText,
     bool? showParticleBurst,
     bool? pulseBoard,
+    bool? showInvalidPlacement,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -81,6 +84,7 @@ class BlockPuzzleState {
       showPerfectText: showPerfectText ?? this.showPerfectText,
       showParticleBurst: showParticleBurst ?? this.showParticleBurst,
       pulseBoard: pulseBoard ?? this.pulseBoard,
+      showInvalidPlacement: showInvalidPlacement ?? this.showInvalidPlacement,
     );
   }
 
@@ -97,6 +101,7 @@ class BlockPuzzleState {
       showPerfectText: false,
       showParticleBurst: false,
       pulseBoard: false,
+      showInvalidPlacement: false,
     );
   }
 }
@@ -113,6 +118,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Timer? _perfectTimer;
   Timer? _particleTimer;
   Timer? _pulseTimer;
+  Timer? _errorTimer;
 
   Future<void> _restoreState() async {
     final prefs = await SharedPreferences.getInstance();
@@ -150,6 +156,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         showPerfectText: false,
         showParticleBurst: false,
         pulseBoard: false,
+        showInvalidPlacement: false,
       );
     } catch (_) {
       state = state.copyWith(bestScore: best);
@@ -183,10 +190,14 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   bool tryPlacePiece(String pieceId, int row, int col) {
     if (state.status == BlockGameStatus.failed) return false;
-    if (row < 0 || col < 0 || row >= state.size || col >= state.size) return false;
+    if (row < 0 || col < 0 || row >= state.size || col >= state.size) {
+      _triggerInvalidPlacement();
+      return false;
+    }
     final piece = _findPiece(pieceId);
     if (piece == null) return false;
     if (!_canPlacePiece(piece, row, col)) {
+      _triggerInvalidPlacement();
       return false;
     }
 
@@ -228,6 +239,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showPerfectText: linesCleared >= 2,
       showParticleBurst: linesCleared > 0,
       pulseBoard: true,
+      showInvalidPlacement: false,
     );
     _persistState();
     _scheduleFlagReset(linesCleared >= 2, linesCleared > 0);
@@ -361,6 +373,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _perfectTimer?.cancel();
     _particleTimer?.cancel();
     _pulseTimer?.cancel();
+    _errorTimer?.cancel();
     state = BlockPuzzleState.initial(size: size ?? state.size).copyWith(bestScore: state.bestScore);
     _persistState();
   }
@@ -384,7 +397,16 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _perfectTimer?.cancel();
     _particleTimer?.cancel();
     _pulseTimer?.cancel();
+    _errorTimer?.cancel();
     super.dispose();
+  }
+
+  void _triggerInvalidPlacement() {
+    _errorTimer?.cancel();
+    state = state.copyWith(showInvalidPlacement: true);
+    _errorTimer = Timer(const Duration(milliseconds: 900), () {
+      state = state.copyWith(showInvalidPlacement: false);
+    });
   }
 }
 

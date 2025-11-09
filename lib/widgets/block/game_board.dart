@@ -73,6 +73,24 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
               ),
             ),
           ),
+          IgnorePointer(
+            ignoring: true,
+            child: AnimatedOpacity(
+              opacity: state.showInvalidPlacement ? 1 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Blok bu alana sığmıyor',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
           if (state.status == BlockGameStatus.failed)
             Container(
               width: widget.dimension,

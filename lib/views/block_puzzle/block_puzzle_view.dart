@@ -9,7 +9,6 @@ import '../../widgets/block/game_board.dart';
 import '../../widgets/block/piece_widget.dart';
 import '../../widgets/block/score_panel.dart';
 import '../block_puzzle/adventure_mode_view.dart';
-import '../block_puzzle/block_leaderboard_view.dart';
 
 class BlockPuzzleGameView extends ConsumerWidget {
   const BlockPuzzleGameView({super.key});
@@ -18,6 +17,25 @@ class BlockPuzzleGameView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(blockPuzzleProvider);
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Wooden Blocks', style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold
+        )),
+        backgroundColor: Color.fromARGB(255, 18, 60, 55),
+        leading:  IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+          icon: const Icon(Icons.map, color: Colors.white),
+          tooltip: 'Adventure Mode',
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AdventureModeView()),
+          ),
+        ),
+        ],
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -43,17 +61,7 @@ class BlockPuzzleGameView extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Woody Quest',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
+                  children: [                    
                     Text(
                       'Drag or tap blocks to fill the 8x8 jungle board. Clear lines for sparkles!',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white70),
@@ -105,31 +113,31 @@ class BlockPuzzleGameView extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.emoji_events, color: Colors.white),
-          tooltip: 'Leaderboard',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const BlockLeaderboardView()),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.map, color: Colors.white),
-          tooltip: 'Adventure Mode',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AdventureModeView()),
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildHeader(BuildContext context) {
+  //   return Row(
+  //     children: [
+  //       IconButton(
+  //         icon: const Icon(Icons.arrow_back, color: Colors.white),
+  //         onPressed: () => Navigator.of(context).pop(),
+  //       ),
+  //       const Spacer(),
+  //       // IconButton(
+  //       //   icon: const Icon(Icons.emoji_events, color: Colors.white),
+  //       //   tooltip: 'Leaderboard',
+  //       //   onPressed: () => Navigator.of(context).push(
+  //       //     MaterialPageRoute(builder: (_) => const BlockLeaderboardView()),
+  //       //   ),
+  //       // ),
+  //       IconButton(
+  //         icon: const Icon(Icons.map, color: Colors.white),
+  //         tooltip: 'Adventure Mode',
+  //         onPressed: () => Navigator.of(context).push(
+  //           MaterialPageRoute(builder: (_) => const AdventureModeView()),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildSidePanel(BuildContext context, WidgetRef ref, BlockPuzzleState state) {
     return Column(
