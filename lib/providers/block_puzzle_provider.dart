@@ -1,0 +1,396 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/block_leaderboard_entry.dart';
+import '../models/piece_model.dart';
+import 'block_leaderboard_provider.dart';
+import '../utils/block_piece_factory.dart';
+
+final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>(
+  (ref) => BlockPuzzleNotifier(ref),
+);
+
+enum BlockGameStatus { playing, failed }
+
+const _selectionSentinel = Object();
+
+class BlockPuzzleState {
+  const BlockPuzzleState({
+    required this.size,
+    required this.filledCells,
+    required this.availablePieces,
+    required this.selectedPieceId,
+    required this.score,
+    required this.bestScore,
+    required this.totalLinesCleared,
+    required this.status,
+    required this.showPerfectText,
+    required this.showParticleBurst,
+    required this.pulseBoard,
+  });
+
+  final int size;
+  final Map<int, Color> filledCells;
+  final List<PieceModel> availablePieces;
+  final String? selectedPieceId;
+  final int score;
+  final int bestScore;
+  final int totalLinesCleared;
+  final BlockGameStatus status;
+  final bool showPerfectText;
+  final bool showParticleBurst;
+  final bool pulseBoard;
+
+  PieceModel? get selectedPiece {
+    if (selectedPieceId == null) return null;
+    for (final piece in availablePieces) {
+      if (piece.id == selectedPieceId) return piece;
+    }
+    return null;
+  }
+
+  Color? colorAt(int row, int col) => filledCells[row * size + col];
+
+  BlockPuzzleState copyWith({
+    int? size,
+    Map<int, Color>? filledCells,
+    List<PieceModel>? availablePieces,
+    Object? selectedPieceId = _selectionSentinel,
+    int? score,
+    int? bestScore,
+    int? totalLinesCleared,
+    BlockGameStatus? status,
+    bool? showPerfectText,
+    bool? showParticleBurst,
+    bool? pulseBoard,
+  }) {
+    return BlockPuzzleState(
+      size: size ?? this.size,
+      filledCells: filledCells ?? this.filledCells,
+      availablePieces: availablePieces ?? this.availablePieces,
+      selectedPieceId: identical(selectedPieceId, _selectionSentinel) ? this.selectedPieceId : selectedPieceId as String?,
+      score: score ?? this.score,
+      bestScore: bestScore ?? this.bestScore,
+      totalLinesCleared: totalLinesCleared ?? this.totalLinesCleared,
+      status: status ?? this.status,
+      showPerfectText: showPerfectText ?? this.showPerfectText,
+      showParticleBurst: showParticleBurst ?? this.showParticleBurst,
+      pulseBoard: pulseBoard ?? this.pulseBoard,
+    );
+  }
+
+  factory BlockPuzzleState.initial({int size = 8}) {
+    return BlockPuzzleState(
+      size: size,
+      filledCells: <int, Color>{},
+      availablePieces: generateRandomPieces(),
+      selectedPieceId: null,
+      score: 0,
+      bestScore: 0,
+      totalLinesCleared: 0,
+      status: BlockGameStatus.playing,
+      showPerfectText: false,
+      showParticleBurst: false,
+      pulseBoard: false,
+    );
+  }
+}
+
+class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
+  BlockPuzzleNotifier(this._ref) : super(BlockPuzzleState.initial()) {
+    unawaited(_restoreState());
+  }
+
+  final Ref _ref;
+  static const _stateKey = 'block_puzzle_state';
+  static const _bestKey = 'block_puzzle_best';
+
+  Timer? _perfectTimer;
+  Timer? _particleTimer;
+  Timer? _pulseTimer;
+
+  Future<void> _restoreState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final best = prefs.getInt(_bestKey) ?? 0;
+    final raw = prefs.getString(_stateKey);
+    if (raw == null) {
+      state = state.copyWith(bestScore: best);
+      return;
+    }
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final size = decoded['size'] as int? ?? 8;
+      final filledMap = <int, Color>{};
+      final filledRaw = (decoded['filled'] as Map?) ?? {};
+      filledRaw.forEach((key, value) {
+        final index = int.tryParse(key.toString());
+        if (index != null) {
+          filledMap[index] = Color(value as int);
+        }
+      });
+      final piecesRaw = (decoded['pieces'] as List<dynamic>? ?? <dynamic>[])
+          .map((e) => PieceModel.fromJson(e as String))
+          .toList();
+      final score = decoded['score'] as int? ?? 0;
+      final selected = decoded['selected'] as String?;
+      state = BlockPuzzleState(
+        size: size,
+        filledCells: filledMap,
+        availablePieces: piecesRaw.isEmpty ? generateRandomPieces() : piecesRaw,
+        selectedPieceId: selected,
+        score: score,
+        bestScore: best,
+        totalLinesCleared: decoded['lines'] as int? ?? 0,
+        status: BlockGameStatus.playing,
+        showPerfectText: false,
+        showParticleBurst: false,
+        pulseBoard: false,
+      );
+    } catch (_) {
+      state = state.copyWith(bestScore: best);
+    }
+  }
+
+  Future<void> _persistState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final map = <String, dynamic>{
+      'size': state.size,
+      'score': state.score,
+      'selected': state.selectedPieceId,
+      'lines': state.totalLinesCleared,
+      'filled': state.filledCells.map((key, value) => MapEntry(key.toString(), value.toARGB32())),
+      'pieces': state.availablePieces.map((piece) => piece.toJson()).toList(),
+    };
+    await prefs.setString(_stateKey, jsonEncode(map));
+    await prefs.setInt(_bestKey, state.bestScore);
+  }
+
+  void selectPiece(String pieceId) {
+    if (state.status == BlockGameStatus.failed) return;
+    state = state.copyWith(selectedPieceId: state.selectedPieceId == pieceId ? null : pieceId);
+  }
+
+  bool tryPlaceSelected(int row, int col) {
+    final selected = state.selectedPieceId;
+    if (selected == null) return false;
+    return tryPlacePiece(selected, row, col);
+  }
+
+  bool tryPlacePiece(String pieceId, int row, int col) {
+    if (state.status == BlockGameStatus.failed) return false;
+    if (row < 0 || col < 0 || row >= state.size || col >= state.size) return false;
+    final piece = _findPiece(pieceId);
+    if (piece == null) return false;
+    if (!_canPlacePiece(piece, row, col)) {
+      return false;
+    }
+
+    final updatedCells = Map<int, Color>.from(state.filledCells);
+    for (final block in piece.blocks) {
+      final targetRow = row + block.rowOffset;
+      final targetCol = col + block.colOffset;
+      final index = targetRow * state.size + targetCol;
+      updatedCells[index] = piece.color;
+    }
+
+    final updatedPieces = List<PieceModel>.from(state.availablePieces)..removeWhere((element) => element.id == pieceId);
+    if (updatedPieces.isEmpty) {
+      updatedPieces.addAll(generateRandomPieces());
+    }
+
+    final clearResult = _clearCompletedLines(updatedCells);
+    final linesCleared = clearResult.linesCleared;
+    final placementScore = piece.cellCount * 5;
+    final lineBonus = linesCleared * state.size * 2;
+    final newScore = state.score + placementScore + lineBonus;
+    final newBest = max(newScore, state.bestScore);
+    final totalLines = state.totalLinesCleared + linesCleared;
+
+    var nextStatus = state.status;
+    if (!_hasAnyValidMove(updatedPieces, clearResult.cells)) {
+      nextStatus = BlockGameStatus.failed;
+      _handleGameOver(newScore, totalLines);
+    }
+
+    state = state.copyWith(
+      filledCells: clearResult.cells,
+      availablePieces: updatedPieces,
+      selectedPieceId: null,
+      score: newScore,
+      bestScore: newBest,
+      totalLinesCleared: totalLines,
+      status: nextStatus,
+      showPerfectText: linesCleared >= 2,
+      showParticleBurst: linesCleared > 0,
+      pulseBoard: true,
+    );
+    _persistState();
+    _scheduleFlagReset(linesCleared >= 2, linesCleared > 0);
+    return true;
+  }
+
+  PieceModel? _findPiece(String id) {
+    for (final piece in state.availablePieces) {
+      if (piece.id == id) return piece;
+    }
+    return null;
+  }
+
+  bool _canPlacePiece(PieceModel piece, int row, int col) {
+    for (final block in piece.blocks) {
+      final targetRow = row + block.rowOffset;
+      final targetCol = col + block.colOffset;
+      if (targetRow < 0 || targetCol < 0 || targetRow >= state.size || targetCol >= state.size) {
+        return false;
+      }
+      final index = targetRow * state.size + targetCol;
+      if (state.filledCells.containsKey(index)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  _ClearResult _clearCompletedLines(Map<int, Color> cells) {
+    final size = state.size;
+    final mutable = Map<int, Color>.from(cells);
+    final clearedRows = <int>[];
+    final clearedCols = <int>[];
+
+    for (var row = 0; row < size; row++) {
+      var full = true;
+      for (var col = 0; col < size; col++) {
+        if (!mutable.containsKey(row * size + col)) {
+          full = false;
+          break;
+        }
+      }
+      if (full) clearedRows.add(row);
+    }
+
+    for (var col = 0; col < size; col++) {
+      var full = true;
+      for (var row = 0; row < size; row++) {
+        if (!mutable.containsKey(row * size + col)) {
+          full = false;
+          break;
+        }
+      }
+      if (full) clearedCols.add(col);
+    }
+
+    if (clearedRows.isEmpty && clearedCols.isEmpty) {
+      return _ClearResult(cells: mutable, linesCleared: 0);
+    }
+
+    final toRemove = <int>{};
+    for (final row in clearedRows) {
+      for (var col = 0; col < size; col++) {
+        toRemove.add(row * size + col);
+      }
+    }
+    for (final col in clearedCols) {
+      for (var row = 0; row < size; row++) {
+        toRemove.add(row * size + col);
+      }
+    }
+    toRemove.forEach(mutable.remove);
+
+    return _ClearResult(cells: mutable, linesCleared: clearedRows.length + clearedCols.length);
+  }
+
+  bool _hasAnyValidMove(List<PieceModel> pieces, Map<int, Color> filled) {
+    final size = state.size;
+    for (final piece in pieces) {
+      for (var row = 0; row < size; row++) {
+        for (var col = 0; col < size; col++) {
+          var fits = true;
+          for (final block in piece.blocks) {
+            final targetRow = row + block.rowOffset;
+            final targetCol = col + block.colOffset;
+            if (targetRow >= size || targetCol >= size) {
+              fits = false;
+              break;
+            }
+            if (targetRow < 0 || targetCol < 0) {
+              fits = false;
+              break;
+            }
+            final index = targetRow * size + targetCol;
+            if (filled.containsKey(index)) {
+              fits = false;
+              break;
+            }
+          }
+          if (fits) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  void _scheduleFlagReset(bool perfect, bool particles) {
+    _pulseTimer?.cancel();
+    _pulseTimer = Timer(const Duration(milliseconds: 260), () {
+      state = state.copyWith(pulseBoard: false);
+    });
+    if (perfect) {
+      _perfectTimer?.cancel();
+      _perfectTimer = Timer(const Duration(milliseconds: 1200), () {
+        state = state.copyWith(showPerfectText: false);
+      });
+    } else if (state.showPerfectText) {
+      state = state.copyWith(showPerfectText: false);
+    }
+    if (particles) {
+      _particleTimer?.cancel();
+      _particleTimer = Timer(const Duration(milliseconds: 600), () {
+        state = state.copyWith(showParticleBurst: false);
+      });
+    } else if (state.showParticleBurst) {
+      state = state.copyWith(showParticleBurst: false);
+    }
+  }
+
+  void restart({int? size}) {
+    _perfectTimer?.cancel();
+    _particleTimer?.cancel();
+    _pulseTimer?.cancel();
+    state = BlockPuzzleState.initial(size: size ?? state.size).copyWith(bestScore: state.bestScore);
+    _persistState();
+  }
+
+  void changeBoardSize(int newSize) {
+    restart(size: newSize);
+  }
+
+  void _handleGameOver(int score, int linesCleared) {
+    final entry = BlockLeaderboardEntry(
+      name: 'Blocker',
+      score: score,
+      linesCleared: linesCleared,
+      completedAt: DateTime.now(),
+    );
+    unawaited(_ref.read(blockLeaderboardProvider.notifier).addEntry(entry));
+  }
+
+  @override
+  void dispose() {
+    _perfectTimer?.cancel();
+    _particleTimer?.cancel();
+    _pulseTimer?.cancel();
+    super.dispose();
+  }
+}
+
+class _ClearResult {
+  const _ClearResult({required this.cells, required this.linesCleared});
+
+  final Map<int, Color> cells;
+  final int linesCleared;
+}

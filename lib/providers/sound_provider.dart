@@ -9,21 +9,39 @@ final soundControllerProvider = Provider<SoundController>((ref) {
 
 class SoundController {
   SoundController() {
-    _player.setReleaseMode(ReleaseMode.stop);
+    for (final player in [_slidePlayer, _blockPlayer, _successPlayer]) {
+      player.setReleaseMode(ReleaseMode.stop);
+    }
   }
 
-  final AudioPlayer _player = AudioPlayer();
+  final AudioPlayer _slidePlayer = AudioPlayer();
+  final AudioPlayer _blockPlayer = AudioPlayer();
+  final AudioPlayer _successPlayer = AudioPlayer();
 
   Future<void> playMove() async {
+    await _playAsset(_slidePlayer, 'audio/move.wav');
+  }
+
+  Future<void> playBlockPlace() async {
+    await _playAsset(_blockPlayer, 'audio/block_place.wav');
+  }
+
+  Future<void> playSuccess() async {
+    await _playAsset(_successPlayer, 'audio/success.wav');
+  }
+
+  Future<void> _playAsset(AudioPlayer player, String asset) async {
     try {
-      await _player.stop();
-      await _player.play(AssetSource('audio/move.wav'));
+      await player.stop();
+      await player.play(AssetSource(asset));
     } catch (_) {
-      // Silently ignore audio errors so the puzzle keeps running smoothly.
+      // Ignore audio errors to keep gameplay smooth.
     }
   }
 
   void dispose() {
-    _player.dispose();
+    _slidePlayer.dispose();
+    _blockPlayer.dispose();
+    _successPlayer.dispose();
   }
 }
