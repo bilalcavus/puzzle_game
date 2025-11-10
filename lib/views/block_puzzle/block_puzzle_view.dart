@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/core/extension/sized_box.dart';
-
 import '../../providers/block_puzzle_provider.dart';
 import '../../widgets/block/game_board.dart';
 import '../../widgets/block/piece_widget.dart';
@@ -19,25 +18,6 @@ class BlockPuzzleGameView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(blockPuzzleProvider);
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text('Wooden Blocks', style: Theme.of(context).textTheme.titleLarge?.copyWith(
-      //     fontWeight: FontWeight.bold
-      //   )),
-      //   backgroundColor: Color.fromARGB(255, 18, 60, 55),
-      //   leading:  IconButton(
-      //     icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-      //     onPressed: () => Navigator.of(context).pop(),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //     icon: const Icon(Icons.map, color: Colors.white),
-      //     tooltip: 'Adventure Mode',
-      //     onPressed: () => Navigator.of(context).push(
-      //       MaterialPageRoute(builder: (_) => const AdventureModeView()),
-      //     ),
-      //   ),
-      //   ],
-      // ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -109,12 +89,28 @@ class BlockPuzzleGameView extends ConsumerWidget {
     );
   }
 
-
+  
   Widget _buildSidePanel(BuildContext context, WidgetRef ref, BlockPuzzleState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SegmentedButton<int>(
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) return Colors.green.withOpacity(0.15);
+              return Colors.grey.withOpacity(0.05);
+            }),
+            side: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) return const BorderSide(color: Colors.blue, width: 1.5);
+              return BorderSide(color: Colors.grey.withAlpha(75));
+            }),
+            shape: WidgetStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(context.dynamicHeight(0.02))
+              )
+            ),
+            animationDuration: const Duration(milliseconds: 200),
+          ),
           segments: const [
             ButtonSegment(value: 8, label: Text('8x8')),
             ButtonSegment(value: 10, label: Text('10x10')),
@@ -170,3 +166,5 @@ class _PiecesTray extends ConsumerWidget {
     );
   }
 }
+
+

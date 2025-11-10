@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
 import '../../providers/block_puzzle_provider.dart';
@@ -265,7 +266,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                     width: cellSize,
                     height: cellSize,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(context.dynamicHeight(0.02)),
                       color: _previewColor(),
                       border: Border.all(
                         color: _hoverValid ? Colors.green.shade800 : Colors.redAccent,
