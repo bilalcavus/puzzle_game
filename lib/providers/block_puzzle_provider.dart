@@ -23,6 +23,7 @@ class BlockPuzzleState {
   const BlockPuzzleState({
     required this.size,
     required this.filledCells,
+    required this.seedIndices,
     required this.availablePieces,
     required this.selectedPieceId,
     required this.score,
@@ -33,10 +34,12 @@ class BlockPuzzleState {
     required this.showParticleBurst,
     required this.pulseBoard,
     required this.showInvalidPlacement,
+    required this.seedIntroPlayed,
   });
 
   final int size;
   final Map<int, Color> filledCells;
+  final Set<int> seedIndices;
   final List<PieceModel> availablePieces;
   final String? selectedPieceId;
   final int score;
@@ -47,6 +50,7 @@ class BlockPuzzleState {
   final bool showParticleBurst;
   final bool pulseBoard;
   final bool showInvalidPlacement;
+  final bool seedIntroPlayed;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -61,6 +65,7 @@ class BlockPuzzleState {
   BlockPuzzleState copyWith({
     int? size,
     Map<int, Color>? filledCells,
+    Set<int>? seedIndices,
     List<PieceModel>? availablePieces,
     Object? selectedPieceId = _selectionSentinel,
     int? score,
@@ -71,10 +76,12 @@ class BlockPuzzleState {
     bool? showParticleBurst,
     bool? pulseBoard,
     bool? showInvalidPlacement,
+    bool? seedIntroPlayed,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
       filledCells: filledCells ?? this.filledCells,
+      seedIndices: seedIndices ?? this.seedIndices,
       availablePieces: availablePieces ?? this.availablePieces,
       selectedPieceId: identical(selectedPieceId, _selectionSentinel) ? this.selectedPieceId : selectedPieceId as String?,
       score: score ?? this.score,
@@ -85,13 +92,16 @@ class BlockPuzzleState {
       showParticleBurst: showParticleBurst ?? this.showParticleBurst,
       pulseBoard: pulseBoard ?? this.pulseBoard,
       showInvalidPlacement: showInvalidPlacement ?? this.showInvalidPlacement,
+      seedIntroPlayed: seedIntroPlayed ?? this.seedIntroPlayed,
     );
   }
 
   factory BlockPuzzleState.initial({int size = 8}) {
+    final initialCells = _generateInitialFilledCells(size);
     return BlockPuzzleState(
       size: size,
-      filledCells: <int, Color>{},
+      filledCells: initialCells,
+      seedIndices: Set<int>.unmodifiable(initialCells.keys.toSet()),
       availablePieces: generateRandomPieces(),
       selectedPieceId: null,
       score: 0,
@@ -102,6 +112,7 @@ class BlockPuzzleState {
       showParticleBurst: false,
       pulseBoard: false,
       showInvalidPlacement: false,
+      seedIntroPlayed: false,
     );
   }
 }
@@ -114,6 +125,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   final Ref _ref;
   static const _stateKey = 'block_puzzle_state';
   static const _bestKey = 'block_puzzle_best';
+  static const _seedVersion = 1;
 
   Timer? _perfectTimer;
   Timer? _particleTimer;
@@ -131,6 +143,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     try {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
       final size = decoded['size'] as int? ?? 8;
+      final savedSeedVersion = decoded['seedVersion'] as int? ?? 0;
+      if (savedSeedVersion < _seedVersion) {
+        state = BlockPuzzleState.initial(size: size).copyWith(bestScore: best);
+        await _persistState();
+        return;
+      }
       final filledMap = <int, Color>{};
       final filledRaw = (decoded['filled'] as Map?) ?? {};
       filledRaw.forEach((key, value) {
@@ -139,6 +157,19 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
           filledMap[index] = Color(value as int);
         }
       });
+      final seedsRaw = decoded['seed'] as List<dynamic>? ?? const [];
+      final seedIndices = <int>{};
+      for (final entry in seedsRaw) {
+        if (entry is int) {
+          seedIndices.add(entry);
+        } else {
+          final parsed = int.tryParse(entry.toString());
+          if (parsed != null) {
+            seedIndices.add(parsed);
+          }
+        }
+      }
+      final seedIntroPlayed = decoded['seedIntroPlayed'] as bool? ?? true;
       final piecesRaw = (decoded['pieces'] as List<dynamic>? ?? <dynamic>[])
           .map((e) => PieceModel.fromJson(e as String))
           .toList();
@@ -147,6 +178,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       state = BlockPuzzleState(
         size: size,
         filledCells: filledMap,
+        seedIndices: Set<int>.unmodifiable(seedIndices.isEmpty ? filledMap.keys.toSet() : seedIndices),
         availablePieces: piecesRaw.isEmpty ? generateRandomPieces() : piecesRaw,
         selectedPieceId: selected,
         score: score,
@@ -157,6 +189,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         showParticleBurst: false,
         pulseBoard: false,
         showInvalidPlacement: false,
+        seedIntroPlayed: seedIntroPlayed,
       );
     } catch (_) {
       state = state.copyWith(bestScore: best);
@@ -172,6 +205,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       'lines': state.totalLinesCleared,
       'filled': state.filledCells.map((key, value) => MapEntry(key.toString(), value.toARGB32())),
       'pieces': state.availablePieces.map((piece) => piece.toJson()).toList(),
+      'seedVersion': _seedVersion,
+      'seed': state.seedIndices.toList(),
+      'seedIntroPlayed': state.seedIntroPlayed,
     };
     await prefs.setString(_stateKey, jsonEncode(map));
     await prefs.setInt(_bestKey, state.bestScore);
@@ -382,6 +418,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     restart(size: newSize);
   }
 
+  void markSeedIntroPlayed() {
+    if (state.seedIntroPlayed) return;
+    state = state.copyWith(seedIntroPlayed: true);
+    _persistState();
+  }
+
   void _handleGameOver(int score, int linesCleared) {
     final entry = BlockLeaderboardEntry(
       name: 'Blocker',
@@ -415,4 +457,62 @@ class _ClearResult {
 
   final Map<int, Color> cells;
   final int linesCleared;
+}
+
+const List<Color> _seedBoardColors = [
+  Color(0xFFB37744),
+  Color(0xFFCB9A63),
+  Color(0xFF8B5130),
+  Color(0xFF6E3A23),
+  Color(0xFFD4AF8A),
+];
+
+Map<int, Color> _generateInitialFilledCells(int size) {
+  if (size <= 0) return {};
+  final total = size * size;
+  final random = Random(DateTime.now().millisecondsSinceEpoch);
+  final empties = <int>{};
+
+  void markEmpty(int row, int col) {
+    if (row < 0 || col < 0 || row >= size || col >= size) return;
+    empties.add(row * size + col);
+  }
+
+  for (var row = 0; row < size; row++) {
+    final col = random.nextInt(size);
+    markEmpty(row, col);
+    if (random.nextBool()) {
+      markEmpty(row, (col + 1) % size);
+    }
+  }
+
+  for (var col = 0; col < size; col++) {
+    final row = random.nextInt(size);
+    markEmpty(row, col);
+    if (random.nextBool()) {
+      markEmpty((row + 1) % size, col);
+    }
+  }
+
+  final targetEmpty = max((total * 0.4).round(), size * 3);
+  while (empties.length < targetEmpty) {
+    final index = random.nextInt(total);
+    final row = index ~/ size;
+    final col = index % size;
+    markEmpty(row, col);
+    if (random.nextBool()) {
+      markEmpty(row, (col + 1) % size);
+    }
+    if (random.nextInt(3) == 0) {
+      markEmpty((row + 1) % size, col);
+    }
+  }
+
+  final cells = <int, Color>{};
+  for (var index = 0; index < total; index++) {
+    if (empties.contains(index)) continue;
+    cells[index] = _seedBoardColors[random.nextInt(_seedBoardColors.length)];
+  }
+
+  return cells;
 }

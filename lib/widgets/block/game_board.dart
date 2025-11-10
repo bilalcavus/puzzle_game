@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -30,10 +31,14 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   int? _hoverCol;
   PieceModel? _hoverPiece;
   bool _hoverValid = false;
+  final Set<int> _seedVisible = <int>{};
+  bool _seedAnimationScheduled = false;
+  int? _seedSignature;
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(blockPuzzleProvider);
+    _maybeStartSeedIntro(state);
     final board = SizedBox(
       key: _boardKey,
       width: widget.dimension,
@@ -122,6 +127,57 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     );
   }
 
+  void _maybeStartSeedIntro(BlockPuzzleState state) {
+    final shouldAnimate = !state.seedIntroPlayed && state.seedIndices.isNotEmpty;
+    if (!shouldAnimate) {
+      if (_seedVisible.isNotEmpty) {
+        setState(() {
+          _seedVisible.clear();
+        });
+      }
+      _seedAnimationScheduled = false;
+      _seedSignature = null;
+      return;
+    }
+    final orderedSeeds = state.seedIndices.toList()
+      ..sort((a, b) {
+        final size = state.size;
+        final ar = a ~/ size;
+        final ac = a % size;
+        final br = b ~/ size;
+        final bc = b % size;
+        final aScore = ar + ac;
+        final bScore = br + bc;
+        final scoreCompare = aScore.compareTo(bScore);
+        if (scoreCompare != 0) return scoreCompare;
+        final diagCompare = (ar - ac).abs().compareTo((br - bc).abs());
+        if (diagCompare != 0) return diagCompare;
+        return ar.compareTo(br);
+      });
+    final signature = Object.hashAll(orderedSeeds);
+    if (_seedAnimationScheduled && _seedSignature == signature) {
+      return;
+    }
+    _seedAnimationScheduled = true;
+    _seedSignature = signature;
+    _seedVisible.clear();
+    for (var i = 0; i < orderedSeeds.length; i++) {
+      final delay = Duration(milliseconds: 28 * i);
+      Future.delayed(delay, () {
+        if (!mounted) return;
+        setState(() {
+          _seedVisible.add(orderedSeeds[i]);
+        });
+        if (i == orderedSeeds.length - 1) {
+          Future.delayed(const Duration(milliseconds: 360), () {
+            if (!mounted) return;
+            ref.read(blockPuzzleProvider.notifier).markSeedIntroPlayed();
+          });
+        }
+      });
+    }
+  }
+
   Widget _buildGrid(BuildContext context, BlockPuzzleState state) {
     final cellSize = _cellSize(state.size);
     final previewCells = _previewCells(state);
@@ -161,7 +217,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
             final col = index % state.size;
             final color = state.colorAt(row, col);
             final isPreviewCell = previewCells.contains(index);
-            return Stack(
+            final isSeedCell = state.seedIndices.contains(index);
+            final seedVisible = state.seedIntroPlayed || _seedVisible.contains(index);
+            Widget tile = Stack(
               alignment: Alignment.center,
               children: [
                 BlockTile(
@@ -185,6 +243,20 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                   ),
               ],
             );
+            if (isSeedCell && !state.seedIntroPlayed) {
+              tile = AnimatedOpacity(
+                opacity: seedVisible ? 1 : 0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                child: AnimatedScale(
+                  scale: seedVisible ? 1 : 0.7,
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutBack,
+                  child: tile,
+                ),
+              );
+            }
+            return tile;
           },
         ),
       ),
