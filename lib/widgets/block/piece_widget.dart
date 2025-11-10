@@ -50,7 +50,7 @@ class PieceWidget extends StatelessWidget {
       onTap: onSelect,
       child: Draggable<PieceModel>(
         data: piece,
-        dragAnchorStrategy: pointerDragAnchorStrategy,
+        dragAnchorStrategy: childDragAnchorStrategy,
         feedback: Material(
           color: Colors.transparent,
           child: _buildContent(footprintWidth, footprintHeight, feedback: true),

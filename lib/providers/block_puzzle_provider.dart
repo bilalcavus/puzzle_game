@@ -10,6 +10,7 @@ import '../models/block_leaderboard_entry.dart';
 import '../models/piece_model.dart';
 import 'block_leaderboard_provider.dart';
 import '../core/utils/block_piece_factory.dart';
+import 'sound_provider.dart';
 
 final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>(
   (ref) => BlockPuzzleNotifier(ref),
@@ -298,6 +299,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showComboText: showCombo,
     );
     _persistState();
+    if (showCombo) {
+      unawaited(_ref.read(soundControllerProvider).playCombo());
+    }
     _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
     return true;
   }
@@ -462,6 +466,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       completedAt: DateTime.now(),
     );
     unawaited(_ref.read(blockLeaderboardProvider.notifier).addEntry(entry));
+    unawaited(_ref.read(soundControllerProvider).playFailure());
   }
 
   @override
@@ -524,8 +529,8 @@ Map<int, Color> _generateInitialFilledCells(int size) {
       markEmpty((row + 1) % size, col);
     }
   }
-
-  final targetEmpty = max((total * 0.6).round(), size * 5);
+  //TODO boş gelen kutuların sayısı
+  final targetEmpty = max((total * 0.65).round(), size * 6);
   while (empties.length < targetEmpty) {
     final index = random.nextInt(total);
     final row = index ~/ size;
