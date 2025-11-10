@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:puzzle_game/core/extension/dynamic_size.dart';
+import 'package:puzzle_game/core/extension/sized_box.dart';
 
 import '../../providers/block_puzzle_provider.dart';
 import '../../widgets/block/game_board.dart';
@@ -39,7 +41,7 @@ class BlockPuzzleGameView extends ConsumerWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF184D47), Color(0xFF1E1F26)],
+            colors: [Color.fromARGB(255, 24, 77, 55), Color(0xFF1E1F26)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -49,22 +51,21 @@ class BlockPuzzleGameView extends ConsumerWidget {
             Positioned(
               top: -20,
               left: -10,
-              child: Icon(Icons.eco, size: 140, color: Colors.greenAccent.withValues(alpha: 0.2)),
+              child: Icon(Icons.eco, size: context.dynamicHeight(0.15), color: Colors.greenAccent.withValues(alpha: 0.2)),
             ),
             Positioned(
               bottom: -30,
               right: -20,
-              child: Icon(Icons.eco, size: 120, color: Colors.amber.withValues(alpha: 0.2)),
+              child: Icon(Icons.eco, size: context.dynamicHeight(0.15), color: Colors.amber.withValues(alpha: 0.2)),
             ),
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding:  EdgeInsets.all(context.dynamicHeight(0.02)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [                    
-                   
+                  children: [
                     ScorePanel(state: state),
-                    const SizedBox(height: 16),
+                    context.dynamicHeight(0.02).height,
                     Expanded(
                       child: LayoutBuilder(
                         builder: (context, constraints) {
@@ -80,7 +81,7 @@ class BlockPuzzleGameView extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(child: Center(child: board)),
-                                SizedBox(width: 320, child: side),
+                                side,
                               ],
                             );
                           }
@@ -88,7 +89,7 @@ class BlockPuzzleGameView extends ConsumerWidget {
                             child: Column(
                               children: [
                                 Center(child: board),
-                                const SizedBox(height: 20),
+                                context.dynamicHeight(0.02).height,
                                 side,
                               ],
                             ),
@@ -96,7 +97,7 @@ class BlockPuzzleGameView extends ConsumerWidget {
                         },
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    context.dynamicHeight(0.01).height,
                     _PiecesTray(state: state),
                   ],
                 ),
@@ -108,31 +109,6 @@ class BlockPuzzleGameView extends ConsumerWidget {
     );
   }
 
-  // Widget _buildHeader(BuildContext context) {
-  //   return Row(
-  //     children: [
-  //       IconButton(
-  //         icon: const Icon(Icons.arrow_back, color: Colors.white),
-  //         onPressed: () => Navigator.of(context).pop(),
-  //       ),
-  //       const Spacer(),
-  //       // IconButton(
-  //       //   icon: const Icon(Icons.emoji_events, color: Colors.white),
-  //       //   tooltip: 'Leaderboard',
-  //       //   onPressed: () => Navigator.of(context).push(
-  //       //     MaterialPageRoute(builder: (_) => const BlockLeaderboardView()),
-  //       //   ),
-  //       // ),
-  //       IconButton(
-  //         icon: const Icon(Icons.map, color: Colors.white),
-  //         tooltip: 'Adventure Mode',
-  //         onPressed: () => Navigator.of(context).push(
-  //           MaterialPageRoute(builder: (_) => const AdventureModeView()),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
 
   Widget _buildSidePanel(BuildContext context, WidgetRef ref, BlockPuzzleState state) {
     return Column(
@@ -166,19 +142,18 @@ class _PiecesTray extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(blockPuzzleProvider.notifier);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: state.availablePieces
                 .map(
                   (piece) => Padding(
-                    padding: const EdgeInsets.only(right: 12),
+                    padding:  EdgeInsets.only(right: context.dynamicHeight(0.01)),
                     child: PieceWidget(
                       piece: piece,
-                      cellSize: 24,
+                      cellSize: context.dynamicHeight(0.025),
                       isSelected: state.selectedPieceId == piece.id,
                       disabled: state.status == BlockGameStatus.failed,
                       onSelect: () {
@@ -191,11 +166,6 @@ class _PiecesTray extends ConsumerWidget {
                 .toList(),
           ),
         ),
-        if (state.selectedPieceId == null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text('Tap a piece, then touch the board to place it. Long-press to drag directly.', style: const TextStyle(color: Colors.white70)),
-          ),
       ],
     );
   }

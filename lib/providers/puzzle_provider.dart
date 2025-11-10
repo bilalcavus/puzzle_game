@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/leaderboard_entry.dart';
 import '../models/puzzle_model.dart';
-import '../utils/puzzle_shuffle.dart';
-import '../utils/puzzle_timer.dart';
+import '../core/utils/puzzle_shuffle.dart';
+import '../core/utils/puzzle_timer.dart';
 import 'leaderboard_provider.dart';
 
 final puzzleProvider = StateNotifierProvider<PuzzleNotifier, PuzzleState>(

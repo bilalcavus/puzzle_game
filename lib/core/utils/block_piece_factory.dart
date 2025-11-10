@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../models/block_model.dart';
-import '../models/piece_model.dart';
+import '../../models/block_model.dart';
+import '../../models/piece_model.dart';
 
 final _random = Random();
 

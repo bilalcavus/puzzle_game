@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
 import 'block_tile.dart';
@@ -28,7 +29,7 @@ class PieceWidget extends StatelessWidget {
       opacity: disabled ? 0.4 : 1,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(12),
+        padding:  EdgeInsets.all(context.dynamicHeight(0.015)),
         decoration: BoxDecoration(
         color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),

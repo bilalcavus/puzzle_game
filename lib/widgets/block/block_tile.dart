@@ -6,11 +6,13 @@ class BlockTile extends StatelessWidget {
     required this.size,
     this.color,
     this.pulse = false,
+    this.borderRadius = 10,
   });
 
   final double size;
   final Color? color;
   final bool pulse;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class BlockTile extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           color: baseColor == Colors.transparent ? baseColor : baseColor.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: color == null ? Border.all(color: Colors.white24, width: 1) : null,
           boxShadow: color == null
               ? null
@@ -50,7 +52,7 @@ class BlockTile extends StatelessWidget {
             ? null
             : DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(borderRadius),
                   gradient: RadialGradient(
                     colors: [
                     Colors.white.withValues(alpha: 0.15),

@@ -90,6 +90,36 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
               ),
             ),
           ),
+          Positioned(
+            top: 80,
+            child: AnimatedOpacity(
+              opacity: state.showComboText ? 1 : 0,
+              duration: const Duration(milliseconds: 250),
+              child: AnimatedScale(
+                scale: state.showComboText ? 1 : 0.9,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutBack,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.deepOrangeAccent.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 6)),
+                    ],
+                  ),
+                  child: Text(
+                    'Combo x${state.comboCount}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           IgnorePointer(
             ignoring: true,
             child: AnimatedOpacity(
@@ -181,6 +211,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   Widget _buildGrid(BuildContext context, BlockPuzzleState state) {
     final cellSize = _cellSize(state.size);
     final previewCells = _previewCells(state);
+    final tileRadius = state.size >= 10 ? 8.0 : 14.0;
     return Container(
       width: widget.dimension,
       height: widget.dimension,
@@ -226,6 +257,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                   size: cellSize,
                   color: color,
                   pulse: false,
+                  borderRadius: tileRadius,
                 ),
                 if (isPreviewCell)
                   AnimatedContainer(

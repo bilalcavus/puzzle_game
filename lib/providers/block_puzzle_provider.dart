@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/block_leaderboard_entry.dart';
 import '../models/piece_model.dart';
 import 'block_leaderboard_provider.dart';
-import '../utils/block_piece_factory.dart';
+import '../core/utils/block_piece_factory.dart';
 
 final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>(
   (ref) => BlockPuzzleNotifier(ref),
@@ -35,6 +35,8 @@ class BlockPuzzleState {
     required this.pulseBoard,
     required this.showInvalidPlacement,
     required this.seedIntroPlayed,
+    required this.comboCount,
+    required this.showComboText,
   });
 
   final int size;
@@ -51,6 +53,8 @@ class BlockPuzzleState {
   final bool pulseBoard;
   final bool showInvalidPlacement;
   final bool seedIntroPlayed;
+  final int comboCount;
+  final bool showComboText;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -77,6 +81,8 @@ class BlockPuzzleState {
     bool? pulseBoard,
     bool? showInvalidPlacement,
     bool? seedIntroPlayed,
+    int? comboCount,
+    bool? showComboText,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -93,6 +99,8 @@ class BlockPuzzleState {
       pulseBoard: pulseBoard ?? this.pulseBoard,
       showInvalidPlacement: showInvalidPlacement ?? this.showInvalidPlacement,
       seedIntroPlayed: seedIntroPlayed ?? this.seedIntroPlayed,
+      comboCount: comboCount ?? this.comboCount,
+      showComboText: showComboText ?? this.showComboText,
     );
   }
 
@@ -113,6 +121,8 @@ class BlockPuzzleState {
       pulseBoard: false,
       showInvalidPlacement: false,
       seedIntroPlayed: false,
+      comboCount: 0,
+      showComboText: false,
     );
   }
 }
@@ -131,6 +141,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Timer? _particleTimer;
   Timer? _pulseTimer;
   Timer? _errorTimer;
+  Timer? _comboTimer;
 
   Future<void> _restoreState() async {
     final prefs = await SharedPreferences.getInstance();
@@ -170,6 +181,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         }
       }
       final seedIntroPlayed = decoded['seedIntroPlayed'] as bool? ?? true;
+      final comboCount = decoded['comboCount'] as int? ?? 0;
       final piecesRaw = (decoded['pieces'] as List<dynamic>? ?? <dynamic>[])
           .map((e) => PieceModel.fromJson(e as String))
           .toList();
@@ -190,6 +202,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         pulseBoard: false,
         showInvalidPlacement: false,
         seedIntroPlayed: seedIntroPlayed,
+        comboCount: comboCount,
+        showComboText: false,
       );
     } catch (_) {
       state = state.copyWith(bestScore: best);
@@ -208,6 +222,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       'seedVersion': _seedVersion,
       'seed': state.seedIndices.toList(),
       'seedIntroPlayed': state.seedIntroPlayed,
+      'comboCount': state.comboCount,
     };
     await prefs.setString(_stateKey, jsonEncode(map));
     await prefs.setInt(_bestKey, state.bestScore);
@@ -252,6 +267,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
     final clearResult = _clearCompletedLines(updatedCells);
     final linesCleared = clearResult.linesCleared;
+    final earnedCombo = linesCleared > 0;
+    final nextCombo = earnedCombo ? state.comboCount + 1 : 0;
+    final showCombo = earnedCombo && nextCombo >= 2;
     final placementScore = piece.cellCount * 5;
     final lineBonus = linesCleared * state.size * 2;
     final newScore = state.score + placementScore + lineBonus;
@@ -276,9 +294,11 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showParticleBurst: linesCleared > 0,
       pulseBoard: true,
       showInvalidPlacement: false,
+      comboCount: nextCombo,
+      showComboText: showCombo,
     );
     _persistState();
-    _scheduleFlagReset(linesCleared >= 2, linesCleared > 0);
+    _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
     return true;
   }
 
@@ -382,7 +402,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     return false;
   }
 
-  void _scheduleFlagReset(bool perfect, bool particles) {
+  void _scheduleFlagReset(bool perfect, bool particles, bool comboActive) {
     _pulseTimer?.cancel();
     _pulseTimer = Timer(const Duration(milliseconds: 260), () {
       state = state.copyWith(pulseBoard: false);
@@ -403,6 +423,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     } else if (state.showParticleBurst) {
       state = state.copyWith(showParticleBurst: false);
     }
+    if (comboActive) {
+      _comboTimer?.cancel();
+      _comboTimer = Timer(const Duration(milliseconds: 1400), () {
+        state = state.copyWith(showComboText: false, comboCount: state.comboCount);
+      });
+    } else if (state.showComboText) {
+      _comboTimer?.cancel();
+      state = state.copyWith(showComboText: false, comboCount: state.comboCount);
+    }
   }
 
   void restart({int? size}) {
@@ -410,6 +439,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _particleTimer?.cancel();
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
+    _comboTimer?.cancel();
     state = BlockPuzzleState.initial(size: size ?? state.size).copyWith(bestScore: state.bestScore);
     _persistState();
   }
@@ -440,6 +470,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _particleTimer?.cancel();
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
+    _comboTimer?.cancel();
     super.dispose();
   }
 
@@ -494,7 +525,7 @@ Map<int, Color> _generateInitialFilledCells(int size) {
     }
   }
 
-  final targetEmpty = max((total * 0.4).round(), size * 3);
+  final targetEmpty = max((total * 0.6).round(), size * 5);
   while (empties.length < targetEmpty) {
     final index = random.nextInt(total);
     final row = index ~/ size;
