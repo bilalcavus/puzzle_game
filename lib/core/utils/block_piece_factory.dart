@@ -87,6 +87,13 @@ final List<List<List<int>>> _shapes = [
     [1, 2],
     [2, 1],
   ],
+  //Horizontal T shape 
+  [
+    [0,0],
+    [1,0],
+    [1,1],
+    [2,0],
+  ]
 ];
 
 List<PieceModel> generateRandomPieces([int count = 3]) {

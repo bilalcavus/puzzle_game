@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
@@ -25,8 +26,8 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 }
 
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
-  static const double _padding = 12;
-  static const double _gap = 5;
+  static const double _padding = 10;
+  static const double _gap = 4;
   final GlobalKey _boardKey = GlobalKey();
   int? _hoverRow;
   int? _hoverCol;
@@ -148,9 +149,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 borderRadius: BorderRadius.circular(32),
               ),
               alignment: Alignment.center,
-              child: Text(
-                'No more moves',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'No more moves',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                  ),
+                  IconButton(onPressed: () => ref.read(blockPuzzleProvider.notifier).restart(), icon: Icon(Iconsax.refresh)),
+                ],
               ),
             ),
         ],

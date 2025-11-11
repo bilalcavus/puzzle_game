@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/core/extension/sized_box.dart';
 import '../../providers/block_puzzle_provider.dart';
@@ -19,8 +18,8 @@ class BlockPuzzleGameView extends ConsumerWidget {
     final state = ref.watch(blockPuzzleProvider);
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
             colors: [Color.fromARGB(255, 24, 77, 55), Color(0xFF1E1F26)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -29,14 +28,26 @@ class BlockPuzzleGameView extends ConsumerWidget {
         child: Stack(
           children: [
             Positioned(
-              top: -20,
-              left: -10,
-              child: Icon(Icons.eco, size: context.dynamicHeight(0.15), color: Colors.greenAccent.withValues(alpha: 0.2)),
+              top: context.dynamicHeight(0.04) * -0.05,
+              left: context.dynamicWidth(0.7) ,
+              child: Opacity(
+                opacity: 0.7,
+                child: Image.asset(
+                  'assets/images/image.png',
+                  width: context.dynamicWidth(0.4),
+                ),
+              ),
             ),
             Positioned(
-              bottom: -30,
-              right: -20,
-              child: Icon(Icons.eco, size: context.dynamicHeight(0.15), color: Colors.amber.withValues(alpha: 0.2)),
+              bottom: context.dynamicHeight(0.01) * -1,
+              right: context.dynamicWidth(0.3) ,
+              child: Opacity(
+                opacity: 0.6,
+                child: Image.asset(
+                  'assets/images/campfire1.png',
+                  width: context.dynamicWidth(0.4),
+                ),
+              ),
             ),
             SafeArea(
               child: Padding(
@@ -52,8 +63,11 @@ class BlockPuzzleGameView extends ConsumerWidget {
                           final media = MediaQuery.of(context);
                           final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : media.size.width;
                           final isWide = maxWidth > 900;
-                          final base = isWide ? maxWidth * 1 : maxWidth;
-                          final boardDimension = (base.isFinite ? base.clamp(320.0, min(media.size.shortestSide * 0.95, 580.0)) : min(media.size.width * 0.75, 520.0)).toDouble();
+                          final base = isWide ? maxWidth * 1.05 : maxWidth;
+                          final upperClamp = min(media.size.shortestSide * 0.98, 640.0);
+                          final lowerClamp = 360.0;
+                          final fallback = min(media.size.width * 0.82, upperClamp);
+                          final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
                           final board = BlockGameBoard(dimension: boardDimension);
                           final side = _buildSidePanel(context, ref, state);
                           if (isWide) {
@@ -118,12 +132,6 @@ class BlockPuzzleGameView extends ConsumerWidget {
           selected: {state.size},
           onSelectionChanged: (value) => ref.read(blockPuzzleProvider.notifier).changeBoardSize(value.first),
         ),
-
-        if (state.status == BlockGameStatus.failed) ...[
-          const SizedBox(height: 16),
-          Text('No fitting spots left. Restart to continue your streak.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.redAccent)),
-          IconButton(onPressed: () => ref.read(blockPuzzleProvider.notifier).restart(), icon: Icon(Iconsax.refresh)),
-        ],
       ],
     );
   }
@@ -149,7 +157,7 @@ class _PiecesTray extends ConsumerWidget {
                     padding:  EdgeInsets.only(right: context.dynamicHeight(0.01)),
                     child: PieceWidget(
                       piece: piece,
-                      cellSize: context.dynamicHeight(0.025),
+                      cellSize: context.dynamicHeight(0.03),
                       isSelected: state.selectedPieceId == piece.id,
                       disabled: state.status == BlockGameStatus.failed,
                       onSelect: () {
@@ -166,5 +174,3 @@ class _PiecesTray extends ConsumerWidget {
     );
   }
 }
-
-

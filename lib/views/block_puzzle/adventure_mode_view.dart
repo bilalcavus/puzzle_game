@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 class AdventureModeView extends StatelessWidget {
   const AdventureModeView({super.key});
@@ -9,7 +10,7 @@ class AdventureModeView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Adventure Mode')),
       body: ListView.separated(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(context.dynamicHeight(0.05)),
         itemBuilder: (context, index) {
           final label = levels[index];
           return Container(
