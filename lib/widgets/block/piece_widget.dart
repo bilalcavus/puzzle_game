@@ -20,7 +20,6 @@ class PieceWidget extends StatelessWidget {
   final bool isSelected;
   final bool disabled;
   static const double _dragFeedbackScale = 1.1;
-  static const Offset _dragLiftOffset = Offset(0, -18);
 
   @override
   Widget build(BuildContext context) {
@@ -58,14 +57,11 @@ class PieceWidget extends StatelessWidget {
         dragAnchorStrategy: childDragAnchorStrategy,
         feedback: Material(
           color: Colors.transparent,
-          child: Transform.translate(
-            offset: _dragLiftOffset,
-            child: _buildContent(
-              dragWidth,
-              dragHeight,
-              feedback: true,
-              cellSizeOverride: dragCellSize,
-            ),
+          child: _buildContent(
+            dragWidth,
+            dragHeight,
+            feedback: true,
+            cellSizeOverride: dragCellSize,
           ),
         ),
         childWhenDragging: Opacity(opacity: 0.3, child: child),

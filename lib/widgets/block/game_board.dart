@@ -28,6 +28,7 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const double _padding = 10;
   static const double _gap = 3;
+  static const double _edgeTolerance = 28;
   final GlobalKey _boardKey = GlobalKey();
   int? _hoverRow;
   int? _hoverCol;
@@ -309,12 +310,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   void _handleTap(TapUpDetails details, BlockPuzzleState state) {
-    final position = details.localPosition;
-    final cellSize = _cellSize(state.size);
-    final row = ((position.dy - _padding) / (cellSize + _gap)).floor();
-    final col = ((position.dx - _padding) / (cellSize + _gap)).floor();
-    if (row.isNegative || col.isNegative || row >= state.size || col >= state.size) return;
-    final success = ref.read(blockPuzzleProvider.notifier).tryPlaceSelected(row, col);
+    final coords = _coordsFromLocal(details.localPosition, state, strictBounds: true);
+    if (coords == null) return;
+    final success = ref.read(blockPuzzleProvider.notifier).tryPlaceSelected(coords.row, coords.col);
     if (success) {
       _handleFeedback();
     }
@@ -326,11 +324,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
     final local = renderBox.globalToLocal(details.offset);
-    final cellSize = _cellSize(state.size);
-    final row = ((local.dy - _padding) / (cellSize + _gap)).floor();
-    final col = ((local.dx - _padding) / (cellSize + _gap)).floor();
-    if (row.isNegative || col.isNegative || row >= state.size || col >= state.size) return;
-    final success = ref.read(blockPuzzleProvider.notifier).tryPlacePiece(details.data.id, row, col);
+    final coords = _coordsFromLocal(local, state);
+    if (coords == null) return;
+    final success = ref.read(blockPuzzleProvider.notifier).tryPlacePiece(details.data.id, coords.row, coords.col);
     if (success) {
       _handleFeedback();
     }
@@ -342,17 +338,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
     final local = renderBox.globalToLocal(details.offset);
-    final cellSize = _cellSize(state.size);
-    final row = ((local.dy - _padding) / (cellSize + _gap)).floor();
-    final col = ((local.dx - _padding) / (cellSize + _gap)).floor();
-    if (row.isNegative || col.isNegative || row >= state.size || col >= state.size) {
+    final coords = _coordsFromLocal(local, state);
+    if (coords == null) {
       _clearHover();
       return;
     }
-    final fits = _canPreviewPlace(details.data, row, col, state);
+    final fits = _canPreviewPlace(details.data, coords.row, coords.col, state);
     setState(() {
-      _hoverRow = row;
-      _hoverCol = col;
+      _hoverRow = coords.row;
+      _hoverCol = coords.col;
       _hoverPiece = details.data;
       _hoverValid = fits;
     });
@@ -399,6 +393,30 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   Color _previewColor() {
     final base = _hoverValid ? _hoverPiece?.color ?? Colors.white : Colors.redAccent;
     return base.withValues(alpha: _hoverValid ? 0.45 : 0.35);
+  }
+
+  ({int row, int col})? _coordsFromLocal(Offset local, BlockPuzzleState state, {bool strictBounds = false}) {
+    final boardStart = _padding;
+    final boardEnd = widget.dimension - _padding;
+    final dynamicTolerance = max(_edgeTolerance, _cellSize(state.size));
+    final tolerance = strictBounds ? 0 : dynamicTolerance;
+    final withinHorizontal = local.dx >= boardStart - tolerance && local.dx <= boardEnd + tolerance;
+    final withinVertical = local.dy >= boardStart - tolerance && local.dy <= boardEnd + tolerance;
+    if (!withinHorizontal || !withinVertical) {
+      return null;
+    }
+    final clampedX = local.dx.clamp(boardStart, boardEnd - 0.0001);
+    final clampedY = local.dy.clamp(boardStart, boardEnd - 0.0001);
+    final cellSize = _cellSize(state.size);
+    final extent = cellSize + _gap;
+    final relativeX = clampedX - boardStart;
+    final relativeY = clampedY - boardStart;
+    final maxIndex = state.size - 1e-3;
+    final columnPosition = (relativeX / extent).clamp(0, maxIndex);
+    final rowPosition = (relativeY / extent).clamp(0, maxIndex);
+    final col = columnPosition.floor();
+    final row = rowPosition.floor();
+    return (row: row, col: col);
   }
 
   void _handleFeedback() {
