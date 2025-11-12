@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/block_leaderboard_entry.dart';
+import '../models/block_level_models.dart';
 import '../models/piece_model.dart';
 import 'block_leaderboard_provider.dart';
 import '../core/utils/block_piece_factory.dart';
@@ -38,6 +39,11 @@ class BlockPuzzleState {
     required this.seedIntroPlayed,
     required this.comboCount,
     required this.showComboText,
+    required this.levelMode,
+    required this.level,
+    required this.levelGoals,
+    required this.levelTargets,
+    required this.levelCompleted,
   });
 
   final int size;
@@ -56,6 +62,11 @@ class BlockPuzzleState {
   final bool seedIntroPlayed;
   final int comboCount;
   final bool showComboText;
+  final bool levelMode;
+  final int level;
+  final List<BlockLevelGoal> levelGoals;
+  final Map<int, BlockLevelToken> levelTargets;
+  final bool levelCompleted;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -66,6 +77,8 @@ class BlockPuzzleState {
   }
 
   Color? colorAt(int row, int col) => filledCells[row * size + col];
+
+  BlockLevelToken? levelTokenAt(int row, int col) => levelTargets[row * size + col];
 
   BlockPuzzleState copyWith({
     int? size,
@@ -84,6 +97,11 @@ class BlockPuzzleState {
     bool? seedIntroPlayed,
     int? comboCount,
     bool? showComboText,
+    bool? levelMode,
+    int? level,
+    List<BlockLevelGoal>? levelGoals,
+    Map<int, BlockLevelToken>? levelTargets,
+    bool? levelCompleted,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -102,6 +120,11 @@ class BlockPuzzleState {
       seedIntroPlayed: seedIntroPlayed ?? this.seedIntroPlayed,
       comboCount: comboCount ?? this.comboCount,
       showComboText: showComboText ?? this.showComboText,
+      levelMode: levelMode ?? this.levelMode,
+      level: level ?? this.level,
+      levelGoals: levelGoals ?? this.levelGoals,
+      levelTargets: levelTargets ?? this.levelTargets,
+      levelCompleted: levelCompleted ?? this.levelCompleted,
     );
   }
 
@@ -124,16 +147,26 @@ class BlockPuzzleState {
       seedIntroPlayed: false,
       comboCount: 0,
       showComboText: false,
+      levelMode: false,
+      level: 1,
+      levelGoals: const <BlockLevelGoal>[],
+      levelTargets: const <int, BlockLevelToken>{},
+      levelCompleted: false,
     );
   }
 }
 
 class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
-  BlockPuzzleNotifier(this._ref) : super(BlockPuzzleState.initial()) {
-    unawaited(_restoreState());
+  BlockPuzzleNotifier(this._ref, {bool enablePersistence = true})
+      : _enablePersistence = enablePersistence,
+        super(BlockPuzzleState.initial()) {
+    if (_enablePersistence) {
+      unawaited(_restoreState());
+    }
   }
 
   final Ref _ref;
+  final bool _enablePersistence;
   static const _stateKey = 'block_puzzle_state';
   static const _bestKey = 'block_puzzle_best';
   static const _seedVersion = 1;
@@ -143,8 +176,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Timer? _pulseTimer;
   Timer? _errorTimer;
   Timer? _comboTimer;
+  final Random _random = Random();
 
   Future<void> _restoreState() async {
+    if (!_enablePersistence) return;
     final prefs = await SharedPreferences.getInstance();
     final best = prefs.getInt(_bestKey) ?? 0;
     final raw = prefs.getString(_stateKey);
@@ -201,17 +236,23 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         showPerfectText: false,
         showParticleBurst: false,
         pulseBoard: false,
-        showInvalidPlacement: false,
-        seedIntroPlayed: seedIntroPlayed,
-        comboCount: comboCount,
-        showComboText: false,
-      );
+      showInvalidPlacement: false,
+      seedIntroPlayed: seedIntroPlayed,
+      comboCount: comboCount,
+      showComboText: false,
+      levelMode: false,
+      level: 1,
+      levelGoals: const <BlockLevelGoal>[],
+      levelTargets: const <int, BlockLevelToken>{},
+      levelCompleted: false,
+    );
     } catch (_) {
       state = state.copyWith(bestScore: best);
     }
   }
 
   Future<void> _persistState() async {
+    if (!_enablePersistence) return;
     final prefs = await SharedPreferences.getInstance();
     final map = <String, dynamic>{
       'size': state.size,
@@ -242,6 +283,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   bool tryPlacePiece(String pieceId, int row, int col) {
     if (state.status == BlockGameStatus.failed) return false;
+    if (state.levelMode && state.levelCompleted) return false;
     if (row < 0 || col < 0 || row >= state.size || col >= state.size) {
       _triggerInvalidPlacement();
       return false;
@@ -299,6 +341,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showComboText: showCombo,
     );
     _persistState();
+    _handleLevelProgress(clearResult.removedIndices);
     if (showCombo) {
       unawaited(_ref.read(soundControllerProvider).playCombo());
     }
@@ -357,7 +400,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     if (clearedRows.isEmpty && clearedCols.isEmpty) {
-      return _ClearResult(cells: mutable, linesCleared: 0);
+      return _ClearResult(cells: mutable, linesCleared: 0, removedIndices: const <int>{});
     }
 
     final toRemove = <int>{};
@@ -373,7 +416,11 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
     toRemove.forEach(mutable.remove);
 
-    return _ClearResult(cells: mutable, linesCleared: clearedRows.length + clearedCols.length);
+    return _ClearResult(
+      cells: mutable,
+      linesCleared: clearedRows.length + clearedCols.length,
+      removedIndices: toRemove,
+    );
   }
 
   bool _hasAnyValidMove(List<PieceModel> pieces, Map<int, Color> filled) {
@@ -444,12 +491,55 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
     _comboTimer?.cancel();
+    if (state.levelMode) {
+      startLevelChallenge(level: state.level);
+      return;
+    }
     state = BlockPuzzleState.initial(size: size ?? state.size).copyWith(bestScore: state.bestScore);
     _persistState();
   }
 
   void changeBoardSize(int newSize) {
+    if (state.levelMode) return;
     restart(size: newSize);
+  }
+
+  void startLevelChallenge({int level = 1}) {
+    final normalized = level.clamp(1, 99);
+    final size = 8;
+    final goals = _buildLevelGoals(normalized);
+    final tokens = _generateLevelTargets(size: size, goals: goals, level: normalized);
+    final obstacles = _generateLevelObstacles(size: size, exclude: tokens.keys.toSet(), level: normalized);
+    final filled = <int, Color>{};
+    tokens.forEach((index, token) {
+      filled[index] = token.color;
+    });
+    for (final index in obstacles) {
+      filled[index] = const Color(0xFF9B6A3C);
+    }
+    state = BlockPuzzleState.initial(size: size).copyWith(
+      filledCells: filled,
+      seedIndices: {...tokens.keys, ...obstacles},
+      score: 0,
+      totalLinesCleared: 0,
+      status: BlockGameStatus.playing,
+      showPerfectText: false,
+      showParticleBurst: false,
+      pulseBoard: false,
+      showInvalidPlacement: false,
+      comboCount: 0,
+      showComboText: false,
+      levelMode: true,
+      level: normalized,
+      levelGoals: goals,
+      levelTargets: tokens,
+      levelCompleted: false,
+      bestScore: state.bestScore,
+    );
+  }
+
+  void nextLevelChallenge() {
+    startLevelChallenge(level: state.level + 1);
   }
 
   void markSeedIntroPlayed() {
@@ -459,6 +549,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   }
 
   void _handleGameOver(int score, int linesCleared) {
+    if (state.levelMode) {
+      state = state.copyWith(status: BlockGameStatus.failed);
+      return;
+    }
     final entry = BlockLeaderboardEntry(
       name: 'Blocker',
       score: score,
@@ -486,13 +580,102 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       state = state.copyWith(showInvalidPlacement: false);
     });
   }
+
+  List<BlockLevelGoal> _buildLevelGoals(int level) {
+    final tokens = List<BlockLevelToken>.from(BlockLevelToken.values)..shuffle(_random);
+    final progress = (level - 1).clamp(0, 98) / 98;
+    final base = 3 + (progress * 5).floor(); // 3 -> 8
+    final spread = 1 + (progress * 3).floor(); // 1 -> 4
+    final bonus = (level ~/ 15).clamp(0, 4);
+    return List.generate(3, (index) {
+      final token = tokens[index % tokens.length];
+      final required = (base + (index * spread) + bonus).clamp(3, 24);
+      return BlockLevelGoal(token: token, required: required, remaining: required);
+    });
+  }
+
+  Map<int, BlockLevelToken> _generateLevelTargets({
+    required int size,
+    required List<BlockLevelGoal> goals,
+    required int level,
+  }) {
+    final totalCells = size * size;
+    final indices = List<int>.generate(totalCells, (index) => index)..shuffle(_random);
+    final targets = <int, BlockLevelToken>{};
+    final padding = max(0, 4 - level ~/ 10);
+    var cursor = 0;
+    for (final goal in goals) {
+      final available = indices.length - cursor;
+      if (available <= 0) break;
+      final quota = min(goal.required + padding, available);
+      for (var i = 0; i < quota; i++) {
+        final idx = indices[cursor++];
+        targets[idx] = goal.token;
+      }
+    }
+    return targets;
+  }
+
+  Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int level}) {
+    final totalCells = size * size;
+    final indices = List<int>.generate(totalCells, (index) => index)..shuffle(_random);
+    final progress = (level - 1).clamp(0, 98) / 98;
+    final ratio = 0.12 + (progress * 0.15); // 12% -> 27%
+    final targetCount = max(4, (totalCells * ratio).round());
+    final obstacles = <int>{};
+    for (final index in indices) {
+      if (exclude.contains(index)) continue;
+      obstacles.add(index);
+      if (obstacles.length >= targetCount) break;
+    }
+    return obstacles;
+  }
+
+  void _handleLevelProgress(Set<int> removedIndices) {
+    if (!state.levelMode || removedIndices.isEmpty || state.levelTargets.isEmpty) {
+      return;
+    }
+    final targets = Map<int, BlockLevelToken>.from(state.levelTargets);
+    final removedCounts = <BlockLevelToken, int>{};
+    for (final index in removedIndices) {
+      final token = targets.remove(index);
+      if (token != null) {
+        removedCounts[token] = (removedCounts[token] ?? 0) + 1;
+      }
+    }
+    if (removedCounts.isEmpty) {
+      state = state.copyWith(levelTargets: targets);
+      return;
+    }
+    final updatedGoals = state.levelGoals
+        .map(
+          (goal) => removedCounts.containsKey(goal.token) ? goal.decrement(removedCounts[goal.token]!) : goal,
+        )
+        .toList();
+    final completed = updatedGoals.every((goal) => goal.isComplete);
+    state = state.copyWith(
+      levelGoals: updatedGoals,
+      levelTargets: targets,
+      levelCompleted: completed,
+      showPerfectText: completed || state.showPerfectText,
+      showParticleBurst: completed || state.showParticleBurst,
+    );
+    if (completed) {
+      unawaited(_ref.read(soundControllerProvider).playSuccess());
+    }
+  }
 }
 
 class _ClearResult {
-  const _ClearResult({required this.cells, required this.linesCleared});
+  const _ClearResult({
+    required this.cells,
+    required this.linesCleared,
+    required this.removedIndices,
+  });
 
   final Map<int, Color> cells;
   final int linesCleared;
+  final Set<int> removedIndices;
 }
 
 const List<Color> _seedBoardColors = [

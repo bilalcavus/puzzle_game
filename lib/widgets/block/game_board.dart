@@ -8,6 +8,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
+import '../../models/block_level_models.dart';
 import '../../providers/block_puzzle_provider.dart';
 import '../../providers/sound_provider.dart';
 import 'block_tile.dart';
@@ -17,9 +18,11 @@ class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
     super.key,
     required this.dimension,
+    required this.provider,
   });
 
   final double dimension;
+  final StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState> provider;
 
   @override
   ConsumerState<BlockGameBoard> createState() => _BlockGameBoardState();
@@ -40,7 +43,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(blockPuzzleProvider);
+    final state = ref.watch(widget.provider);
     _maybeStartSeedIntro(state);
     final board = SizedBox(
       key: _boardKey,
@@ -154,10 +157,13 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'No more moves',
+                    state.levelMode ? 'Level failed' : 'No more moves',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
                   ),
-                  IconButton(onPressed: () => ref.read(blockPuzzleProvider.notifier).restart(), icon: Icon(Iconsax.refresh)),
+                  IconButton(
+                    onPressed: () => ref.read(widget.provider.notifier).restart(),
+                    icon: const Icon(Iconsax.refresh),
+                  ),
                 ],
               ),
             ),
@@ -210,7 +216,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
         if (i == orderedSeeds.length - 1) {
           Future.delayed(const Duration(milliseconds: 360), () {
             if (!mounted) return;
-            ref.read(blockPuzzleProvider.notifier).markSeedIntroPlayed();
+            ref.read(widget.provider.notifier).markSeedIntroPlayed();
           });
         }
       });
@@ -268,6 +274,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                   pulse: false,
                   borderRadius: tileRadius,
                 ),
+                if (state.levelMode)
+                  _LevelTokenOverlay(
+                    token: state.levelTokenAt(row, col),
+                    cellSize: cellSize,
+                  ),
                 if (isPreviewCell)
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
@@ -312,7 +323,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   void _handleTap(TapUpDetails details, BlockPuzzleState state) {
     final coords = _coordsFromLocal(details.localPosition, state, strictBounds: true);
     if (coords == null) return;
-    final success = ref.read(blockPuzzleProvider.notifier).tryPlaceSelected(coords.row, coords.col);
+    final success = ref.read(widget.provider.notifier).tryPlaceSelected(coords.row, coords.col);
     if (success) {
       _handleFeedback();
     }
@@ -326,7 +337,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final local = renderBox.globalToLocal(details.offset);
     final coords = _coordsFromLocal(local, state);
     if (coords == null) return;
-    final success = ref.read(blockPuzzleProvider.notifier).tryPlacePiece(details.data.id, coords.row, coords.col);
+    final success = ref.read(widget.provider.notifier).tryPlacePiece(details.data.id, coords.row, coords.col);
     if (success) {
       _handleFeedback();
     }
@@ -423,8 +434,26 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     HapticFeedback.mediumImpact();
     final sounds = ref.read(soundControllerProvider);
     sounds.playBlockPlace();
-    if (ref.read(blockPuzzleProvider).showParticleBurst) {
+    if (ref.read(widget.provider).showParticleBurst) {
       sounds.playSuccess();
     }
+  }
+}
+
+class _LevelTokenOverlay extends StatelessWidget {
+  const _LevelTokenOverlay({required this.token, required this.cellSize});
+
+  final BlockLevelToken? token;
+  final double cellSize;
+
+  @override
+  Widget build(BuildContext context) {
+    if (token == null) return const SizedBox.shrink();
+    return Image.asset(
+      token!.asset,
+      width: cellSize * 0.6,
+      height: cellSize * 0.6,
+      fit: BoxFit.contain,
+    );
   }
 }

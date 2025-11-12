@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../views/block_puzzle/block_puzzle_view.dart';
-import '../../providers/block_puzzle_provider.dart';
+import '../../views/block_puzzle/block_mode_view.dart';
 import '../game/game_view.dart';
 
-class HomeView extends ConsumerWidget {
+class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -41,12 +39,9 @@ class HomeView extends ConsumerWidget {
               description: 'Drag wooden pieces onto a jungle board, clear rows for sparkles, and chase the perfect combo.',
               color: Colors.teal,
               icon: Icons.crop_square,
-              onPressed: () {
-                ref.read(blockPuzzleProvider.notifier).restart();
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BlockPuzzleGameView()),
-                );
-              },
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BlockPuzzleModeView()),
+              ),
             ),
           ],
         ),

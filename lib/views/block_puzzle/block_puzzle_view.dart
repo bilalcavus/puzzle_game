@@ -120,7 +120,7 @@ class BlockPuzzleBoardSection extends StatelessWidget {
         final lowerClamp = 360.0;
         final fallback = min(media.size.width * 0.82, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
-        final board = BlockGameBoard(dimension: boardDimension);
+        final board = BlockGameBoard(dimension: boardDimension, provider: blockPuzzleProvider);
         final sidePanel = BlockPuzzleSidePanel(
           selectedSize: state.size,
           onSizeChanged: onSizeChanged,

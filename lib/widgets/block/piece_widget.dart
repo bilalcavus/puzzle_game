@@ -33,9 +33,9 @@ class PieceWidget extends StatelessWidget {
       opacity: disabled ? 0.4 : 1,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding:  EdgeInsets.all(context.dynamicHeight(0.015)),
+        padding: EdgeInsets.all(context.dynamicHeight(0.015)),
         decoration: BoxDecoration(
-        color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
+          color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,
@@ -49,7 +49,7 @@ class PieceWidget extends StatelessWidget {
     if (disabled) {
       return child;
     }
-    //TODO Blokların sürüklenme mantığı 
+
     return GestureDetector(
       onTap: onSelect,
       child: Draggable<PieceModel>(
