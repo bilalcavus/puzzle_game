@@ -27,7 +27,7 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const double _padding = 10;
-  static const double _gap = 4;
+  static const double _gap = 3;
   final GlobalKey _boardKey = GlobalKey();
   int? _hoverRow;
   int? _hoverCol;

@@ -64,7 +64,7 @@ class BlockPuzzleGameView extends ConsumerWidget {
                           final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : media.size.width;
                           final isWide = maxWidth > 900;
                           final base = isWide ? maxWidth * 1.05 : maxWidth;
-                          final upperClamp = min(media.size.shortestSide * 0.98, 640.0);
+                          final upperClamp = min(media.size.shortestSide * 0.99, 640.0);
                           final lowerClamp = 360.0;
                           final fallback = min(media.size.width * 0.82, upperClamp);
                           final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();

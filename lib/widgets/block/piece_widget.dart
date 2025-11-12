@@ -19,11 +19,16 @@ class PieceWidget extends StatelessWidget {
   final VoidCallback onSelect;
   final bool isSelected;
   final bool disabled;
+  static const double _dragFeedbackScale = 1.1;
+  static const Offset _dragLiftOffset = Offset(0, -18);
 
   @override
   Widget build(BuildContext context) {
     final footprintWidth = (piece.width * cellSize) + 8;
     final footprintHeight = (piece.height * cellSize) + 8;
+    final dragCellSize = cellSize * _dragFeedbackScale;
+    final dragWidth = (piece.width * dragCellSize) + 8;
+    final dragHeight = (piece.height * dragCellSize) + 8;
     final content = _buildContent(footprintWidth, footprintHeight);
     final child = Opacity(
       opacity: disabled ? 0.4 : 1,
@@ -45,7 +50,7 @@ class PieceWidget extends StatelessWidget {
     if (disabled) {
       return child;
     }
-
+    //TODO Blokların sürüklenme mantığı 
     return GestureDetector(
       onTap: onSelect,
       child: Draggable<PieceModel>(
@@ -53,7 +58,15 @@ class PieceWidget extends StatelessWidget {
         dragAnchorStrategy: childDragAnchorStrategy,
         feedback: Material(
           color: Colors.transparent,
-          child: _buildContent(footprintWidth, footprintHeight, feedback: true),
+          child: Transform.translate(
+            offset: _dragLiftOffset,
+            child: _buildContent(
+              dragWidth,
+              dragHeight,
+              feedback: true,
+              cellSizeOverride: dragCellSize,
+            ),
+          ),
         ),
         childWhenDragging: Opacity(opacity: 0.3, child: child),
         onDragStarted: onSelect,
@@ -62,7 +75,8 @@ class PieceWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(double width, double height, {bool feedback = false}) {
+  Widget _buildContent(double width, double height, {bool feedback = false, double? cellSizeOverride}) {
+    final tileSize = cellSizeOverride ?? cellSize;
     return SizedBox(
       width: width,
       height: height,
@@ -70,10 +84,10 @@ class PieceWidget extends StatelessWidget {
         children: piece.blocks
             .map(
               (block) => Positioned(
-                top: block.rowOffset * cellSize,
-                left: block.colOffset * cellSize,
+                top: block.rowOffset * tileSize,
+                left: block.colOffset * tileSize,
                 child: BlockTile(
-                  size: cellSize,
+                  size: tileSize,
                   color: piece.color,
                   pulse: !feedback && isSelected,
                 ),
