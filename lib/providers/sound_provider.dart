@@ -82,7 +82,7 @@ class SoundController {
   }
 
   Future<void> playCombo() async {
-    await _playAsset(_comboPlayer, 'audio/combo.wav');
+    await _playAsset(_comboPlayer, 'audio/combo1.wav');
   }
 
   Future<void> playFailure() async {
