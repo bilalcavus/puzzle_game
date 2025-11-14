@@ -4,15 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puzzle_game/views/block_puzzle/block_puzzle_view.dart';
-
 import '../../core/extension/dynamic_size.dart';
 import '../../core/extension/sized_box.dart';
 import '../../models/block_level_models.dart';
 import '../../providers/block_puzzle_level_provider.dart';
 import '../../providers/block_puzzle_provider.dart';
 import '../../widgets/block/game_board.dart';
-import 'widgets/block_background.dart' hide BlockPuzzleBackground;
-import 'widgets/block_pieces_tray.dart';
 
 class BlockPuzzleLevelGameView extends ConsumerWidget {
   const BlockPuzzleLevelGameView({super.key});
@@ -55,15 +52,7 @@ class BlockPuzzleLevelGameView extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: state.level >= 99 ? null : () => notifier.nextLevelChallenge(),
                     icon: const Icon(Icons.arrow_forward),
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.selected)) return Colors.green.withOpacity(0.15);
-                        return Colors.green;
-                      }),
-                    ),
-                    label: Text(state.level >= 99 ? 'Tüm leveller tamamlandı' : 'Sonraki Level', style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.black
-                    )),
+                    label: Text(state.level >= 99 ? 'Tüm leveller tamamlandı' : 'Sonraki Level'),
                   ),
                 ],
               ],
@@ -110,13 +99,11 @@ class _LevelHeader extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Row(
-          children: goals
-              .map(
+          children: goals.map(
                 (goal) => Expanded(
                   child: _GoalBadge(goal: goal),
                 ),
-              )
-              .toList(),
+              ).toList(),
         ),
       ],
     );
@@ -131,36 +118,19 @@ class _GoalBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = 1 - (goal.remaining / goal.required);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: goal.token.color.withValues(alpha: 0.6)),
-      ),
-      child: Column(
-        children: [
-          Image.asset(goal.token.asset, width: 32, height: 32),
-          const SizedBox(height: 8),
-          Text(
-            goal.token.label,
-            style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${goal.remaining}/${goal.required}',
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
-          ),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: progress.clamp(0, 1),
-            backgroundColor: Colors.white12,
-            color: goal.token.color,
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Image.asset(goal.token.asset, width: 32, height: 32),
+        Text(
+          goal.token.label,
+          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        context.dynamicHeight(0.01).height,
+        Text(
+          '${goal.remaining}/${goal.required}',
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+        ),
+      ],
     );
   }
 }
@@ -181,7 +151,7 @@ class _LevelBoardSection extends StatelessWidget {
         final media = MediaQuery.of(context);
         final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : media.size.width;
         final base = maxWidth;
-        final upperClamp = min(media.size.shortestSide * 0.95, 520.0);
+        final upperClamp = min(media.size.shortestSide * 0.98, 520.0);
         final lowerClamp = 320.0;
         final fallback = min(media.size.width * 0.82, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
@@ -230,17 +200,8 @@ class _LevelCompletionOverlay extends StatelessWidget {
           const SizedBox(height: 16),
           TextButton(
             onPressed: onNext,
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) return Colors.green.withOpacity(0.15);
-              return Colors.green;
-            }),
-            foregroundColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) return Colors.green;
-              return Colors.white;
-            }),
-            ),
-            child: const Text('Devam et')),
+            child: const Text('Devam et'),
+          ),
         ],
       ),
     );

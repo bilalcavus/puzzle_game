@@ -208,12 +208,14 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     _seedVisible.clear();
     for (var i = 0; i < orderedSeeds.length; i++) {
       final delay = Duration(milliseconds: 28 * i);
+      final seedIndex = orderedSeeds[i];
+      final isLastSeed = i == orderedSeeds.length - 1;
       Future.delayed(delay, () {
         if (!mounted) return;
         setState(() {
-          _seedVisible.add(orderedSeeds[i]);
+          _seedVisible.add(seedIndex);
         });
-        if (i == orderedSeeds.length - 1) {
+        if (isLastSeed) {
           Future.delayed(const Duration(milliseconds: 360), () {
             if (!mounted) return;
             ref.read(widget.provider.notifier).markSeedIntroPlayed();

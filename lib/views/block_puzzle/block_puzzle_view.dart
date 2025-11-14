@@ -215,7 +215,7 @@ class BlockPuzzlePiecesTray extends StatelessWidget {
                 padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
                 child: PieceWidget(
                   piece: piece,
-                  cellSize: context.dynamicHeight(0.03),
+                  cellSize: context.dynamicHeight(0.035),
                   isSelected: state.selectedPieceId == piece.id,
                   disabled: state.status == BlockGameStatus.failed,
                   onSelect: () => onPieceSelect(piece.id),
