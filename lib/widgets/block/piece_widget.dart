@@ -39,7 +39,7 @@ class PieceWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,
-            width: 2,
+            width: 1,
           ),
         ),
         child: content,

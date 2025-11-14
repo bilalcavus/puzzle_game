@@ -8,7 +8,7 @@ class BlockTile extends StatelessWidget {
     required this.size,
     this.color,
     this.pulse = false,
-    this.borderRadius = 10,
+    this.borderRadius = 5,
   });
 
   final double size;

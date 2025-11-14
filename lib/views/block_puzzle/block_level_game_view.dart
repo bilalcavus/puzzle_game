@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:puzzle_game/views/block_puzzle/block_puzzle_view.dart';
 import '../../core/extension/dynamic_size.dart';
 import '../../core/extension/sized_box.dart';
@@ -93,7 +94,7 @@ class _LevelHeader extends StatelessWidget {
             IconButton(
               tooltip: 'Yeniden başlat',
               onPressed: onRestart,
-              icon: const Icon(Icons.refresh, color: Colors.white),
+              icon: const Icon(Iconsax.refresh, color: Colors.white),
             ),
           ],
         ),
@@ -157,7 +158,7 @@ class _LevelBoardSection extends StatelessWidget {
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
 
         return Stack(
-          alignment: Alignment.center,
+          alignment: Alignment.topCenter,
           children: [
             BlockGameBoard(
               dimension: boardDimension,
