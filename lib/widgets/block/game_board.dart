@@ -526,7 +526,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 }
 
-double _baseRadius(int size) => size >= 10 ? 6 : 8;
+double _baseRadius(int size) => size >= 10 ? 4 : 7;
 
 class _LevelTokenOverlay extends StatelessWidget {
   const _LevelTokenOverlay({required this.token, required this.cellSize});
