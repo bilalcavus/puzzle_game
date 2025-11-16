@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:kartal/kartal.dart';
+import 'package:puzzle_game/providers/sound_provider.dart';
 import 'package:puzzle_game/views/block_puzzle/block_puzzle_view.dart';
+import 'package:puzzle_game/widgets/block/score_panel.dart';
 import '../../core/extension/dynamic_size.dart';
 import '../../core/extension/sized_box.dart';
 import '../../models/block_level_models.dart';
@@ -25,7 +28,7 @@ class BlockPuzzleLevelGameView extends ConsumerWidget {
       body: BlockPuzzleBackground(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.all(context.dynamicHeight(0.02)),
+            padding: context.padding.low,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -33,6 +36,7 @@ class BlockPuzzleLevelGameView extends ConsumerWidget {
                   level: state.level,
                   goals: state.levelGoals,
                   onRestart: () => notifier.restart(),
+                  ref: ref,
                 ),
                 context.dynamicHeight(0.02).height,
                 Expanded(
@@ -62,12 +66,13 @@ class _LevelHeader extends StatelessWidget {
   const _LevelHeader({
     required this.level,
     required this.goals,
-    required this.onRestart,
+    required this.onRestart, required this.ref,
   });
 
   final int level;
   final List<BlockLevelGoal> goals;
   final VoidCallback onRestart;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -75,29 +80,86 @@ class _LevelHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Level $level',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            Padding(
+              padding: context.padding.horizontalLow,
+              child: Text(
+                'Level $level',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+            Spacer(),
             IconButton(
               tooltip: 'Yeniden başlat',
               onPressed: onRestart,
               icon: const Icon(Iconsax.refresh, color: Colors.white),
             ),
+            SettingsButton(onPressed: () => showSettingsSheet(context, ref)),
           ],
         ),
-        const SizedBox(height: 8),
+        context.dynamicHeight(0.01).height,
         Row(
           children: goals
               .map((goal) => Expanded(child: _GoalBadge(goal: goal)))
               .toList(),
         ),
       ],
+    );
+  }
+  void showSettingsSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF101315),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Consumer(
+          builder: (context, sheetRef, _) {
+            final settings = sheetRef.watch(soundSettingsProvider);
+            final notifier = sheetRef.read(soundSettingsProvider.notifier);
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Iconsax.setting, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Ayarlar',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SwitchListTile.adaptive(
+                    value: settings.musicEnabled,
+                    onChanged: notifier.setMusicEnabled,
+                    title: const Text('Arka plan müziği', style: TextStyle(color: Colors.white)),
+                    subtitle: const Text('Doğa sesli müzik sürekli oynasın', style: TextStyle(color: Colors.white70)),
+                    activeColor: Colors.tealAccent,
+                  ),
+                  SwitchListTile.adaptive(
+                    value: settings.effectsEnabled,
+                    onChanged: notifier.setEffectsEnabled,
+                    title: const Text('Efekt sesleri', style: TextStyle(color: Colors.white)),
+                    subtitle: const Text('Hamle ve başarı seslerini aç/kapat', style: TextStyle(color: Colors.white70)),
+                    activeColor: Colors.tealAccent,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -112,18 +174,21 @@ class _GoalBadge extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Image.asset(goal.token.asset, width: 32, height: 32),
+        Image.asset(goal.token.asset, width: context.dynamicWidth(0.2), height: context.dynamicHeight(0.05)),
         Text(
           goal.token.label,
           style: theme.textTheme.titleMedium?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
         context.dynamicHeight(0.01).height,
         Text(
           '${goal.remaining}/${goal.required}',
-          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w900
+          ),
         ),
       ],
     );
@@ -202,7 +267,7 @@ class _LevelCompletionOverlay extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 10, 42, 9).withValues(alpha: 0.95),
+            color: const Color.fromARGB(255, 14, 57, 13).withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(26),
             border: Border.all(color: Colors.black.withValues(alpha: 0.45), width: 2),
             boxShadow: const [
@@ -223,7 +288,7 @@ class _LevelCompletionOverlay extends StatelessWidget {
         Text(
           'Well Done!',
           style: theme.textTheme.displaySmall?.copyWith(
-            color: const Color(0xFFFFE29A),
+            color: const Color.fromARGB(255, 255, 154, 154),
             fontWeight: FontWeight.w900,
             letterSpacing: 1.4,
             shadows: const [Shadow(color: Colors.black54, blurRadius: 12)],
@@ -233,7 +298,7 @@ class _LevelCompletionOverlay extends StatelessWidget {
         FilledButton(
           onPressed: onNext,
           style: FilledButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 255, 126, 66),
+            backgroundColor: const Color.fromARGB(255, 5, 160, 20),
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
             elevation: 10,
@@ -272,37 +337,29 @@ class _CompletionTokenBadge extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 70,
-          height: 70,
+          width: context.dynamicHeight(0.08),
+          height: context.dynamicHeight(0.08),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(
               colors: [
-                Colors.white.withValues(alpha: 0.12),
-                accent.withValues(alpha: 0.92),
+                Colors.white.withValues(alpha: 0.05),
+                accent.withValues(alpha: 0.1),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.3), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: 0.45),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Image.asset(goal.token.asset),
+            padding: context.padding.low,
+            child: Image.asset(goal.token.asset,),
           ),
         ),
-        const SizedBox(height: 6),
+        context.dynamicHeight(0.015).height,
         Icon(
           Icons.check_rounded,
           color: completed ? const Color(0xFF63E76C) : Colors.white30,
-          size: 22,
+          size: context.dynamicHeight(0.03),
         ),
       ],
     );
