@@ -96,12 +96,22 @@ final List<List<List<int>>> _shapes = [
   ]
 ];
 
-List<PieceModel> generateRandomPieces([int count = 3]) {
-  return List<PieceModel>.generate(count, (_) => _createRandomPiece());
+const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];
+
+List<PieceModel> generateRandomPieces([int count = 4]) {
+  final target = count < 1 ? 1 : (count > 6 ? 6 : count);
+  final pieces = <PieceModel>[];
+  final easyShape = _shapes[_easyShapeIndices[_random.nextInt(_easyShapeIndices.length)]];
+  pieces.add(_createRandomPiece(easyShape));
+  while (pieces.length < target) {
+    pieces.add(_createRandomPiece());
+  }
+  pieces.shuffle(_random);
+  return pieces;
 }
 
-PieceModel _createRandomPiece() {
-  final shape = _shapes[_random.nextInt(_shapes.length)];
+PieceModel _createRandomPiece([List<List<int>>? shapeOverride]) {
+  final shape = shapeOverride ?? _shapes[_random.nextInt(_shapes.length)];
   final color = _palette[_random.nextInt(_palette.length)];
   final blocks = shape.map((pair) => BlockModel(rowOffset: pair[0], colOffset: pair[1])).toList();
   return PieceModel(

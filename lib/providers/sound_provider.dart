@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final soundControllerProvider = Provider<SoundController>((ref) {
@@ -9,10 +10,11 @@ final soundControllerProvider = Provider<SoundController>((ref) {
   return controller;
 });
 
-final soundSettingsProvider = StateNotifierProvider<SoundSettingsNotifier, SoundSettings>((ref) {
-  final controller = ref.read(soundControllerProvider);
-  return SoundSettingsNotifier(ref, controller);
-});
+final soundSettingsProvider =
+    StateNotifierProvider<SoundSettingsNotifier, SoundSettings>((ref) {
+      final controller = ref.read(soundControllerProvider);
+      return SoundSettingsNotifier(ref, controller);
+    });
 
 class SoundSettings {
   const SoundSettings({this.musicEnabled = true, this.effectsEnabled = true});
@@ -29,7 +31,8 @@ class SoundSettings {
 }
 
 class SoundSettingsNotifier extends StateNotifier<SoundSettings> {
-  SoundSettingsNotifier(this._ref, this._controller) : super(const SoundSettings()) {
+  SoundSettingsNotifier(this._ref, this._controller)
+    : super(const SoundSettings()) {
     unawaited(_controller.setMusicEnabled(state.musicEnabled));
     _controller.setEffectsEnabled(state.effectsEnabled);
   }
@@ -50,12 +53,19 @@ class SoundSettingsNotifier extends StateNotifier<SoundSettings> {
   }
 }
 
-class SoundController {
+class SoundController with WidgetsBindingObserver {
   SoundController() {
-    for (final player in [_slidePlayer, _blockPlayer, _successPlayer, _comboPlayer, _failPlayer]) {
+    for (final player in [
+      _slidePlayer,
+      _blockPlayer,
+      _successPlayer,
+      _comboPlayer,
+      _failPlayer,
+    ]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
     _backgroundPlayer.setReleaseMode(ReleaseMode.loop);
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_ensureBackgroundLoop());
   }
 
@@ -68,6 +78,7 @@ class SoundController {
   bool _backgroundStarted = false;
   bool _effectsEnabled = true;
   bool _musicEnabled = true;
+  bool _pausedForLifecycle = false;
 
   Future<void> playMove() async {
     await _playAsset(_slidePlayer, 'audio/move.wav');
@@ -82,7 +93,7 @@ class SoundController {
   }
 
   Future<void> playCombo() async {
-    await _playAsset(_comboPlayer, 'audio/combo.wav');
+    await _playAsset(_comboPlayer, 'audio/combo1.wav');
   }
 
   Future<void> playFailure() async {
@@ -109,6 +120,7 @@ class SoundController {
     } else {
       await _backgroundPlayer.stop();
       _backgroundStarted = false;
+      _pausedForLifecycle = false;
     }
   }
 
@@ -123,6 +135,45 @@ class SoundController {
     }
   }
 
+  Future<void> _pauseBackgroundForLifecycle() async {
+    if (!_backgroundStarted || _pausedForLifecycle) return;
+    _pausedForLifecycle = true;
+    try {
+      await _backgroundPlayer.pause();
+    } catch (_) {
+      // ignore runtime audio issues
+    }
+  }
+
+  Future<void> _resumeBackgroundAfterLifecycle() async {
+    if (!_pausedForLifecycle) return;
+    _pausedForLifecycle = false;
+    if (!_musicEnabled) return;
+    try {
+      await _backgroundPlayer.resume();
+    } catch (_) {
+      _backgroundStarted = false;
+      await _ensureBackgroundLoop();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        unawaited(_resumeBackgroundAfterLifecycle());
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        unawaited(_pauseBackgroundForLifecycle());
+        break;
+      case AppLifecycleState.hidden:
+        unawaited(_pauseBackgroundForLifecycle());
+        break;
+    }
+  }
+
   Future<void> _playAsset(AudioPlayer player, String asset) async {
     if (!_effectsEnabled) return;
     try {
@@ -134,6 +185,7 @@ class SoundController {
   }
 
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _slidePlayer.dispose();
     _blockPlayer.dispose();
     _successPlayer.dispose();

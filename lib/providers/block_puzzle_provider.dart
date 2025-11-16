@@ -13,6 +13,8 @@ import 'block_leaderboard_provider.dart';
 import '../core/utils/block_piece_factory.dart';
 import 'sound_provider.dart';
 
+const String kBlockLevelProgressKey = 'block_level_progress';
+
 final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>(
   (ref) => BlockPuzzleNotifier(ref),
 );
@@ -584,12 +586,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   List<BlockLevelGoal> _buildLevelGoals(int level) {
     final tokens = List<BlockLevelToken>.from(BlockLevelToken.values)..shuffle(_random);
     final progress = (level - 1).clamp(0, 98) / 98;
-    final base = 3 + (progress * 5).floor(); // 3 -> 8
-    final spread = 1 + (progress * 3).floor(); // 1 -> 4
-    final bonus = (level ~/ 15).clamp(0, 4);
+    final base = 2 + (progress * 3).floor(); // 2 -> 5
+    final spread = 1 + (progress * 2).floor(); // 1 -> 3
+    final bonus = (level ~/ 20).clamp(0, 3);
     return List.generate(3, (index) {
       final token = tokens[index % tokens.length];
-      final required = (base + (index * spread) + bonus).clamp(3, 24);
+      final required = (base + (index * spread) + bonus).clamp(2, 18);
       return BlockLevelGoal(token: token, required: required, remaining: required);
     });
   }
@@ -599,18 +601,23 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     required List<BlockLevelGoal> goals,
     required int level,
   }) {
-    final totalCells = size * size;
-    final indices = List<int>.generate(totalCells, (index) => index)..shuffle(_random);
     final targets = <int, BlockLevelToken>{};
-    final padding = max(0, 4 - level ~/ 10);
-    var cursor = 0;
+    final padding = max(2, 6 - level ~/ 15);
+    final used = <int>{};
     for (final goal in goals) {
-      final available = indices.length - cursor;
-      if (available <= 0) break;
-      final quota = min(goal.required + padding, available);
-      for (var i = 0; i < quota; i++) {
-        final idx = indices[cursor++];
-        targets[idx] = goal.token;
+      final remaining = (size * size) - used.length;
+      if (remaining <= 0) break;
+      final quota = min(goal.required + padding, remaining);
+      final cluster = _claimClusterIndices(
+        size: size,
+        count: quota,
+        used: used,
+        random: _random,
+        scatterProbability: 0.45,
+      );
+      for (final index in cluster) {
+        targets[index] = goal.token;
+        used.add(index);
       }
     }
     return targets;
@@ -618,16 +625,18 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int level}) {
     final totalCells = size * size;
-    final indices = List<int>.generate(totalCells, (index) => index)..shuffle(_random);
     final progress = (level - 1).clamp(0, 98) / 98;
-    final ratio = 0.12 + (progress * 0.15); // 12% -> 27%
-    final targetCount = max(4, (totalCells * ratio).round());
-    final obstacles = <int>{};
-    for (final index in indices) {
-      if (exclude.contains(index)) continue;
-      obstacles.add(index);
-      if (obstacles.length >= targetCount) break;
-    }
+    final ratio = 0.08 + (progress * 0.12); // 8% -> 20%
+    final targetCount = max(3, (totalCells * ratio).round());
+    final used = exclude.toSet();
+    final cluster = _claimClusterIndices(
+      size: size,
+      count: targetCount,
+      used: used,
+      random: _random,
+      scatterProbability: 0.4,
+    );
+    final obstacles = cluster.toSet();
     return obstacles;
   }
 
@@ -653,6 +662,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         )
         .toList();
     final completed = updatedGoals.every((goal) => goal.isComplete);
+    final unlockedLevel = state.level + 1;
     state = state.copyWith(
       levelGoals: updatedGoals,
       levelTargets: targets,
@@ -662,6 +672,16 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     );
     if (completed) {
       unawaited(_ref.read(soundControllerProvider).playSuccess());
+      unawaited(_updateLevelProgress(unlockedLevel));
+    }
+  }
+
+  Future<void> _updateLevelProgress(int unlockedLevel) async {
+    final prefs = await SharedPreferences.getInstance();
+    final current = prefs.getInt(kBlockLevelProgressKey) ?? 1;
+    final target = unlockedLevel.clamp(1, 99);
+    if (target > current) {
+      await prefs.setInt(kBlockLevelProgressKey, target);
     }
   }
 }
@@ -686,52 +706,168 @@ const List<Color> _seedBoardColors = [
   Color(0xFFD4AF8A),
 ];
 
+List<int> _adjacentIndices(int index, int size, {bool includeDiagonals = false}) {
+  final row = index ~/ size;
+  final col = index % size;
+  final neighbors = <int>[];
+  void tryAdd(int r, int c) {
+    if (r < 0 || c < 0 || r >= size || c >= size) return;
+    neighbors.add(r * size + c);
+  }
+
+  tryAdd(row - 1, col);
+  tryAdd(row + 1, col);
+  tryAdd(row, col - 1);
+  tryAdd(row, col + 1);
+  if (includeDiagonals) {
+    tryAdd(row - 1, col - 1);
+    tryAdd(row - 1, col + 1);
+    tryAdd(row + 1, col - 1);
+    tryAdd(row + 1, col + 1);
+  }
+  return neighbors;
+}
+
+List<int> _claimClusterIndices({
+  required int size,
+  required int count,
+  required Set<int> used,
+  required Random random,
+  double scatterProbability = 0.35,
+  bool allowDiagonalAdjacency = false,
+}) {
+  if (count <= 0) return const [];
+  final totalCells = size * size;
+  if (used.length >= totalCells) return const [];
+  final scatter = scatterProbability.clamp(0.0, 1.0).toDouble();
+  final claimed = <int>[];
+  final visited = <int>{};
+  final available = List<int>.generate(totalCells, (index) => index)..shuffle(random);
+  var availableCursor = 0;
+  final frontier = <int>[];
+
+  int? nextSeed() {
+    while (availableCursor < available.length) {
+      final candidate = available[availableCursor++];
+      if (!used.contains(candidate) && !claimed.contains(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  void enqueueSeed(int? seed) {
+    if (seed == null) return;
+    if (used.contains(seed) || claimed.contains(seed) || visited.contains(seed)) return;
+    frontier.add(seed);
+  }
+
+  void ensureSeed() {
+    if (frontier.isEmpty) {
+      enqueueSeed(nextSeed());
+    }
+  }
+
+  enqueueSeed(nextSeed());
+
+  while (claimed.length < count) {
+    ensureSeed();
+    if (frontier.isEmpty) break;
+    final current = frontier.removeAt(random.nextInt(frontier.length));
+    if (used.contains(current) || !visited.add(current)) continue;
+    claimed.add(current);
+    final neighbors = _adjacentIndices(current, size, includeDiagonals: allowDiagonalAdjacency)..shuffle(random);
+    for (final neighbor in neighbors) {
+      if (used.contains(neighbor) || visited.contains(neighbor) || claimed.contains(neighbor)) continue;
+      if (random.nextDouble() >= scatter) {
+        frontier.add(neighbor);
+      } else {
+        enqueueSeed(nextSeed());
+      }
+    }
+    if (random.nextDouble() < scatter) {
+      enqueueSeed(nextSeed());
+    }
+  }
+
+  return claimed;
+}
+
 Map<int, Color> _generateInitialFilledCells(int size) {
   if (size <= 0) return {};
   final total = size * size;
   final random = Random(DateTime.now().millisecondsSinceEpoch);
-  final empties = <int>{};
+  final minFilled = size * 4;
+  final maxFilled = (total * 0.6).round();
+  final desired = (total * 0.45).round();
+  final targetFilled = min(maxFilled, max(minFilled, desired));
+  final clusterSeedCount = max(3, size ~/ 2);
+  final clusterMinSize = max(6, size);
+  final clusterMaxSize = max(clusterMinSize + 4, size * 2);
+  final filled = <int>{};
 
-  void markEmpty(int row, int col) {
-    if (row < 0 || col < 0 || row >= size || col >= size) return;
-    empties.add(row * size + col);
-  }
-
-  for (var row = 0; row < size; row++) {
-    final col = random.nextInt(size);
-    markEmpty(row, col);
-    if (random.nextBool()) {
-      markEmpty(row, (col + 1) % size);
-    }
-  }
-
-  for (var col = 0; col < size; col++) {
-    final row = random.nextInt(size);
-    markEmpty(row, col);
-    if (random.nextBool()) {
-      markEmpty((row + 1) % size, col);
-    }
-  }
-  //TODO boş gelen kutuların sayısı
-  final targetEmpty = max((total * 0.65).round(), size * 6);
-  while (empties.length < targetEmpty) {
-    final index = random.nextInt(total);
+  List<int> neighborsOf(int index) {
     final row = index ~/ size;
     final col = index % size;
-    markEmpty(row, col);
-    if (random.nextBool()) {
-      markEmpty(row, (col + 1) % size);
+    final neighbors = <int>[];
+    for (var dr = -1; dr <= 1; dr++) {
+      for (var dc = -1; dc <= 1; dc++) {
+        if (dr == 0 && dc == 0) continue;
+        final nr = row + dr;
+        final nc = col + dc;
+        if (nr < 0 || nc < 0 || nr >= size || nc >= size) continue;
+        neighbors.add(nr * size + nc);
+      }
     }
-    if (random.nextInt(3) == 0) {
-      markEmpty((row + 1) % size, col);
+    return neighbors;
+  }
+
+  void growCluster(int start) {
+    if (filled.contains(start)) return;
+    final span = clusterMaxSize - clusterMinSize;
+    final clusterTarget = min(
+      targetFilled - filled.length,
+      clusterMinSize + (span <= 0 ? 0 : random.nextInt(span + 1)),
+    );
+    final queue = <int>[start];
+    final visited = <int>{};
+    var produced = 0;
+    while (queue.isNotEmpty && filled.length < targetFilled && produced < clusterTarget) {
+      final current = queue.removeAt(random.nextInt(queue.length));
+      if (!visited.add(current) || filled.contains(current)) continue;
+      filled.add(current);
+      produced++;
+      final neighbors = neighborsOf(current)..shuffle(random);
+      for (final neighbor in neighbors) {
+        if (!visited.contains(neighbor) && random.nextDouble() > 0.35) {
+          queue.add(neighbor);
+        }
+      }
+    }
+  }
+
+  for (var i = 0; i < clusterSeedCount && filled.length < targetFilled; i++) {
+    growCluster(random.nextInt(total));
+  }
+
+  while (filled.length < targetFilled) {
+    if (filled.isEmpty) {
+      filled.add(random.nextInt(total));
+      continue;
+    }
+    final anchor = filled.elementAt(random.nextInt(filled.length));
+    final neighbors = neighborsOf(anchor);
+    if (neighbors.isEmpty) {
+      filled.add(random.nextInt(total));
+    } else {
+      neighbors.shuffle(random);
+      filled.add(neighbors.first);
     }
   }
 
   final cells = <int, Color>{};
-  for (var index = 0; index < total; index++) {
-    if (empties.contains(index)) continue;
+  for (final index in filled) {
     cells[index] = _seedBoardColors[random.nextInt(_seedBoardColors.length)];
   }
-
   return cells;
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'block_level_game_view.dart';
 import 'block_puzzle_view.dart';
+import 'level_path_view.dart';
 
 class BlockPuzzleModeView extends StatelessWidget {
   const BlockPuzzleModeView({super.key});
@@ -36,7 +36,7 @@ class BlockPuzzleModeView extends StatelessWidget {
               icon: Icons.auto_awesome_motion,
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BlockPuzzleLevelGameView()),
+                  MaterialPageRoute(builder: (_) => const LevelPathView()),
                 );
               },
             ),
