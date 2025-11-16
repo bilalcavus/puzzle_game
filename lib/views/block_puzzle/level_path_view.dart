@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kartal/kartal.dart';
+import 'package:puzzle_game/core/extension/dynamic_size.dart';
+import 'package:puzzle_game/core/extension/sized_box.dart';
+import 'package:puzzle_game/views/block_puzzle/block_puzzle_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/block_puzzle_level_provider.dart';
@@ -72,11 +76,8 @@ class LevelPathView extends ConsumerWidget {
                   children: [
                     _LevelPathHeader(onBack: () => Navigator.of(context).pop()),
                     const SizedBox(height: 24),
-                    _TrophyIntro(
-                      unlockedLevel: unlockedLevel,
-                      totalLevels: _totalLevels,
-                    ),
-                    const SizedBox(height: 24),
+                    _TrophyIntro(),
+                    context.dynamicHeight(0.02).height,
                     Expanded(
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.only(bottom: 24),
@@ -148,30 +149,31 @@ class _LevelPathBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFd79b58), Color(0xFFa2612e)],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.08,
-              child: Image.asset(
-                'assets/images/wood-asset.png',
-                repeat: ImageRepeat.repeat,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          child,
-        ],
-      ),
-    );
+    return BlockPuzzleBackground(child: child);
+    // DecoratedBox(
+    //   decoration: const BoxDecoration(
+    //     gradient: LinearGradient(
+    //       begin: Alignment.topCenter,
+    //       end: Alignment.bottomCenter,
+    //       colors: [Color(0xFFd79b58), Color(0xFFa2612e)],
+    //     ),
+    //   ),
+    //   child: Stack(
+    //     children: [
+    //       Positioned.fill(
+    //         child: Opacity(
+    //           opacity: 0.08,
+    //           child: Image.asset(
+    //             'assets/images/wood-asset.png',
+    //             repeat: ImageRepeat.repeat,
+    //             fit: BoxFit.cover,
+    //           ),
+    //         ),
+    //       ),
+    //       child,
+    //     ],
+    //   ),
+    // );
   }
 }
 
@@ -229,51 +231,35 @@ class _CircleButton extends StatelessWidget {
 }
 
 class _TrophyIntro extends StatelessWidget {
-  const _TrophyIntro({required this.unlockedLevel, required this.totalLevels});
+  const _TrophyIntro();
 
-  final int unlockedLevel;
-  final int totalLevels;
+  
 
   @override
   Widget build(BuildContext context) {
-    final progress = unlockedLevel / totalLevels;
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: const Color(0x4D4a2a13),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFe9c896), width: 2),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x33000000),
-                blurRadius: 10,
-                offset: Offset(0, 6),
-              ),
-            ],
+    return Container(
+      padding: context.padding.low,
+      decoration: BoxDecoration(
+        color: const Color(0x4D4a2a13),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFe9c896), width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 10,
+            offset: Offset(0, 6),
           ),
-          child: const Icon(
-            Icons.emoji_events_rounded,
-            color: Color(0xFFFFE299),
-            size: 32,
-          ),
-        ),
-      ],
+        ],
+      ),
+      child:  Icon(
+        Icons.emoji_events_rounded,
+        color: Color(0xFFFFE299),
+        size: context.dynamicHeight(0.05),
+      ),
     );
   }
 }
 
-class _BoardCard extends StatelessWidget {
-  const _BoardCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return child;
-  }
-}
 
 class _AdventureBoard extends StatelessWidget {
   const _AdventureBoard({
@@ -354,7 +340,6 @@ class _LevelTile extends StatelessWidget {
     final completed = level! < unlockedLevel;
     final current = level == currentLevel;
     final double badgePadding = size * 0.12;
-    final double topIconSize = size * 0.34;
     final double levelFontSize = size * 0.4;
     final double bottomIconSize = size * 0.22;
     final double spacing = size * 0.08;

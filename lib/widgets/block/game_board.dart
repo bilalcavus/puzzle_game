@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kartal/kartal.dart';
+import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
 import '../../models/block_level_models.dart';
@@ -254,9 +255,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return Container(
       width: widget.dimension,
       height: widget.dimension,
-      padding: const EdgeInsets.all(_padding),
+      padding: EdgeInsets.all(context.dynamicHeight(0.01)),
       decoration: BoxDecoration(
-        borderRadius: context.border.normalBorderRadius,
+        borderRadius: context.border.lowBorderRadius,
         gradient: const LinearGradient(
           colors: [Color(0xFF5C3B1E), Color(0xFF3B240F)],
           begin: Alignment.topLeft,
