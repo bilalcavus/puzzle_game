@@ -585,13 +585,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   List<BlockLevelGoal> _buildLevelGoals(int level) {
     final tokens = List<BlockLevelToken>.from(BlockLevelToken.values)..shuffle(_random);
-    final progress = (level - 1).clamp(0, 98) / 98;
-    final base = 2 + (progress * 3).floor(); // 2 -> 5
-    final spread = 1 + (progress * 2).floor(); // 1 -> 3
-    final bonus = (level ~/ 20).clamp(0, 3);
-    return List.generate(3, (index) {
+    const baseRequirements = [1, 2, 2];
+    final adjusted = List<int>.from(baseRequirements);
+    final increments = max(0, level - 1);
+    for (var i = 0; i < increments; i++) {
+      adjusted[i % adjusted.length]++;
+    }
+    return List.generate(adjusted.length, (index) {
       final token = tokens[index % tokens.length];
-      final required = (base + (index * spread) + bonus).clamp(2, 18);
+      final required = adjusted[index];
       return BlockLevelGoal(token: token, required: required, remaining: required);
     });
   }

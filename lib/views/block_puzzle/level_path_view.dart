@@ -187,20 +187,16 @@ class _LevelPathHeader extends StatelessWidget {
     return Row(
       children: [
         _CircleButton(icon: Icons.arrow_back_ios_new, onPressed: onBack),
-        const Expanded(
-          child: Center(
-            child: Text(
-              'Adventure',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
-            ),
+        context.dynamicWidth(0.23).width,
+        Center(
+          child: Text(
+            'Adventure',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            )
           ),
         ),
-        _CircleButton(icon: Icons.grid_view_rounded, onPressed: () {}),
       ],
     );
   }
