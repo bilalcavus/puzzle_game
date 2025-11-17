@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../views/home/home_view.dart';
+import 'package:puzzle_game/views/splash/splash_view.dart';
 import 'app_theme.dart';
 
 class PuzzleApp extends StatelessWidget {
@@ -14,7 +13,7 @@ class PuzzleApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const HomeView(),
+      home: const SplashView(),
     );
   }
 }

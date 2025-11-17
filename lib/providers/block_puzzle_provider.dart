@@ -313,6 +313,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final clearResult = _clearCompletedLines(updatedCells);
     final linesCleared = clearResult.linesCleared;
     final earnedCombo = linesCleared > 0;
+    final triggeredPerfect = linesCleared >= 2;
     final nextCombo = earnedCombo ? state.comboCount + 1 : 0;
     final showCombo = earnedCombo && nextCombo >= 2;
     final placementScore = piece.cellCount * 5;
@@ -335,7 +336,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       bestScore: newBest,
       totalLinesCleared: totalLines,
       status: nextStatus,
-      showPerfectText: linesCleared >= 2,
+      showPerfectText: triggeredPerfect,
       showParticleBurst: linesCleared > 0,
       pulseBoard: true,
       showInvalidPlacement: false,
@@ -343,6 +344,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showComboText: showCombo,
     );
     _persistState();
+    if (triggeredPerfect) {
+      unawaited(_ref.read(soundControllerProvider).playPerfect());
+    }
     _handleLevelProgress(clearResult.removedIndices);
     if (showCombo) {
       unawaited(_ref.read(soundControllerProvider).playCombo());
@@ -585,13 +589,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   List<BlockLevelGoal> _buildLevelGoals(int level) {
     final tokens = List<BlockLevelToken>.from(BlockLevelToken.values)..shuffle(_random);
-    final progress = (level - 1).clamp(0, 98) / 98;
-    final base = 2 + (progress * 3).floor(); // 2 -> 5
-    final spread = 1 + (progress * 2).floor(); // 1 -> 3
-    final bonus = (level ~/ 20).clamp(0, 3);
-    return List.generate(3, (index) {
+    const baseRequirements = [1, 2, 2];
+    final adjusted = List<int>.from(baseRequirements);
+    final increments = max(0, level - 1);
+    for (var i = 0; i < increments; i++) {
+      adjusted[i % adjusted.length]++;
+    }
+    return List.generate(adjusted.length, (index) {
       final token = tokens[index % tokens.length];
-      final required = (base + (index * spread) + bonus).clamp(2, 18);
+      final required = adjusted[index];
       return BlockLevelGoal(token: token, required: required, remaining: required);
     });
   }

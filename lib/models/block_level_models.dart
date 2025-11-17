@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum BlockLevelToken { leaf, wood, axe }
+enum BlockLevelToken { leaf, wood, mushroom }
 
 extension BlockLevelTokenVisuals on BlockLevelToken {
   String get asset {
@@ -9,18 +9,18 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
         return 'assets/images/block_leaf.png';
       case BlockLevelToken.wood:
         return 'assets/images/block_wood.png';
-      case BlockLevelToken.axe:
-        return 'assets/images/block_axe.png';
+      case BlockLevelToken.mushroom:
+        return 'assets/images/mushroom.png';
     }
   }
 
   Color get color {
     switch (this) {
       case BlockLevelToken.leaf:
-        return const Color(0xFF6BD18A);
+        return const Color.fromARGB(255, 113, 192, 97);
       case BlockLevelToken.wood:
         return const Color(0xFFC47A47);
-      case BlockLevelToken.axe:
+      case BlockLevelToken.mushroom:
         return const Color(0xFFFFC857);
     }
   }
@@ -31,8 +31,8 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
         return 'Leaf';
       case BlockLevelToken.wood:
         return 'Log';
-      case BlockLevelToken.axe:
-        return 'Axe';
+      case BlockLevelToken.mushroom:
+        return 'Mushroom';
     }
   }
 }
