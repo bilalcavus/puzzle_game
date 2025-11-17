@@ -313,6 +313,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final clearResult = _clearCompletedLines(updatedCells);
     final linesCleared = clearResult.linesCleared;
     final earnedCombo = linesCleared > 0;
+    final triggeredPerfect = linesCleared >= 2;
     final nextCombo = earnedCombo ? state.comboCount + 1 : 0;
     final showCombo = earnedCombo && nextCombo >= 2;
     final placementScore = piece.cellCount * 5;
@@ -335,7 +336,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       bestScore: newBest,
       totalLinesCleared: totalLines,
       status: nextStatus,
-      showPerfectText: linesCleared >= 2,
+      showPerfectText: triggeredPerfect,
       showParticleBurst: linesCleared > 0,
       pulseBoard: true,
       showInvalidPlacement: false,
@@ -343,6 +344,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showComboText: showCombo,
     );
     _persistState();
+    if (triggeredPerfect) {
+      unawaited(_ref.read(soundControllerProvider).playPerfect());
+    }
     _handleLevelProgress(clearResult.removedIndices);
     if (showCombo) {
       unawaited(_ref.read(soundControllerProvider).playCombo());

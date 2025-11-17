@@ -61,6 +61,7 @@ class SoundController with WidgetsBindingObserver {
       _successPlayer,
       _comboPlayer,
       _failPlayer,
+      _perfectPlayer,
     ]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
@@ -72,6 +73,7 @@ class SoundController with WidgetsBindingObserver {
   final AudioPlayer _slidePlayer = AudioPlayer();
   final AudioPlayer _blockPlayer = AudioPlayer();
   final AudioPlayer _successPlayer = AudioPlayer();
+  final AudioPlayer _perfectPlayer = AudioPlayer();
   final AudioPlayer _comboPlayer = AudioPlayer();
   final AudioPlayer _failPlayer = AudioPlayer();
   final AudioPlayer _backgroundPlayer = AudioPlayer();
@@ -92,6 +94,10 @@ class SoundController with WidgetsBindingObserver {
     await _playAsset(_successPlayer, 'audio/success.wav');
   }
 
+  Future<void> playPerfect() async {
+    await _playAsset(_perfectPlayer, 'audio/perfect.wav');
+  }
+
   Future<void> playCombo() async {
     await _playAsset(_comboPlayer, 'audio/combo1.wav');
   }
@@ -109,6 +115,7 @@ class SoundController with WidgetsBindingObserver {
         _successPlayer.stop(),
         _comboPlayer.stop(),
         _failPlayer.stop(),
+        _perfectPlayer.stop(),
       ]);
     }
   }
@@ -191,6 +198,7 @@ class SoundController with WidgetsBindingObserver {
     _successPlayer.dispose();
     _comboPlayer.dispose();
     _failPlayer.dispose();
+    _perfectPlayer.dispose();
     _backgroundPlayer.dispose();
   }
 }

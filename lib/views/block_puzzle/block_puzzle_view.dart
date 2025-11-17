@@ -81,6 +81,17 @@ class BlockPuzzleBackground extends StatelessWidget {
             ),
           ),
           Positioned(
+            top: context.dynamicHeight(0.3),
+            left: context.dynamicWidth(0.15) * -0.5,
+            child: Opacity(
+              opacity: 0.7,
+              child: Image.asset(
+                'assets/images/wind.png',
+                width: context.dynamicWidth(0.25),
+              ),
+            ),
+          ),
+          Positioned(
             bottom: context.dynamicHeight(0.01) * -1,
             right: context.dynamicWidth(0.3),
             child: Opacity(

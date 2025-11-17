@@ -17,7 +17,7 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
   Color get color {
     switch (this) {
       case BlockLevelToken.leaf:
-        return const Color(0xFF6BD18A);
+        return const Color.fromARGB(255, 113, 192, 97);
       case BlockLevelToken.wood:
         return const Color(0xFFC47A47);
       case BlockLevelToken.mushroom:

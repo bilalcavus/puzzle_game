@@ -35,7 +35,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 76, 52, 40),
+      backgroundColor: Color(0xFF1E1F26),
       body: SafeArea(
         child: Center(
           child: Column(
@@ -47,7 +47,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
                 fit: BoxFit.contain,
               ),
               context.dynamicHeight(0.04).height,
-              CircularProgressIndicator(color: Colors.green.shade900, )
+              // CircularProgressIndicator(color: Colors.green.shade900)
             ],
           ),
         ),
