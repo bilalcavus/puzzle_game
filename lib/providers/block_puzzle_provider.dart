@@ -669,6 +669,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         .toList();
     final completed = updatedGoals.every((goal) => goal.isComplete);
     final unlockedLevel = state.level + 1;
+    final alreadyCompleted = state.levelCompleted;
     state = state.copyWith(
       levelGoals: updatedGoals,
       levelTargets: targets,
@@ -676,8 +677,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showPerfectText: completed || state.showPerfectText,
       showParticleBurst: completed || state.showParticleBurst,
     );
-    if (completed) {
-      unawaited(_ref.read(soundControllerProvider).playSuccess());
+    if (completed && !alreadyCompleted) {
+      final soundController = _ref.read(soundControllerProvider);
+      unawaited(soundController.playSuccess());
+      unawaited(soundController.playLevelUp());
       unawaited(_updateLevelProgress(unlockedLevel));
     }
   }

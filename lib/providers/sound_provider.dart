@@ -62,6 +62,7 @@ class SoundController with WidgetsBindingObserver {
       _comboPlayer,
       _failPlayer,
       _perfectPlayer,
+      _levelPlayer,
     ]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
@@ -75,6 +76,7 @@ class SoundController with WidgetsBindingObserver {
   final AudioPlayer _successPlayer = AudioPlayer();
   final AudioPlayer _perfectPlayer = AudioPlayer();
   final AudioPlayer _comboPlayer = AudioPlayer();
+  final AudioPlayer _levelPlayer = AudioPlayer();
   final AudioPlayer _failPlayer = AudioPlayer();
   final AudioPlayer _backgroundPlayer = AudioPlayer();
   bool _backgroundStarted = false;
@@ -91,7 +93,7 @@ class SoundController with WidgetsBindingObserver {
   }
 
   Future<void> playSuccess() async {
-    await _playAsset(_successPlayer, 'audio/success.wav');
+    await _playAsset(_successPlayer, 'audio/success_bell-6776.mp3');
   }
 
   Future<void> playPerfect() async {
@@ -100,6 +102,10 @@ class SoundController with WidgetsBindingObserver {
 
   Future<void> playCombo() async {
     await _playAsset(_comboPlayer, 'audio/combo1.wav');
+  }
+
+  Future<void> playLevelUp() async {
+    await _playAsset(_levelPlayer, 'audio/level_sound.mp3');
   }
 
   Future<void> playFailure() async {
@@ -114,6 +120,7 @@ class SoundController with WidgetsBindingObserver {
         _blockPlayer.stop(),
         _successPlayer.stop(),
         _comboPlayer.stop(),
+        _levelPlayer.stop(),
         _failPlayer.stop(),
         _perfectPlayer.stop(),
       ]);
@@ -197,6 +204,7 @@ class SoundController with WidgetsBindingObserver {
     _blockPlayer.dispose();
     _successPlayer.dispose();
     _comboPlayer.dispose();
+    _levelPlayer.dispose();
     _failPlayer.dispose();
     _perfectPlayer.dispose();
     _backgroundPlayer.dispose();
