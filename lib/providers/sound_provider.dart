@@ -149,6 +149,10 @@ class SoundController with WidgetsBindingObserver {
     }
   }
 
+  Future<void> ensureBackgroundMusicStarted() async {
+    await _ensureBackgroundLoop();
+  }
+
   Future<void> _pauseBackgroundForLifecycle() async {
     if (!_backgroundStarted || _pausedForLifecycle) return;
     _pausedForLifecycle = true;
