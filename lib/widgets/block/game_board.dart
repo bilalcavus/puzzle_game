@@ -14,6 +14,7 @@ import '../../providers/block_puzzle_provider.dart';
 import '../../providers/sound_provider.dart';
 import 'block_tile.dart';
 import 'particle_burst.dart';
+import 'block_shatter_effect.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
@@ -252,6 +253,10 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final pieceRadius = max(baseRadius - 3, 4.0);
     final innerScale = state.size >= 10 ? 0.88 : 0.9;
     final blockSize = cellSize * innerScale;
+    final explosionMap = <int, List<BlockExplosionEffect>>{};
+    for (final effect in state.blockExplosions) {
+      explosionMap.putIfAbsent(effect.index, () => <BlockExplosionEffect>[]).add(effect);
+    }
     return Container(
       width: widget.dimension,
       height: widget.dimension,
@@ -295,6 +300,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
             final isSeedCell = state.seedIndices.contains(index);
             final seedVisible =
                 state.seedIntroPlayed || _seedVisible.contains(index);
+            final shatters = explosionMap[index];
             Widget tile = Stack(
               alignment: Alignment.center,
               children: [
@@ -323,6 +329,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                     color: color,
                     pulse: false,
                     borderRadius: pieceRadius,
+                  ),
+                if (shatters != null)
+                  ...shatters.map(
+                    (effect) => BlockShatterEffect(
+                      key: ValueKey(effect.id),
+                      size: blockSize,
+                      color: effect.color,
+                      seed: effect.id,
+                    ),
                   ),
                 if (state.levelMode)
                   _LevelTokenOverlay(

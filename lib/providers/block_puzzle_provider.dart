@@ -26,6 +26,19 @@ const double _levelEmptyCellRatio = 0.47;
 const double _levelObstacleRatio = 0.08;
 const int _levelMinObstacleCount = 3;
 const int _extraTokensPerGoal = 2;
+const Duration _blockExplosionDuration = Duration(milliseconds: 600);
+
+class BlockExplosionEffect {
+  const BlockExplosionEffect({
+    required this.id,
+    required this.index,
+    required this.color,
+  });
+
+  final int id;
+  final int index;
+  final Color color;
+}
 
 class BlockPuzzleState {
   const BlockPuzzleState({
@@ -50,6 +63,7 @@ class BlockPuzzleState {
     required this.levelGoals,
     required this.levelTargets,
     required this.levelCompleted,
+    required this.blockExplosions,
   });
 
   final int size;
@@ -73,6 +87,7 @@ class BlockPuzzleState {
   final List<BlockLevelGoal> levelGoals;
   final Map<int, BlockLevelToken> levelTargets;
   final bool levelCompleted;
+  final List<BlockExplosionEffect> blockExplosions;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -108,6 +123,7 @@ class BlockPuzzleState {
     List<BlockLevelGoal>? levelGoals,
     Map<int, BlockLevelToken>? levelTargets,
     bool? levelCompleted,
+    List<BlockExplosionEffect>? blockExplosions,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -131,6 +147,7 @@ class BlockPuzzleState {
       levelGoals: levelGoals ?? this.levelGoals,
       levelTargets: levelTargets ?? this.levelTargets,
       levelCompleted: levelCompleted ?? this.levelCompleted,
+      blockExplosions: blockExplosions ?? this.blockExplosions,
     );
   }
 
@@ -158,6 +175,7 @@ class BlockPuzzleState {
       levelGoals: const <BlockLevelGoal>[],
       levelTargets: const <int, BlockLevelToken>{},
       levelCompleted: false,
+      blockExplosions: const <BlockExplosionEffect>[],
     );
   }
 }
@@ -242,16 +260,17 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         showPerfectText: false,
         showParticleBurst: false,
         pulseBoard: false,
-      showInvalidPlacement: false,
-      seedIntroPlayed: seedIntroPlayed,
-      comboCount: comboCount,
-      showComboText: false,
-      levelMode: false,
-      level: 1,
-      levelGoals: const <BlockLevelGoal>[],
-      levelTargets: const <int, BlockLevelToken>{},
-      levelCompleted: false,
-    );
+        showInvalidPlacement: false,
+        seedIntroPlayed: seedIntroPlayed,
+        comboCount: comboCount,
+        showComboText: false,
+        levelMode: false,
+        level: 1,
+        levelGoals: const <BlockLevelGoal>[],
+        levelTargets: const <int, BlockLevelToken>{},
+        levelCompleted: false,
+        blockExplosions: const <BlockExplosionEffect>[],
+      );
     } catch (_) {
       state = state.copyWith(bestScore: best);
     }
@@ -315,6 +334,19 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     final clearResult = _clearCompletedLines(updatedCells);
+    final newExplosions = clearResult.removedCells.entries
+        .map(
+          (entry) => BlockExplosionEffect(
+            id: DateTime.now().microsecondsSinceEpoch + entry.key + _random.nextInt(1000),
+            index: entry.key,
+            color: entry.value,
+          ),
+        )
+        .toList(growable: false);
+    final explosionQueue = List<BlockExplosionEffect>.unmodifiable([
+      ...state.blockExplosions,
+      ...newExplosions,
+    ]);
     final linesCleared = clearResult.linesCleared;
     final earnedCombo = linesCleared > 0;
     final triggeredPerfect = linesCleared >= 2;
@@ -346,6 +378,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showInvalidPlacement: false,
       comboCount: nextCombo,
       showComboText: showCombo,
+      blockExplosions: explosionQueue,
     );
     _persistState();
     if (triggeredPerfect) {
@@ -356,6 +389,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       unawaited(_ref.read(soundControllerProvider).playCombo());
     }
     _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
+    for (final effect in newExplosions) {
+      _scheduleExplosionCleanup(effect.id);
+    }
     return true;
   }
 
@@ -410,7 +446,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     if (clearedRows.isEmpty && clearedCols.isEmpty) {
-      return _ClearResult(cells: mutable, linesCleared: 0, removedIndices: const <int>{});
+      return _ClearResult(
+        cells: mutable,
+        linesCleared: 0,
+        removedIndices: const <int>{},
+        removedCells: const <int, Color>{},
+      );
     }
 
     final toRemove = <int>{};
@@ -424,12 +465,20 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         toRemove.add(row * size + col);
       }
     }
-    toRemove.forEach(mutable.remove);
+    final removedColors = <int, Color>{};
+    for (final index in toRemove) {
+      final color = cells[index];
+      if (color != null) {
+        removedColors[index] = color;
+      }
+      mutable.remove(index);
+    }
 
     return _ClearResult(
       cells: mutable,
       linesCleared: clearedRows.length + clearedCols.length,
       removedIndices: toRemove,
+      removedCells: removedColors,
     );
   }
 
@@ -493,6 +542,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       _comboTimer?.cancel();
       state = state.copyWith(showComboText: false, comboCount: state.comboCount);
     }
+  }
+
+  void _scheduleExplosionCleanup(int id) {
+    Future.delayed(_blockExplosionDuration, () {
+      if (!mounted) return;
+      final filtered = state.blockExplosions.where((effect) => effect.id != id).toList(growable: false);
+      if (filtered.length == state.blockExplosions.length) return;
+      state = state.copyWith(blockExplosions: List<BlockExplosionEffect>.unmodifiable(filtered));
+    });
   }
 
   void restart({int? size}) {
@@ -732,11 +790,13 @@ class _ClearResult {
     required this.cells,
     required this.linesCleared,
     required this.removedIndices,
+    required this.removedCells,
   });
 
   final Map<int, Color> cells;
   final int linesCleared;
   final Set<int> removedIndices;
+  final Map<int, Color> removedCells;
 }
 
 const List<Color> _seedBoardColors = [
