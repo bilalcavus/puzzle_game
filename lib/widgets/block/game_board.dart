@@ -257,7 +257,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       height: widget.dimension,
       padding: EdgeInsets.all(context.dynamicHeight(0.005)),
       decoration: BoxDecoration(
-        borderRadius: context.border.normalBorderRadius,
+        borderRadius: context.border.lowBorderRadius,
         gradient: const LinearGradient(
           colors: [Color(0xFF5C3B1E), Color(0xFF3B240F)],
           begin: Alignment.topLeft,

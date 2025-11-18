@@ -22,6 +22,10 @@ final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzz
 enum BlockGameStatus { playing, failed }
 
 const _selectionSentinel = Object();
+const double _levelEmptyCellRatio = 0.47;
+const double _levelObstacleRatio = 0.08;
+const int _levelMinObstacleCount = 3;
+const int _extraTokensPerGoal = 2;
 
 class BlockPuzzleState {
   const BlockPuzzleState({
@@ -514,8 +518,28 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final normalized = level.clamp(1, 99);
     final size = 8;
     final goals = _buildLevelGoals(normalized);
-    final tokens = _generateLevelTargets(size: size, goals: goals, level: normalized);
-    final obstacles = _generateLevelObstacles(size: size, exclude: tokens.keys.toSet(), level: normalized);
+    final totalCells = size * size;
+    final minTokenBudget = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+    final maxEmptyCells = totalCells - minTokenBudget;
+    final desiredEmptyCells = (totalCells * _levelEmptyCellRatio).round();
+    final initialEmptyCells = min(desiredEmptyCells, maxEmptyCells);
+    final targetEmptyCells = max(0, min(initialEmptyCells, totalCells));
+    final targetFilledCells = totalCells - targetEmptyCells;
+    final desiredObstacleCount = max(_levelMinObstacleCount, (totalCells * _levelObstacleRatio).round());
+    final paddedTokenBudget = minTokenBudget + (goals.length * _extraTokensPerGoal);
+    final baseTokenBudget = max(targetFilledCells - desiredObstacleCount, paddedTokenBudget);
+    final tokenBudget = min(targetFilledCells, baseTokenBudget);
+    final obstacleBudget = targetFilledCells - tokenBudget;
+    final tokens = _generateLevelTargets(
+      size: size,
+      goals: goals,
+      tokenBudget: tokenBudget,
+    );
+    final obstacles = _generateLevelObstacles(
+      size: size,
+      exclude: tokens.keys.toSet(),
+      count: obstacleBudget,
+    );
     final filled = <int, Color>{};
     tokens.forEach((index, token) {
       filled[index] = token.color;
@@ -605,15 +629,24 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Map<int, BlockLevelToken> _generateLevelTargets({
     required int size,
     required List<BlockLevelGoal> goals,
-    required int level,
+    required int tokenBudget,
   }) {
     final targets = <int, BlockLevelToken>{};
-    final padding = max(2, 6 - level ~/ 15);
+    if (tokenBudget <= 0 || goals.isEmpty) return targets;
     final used = <int>{};
+    final totalRequired = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+    final extraCells = max(0, tokenBudget - totalRequired);
+    final basePadding = extraCells ~/ goals.length;
+    var remainder = extraCells % goals.length;
+    var remainingBudget = tokenBudget;
     for (final goal in goals) {
-      final remaining = (size * size) - used.length;
-      if (remaining <= 0) break;
-      final quota = min(goal.required + padding, remaining);
+      if (remainingBudget <= 0) break;
+      final additional = basePadding + (remainder > 0 ? 1 : 0);
+      if (remainder > 0) remainder--;
+      final remainingCells = (size * size) - used.length;
+      if (remainingCells <= 0) break;
+      final quota = min(goal.required + additional, min(remainingBudget, remainingCells));
+      if (quota <= 0) continue;
       final cluster = _claimClusterIndices(
         size: size,
         count: quota,
@@ -625,15 +658,14 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         targets[index] = goal.token;
         used.add(index);
       }
+      remainingBudget = max(0, remainingBudget - cluster.length);
     }
     return targets;
   }
 
-  Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int level}) {
+  Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int count}) {
     final totalCells = size * size;
-    final progress = (level - 1).clamp(0, 98) / 98;
-    final ratio = 0.08 + (progress * 0.12); // 8% -> 20%
-    final targetCount = max(3, (totalCells * ratio).round());
+    final targetCount = max(0, min(count, totalCells - exclude.length));
     final used = exclude.toSet();
     final cluster = _claimClusterIndices(
       size: size,
