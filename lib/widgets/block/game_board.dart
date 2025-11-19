@@ -103,37 +103,41 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
               ),
             ),
           ),
-          Positioned(
-            top: 80,
-            child: AnimatedOpacity(
-              opacity: state.showComboText ? 1 : 0,
-              duration: const Duration(milliseconds: 250),
-              child: AnimatedScale(
-                scale: state.showComboText ? 1 : 0.9,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutBack,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.deepOrangeAccent.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black45,
-                        blurRadius: 10,
-                        offset: Offset(0, 6),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: state.showComboText ? 1 : 0,
+                duration: const Duration(milliseconds: 260),
+                child: Center(
+                  child: AnimatedScale(
+                    scale: state.showComboText ? 1 : 0.92,
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutBack,
+                    child: Transform.rotate(
+                      angle: -pi / 18,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'COMBO x${state.comboCount}',
+                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 3,
+                                color: const Color(0xFFFFE9CC),
+                                shadows: const [
+                                  Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 10),
+                                ],
+                              ) ??
+                              const TextStyle(
+                                fontSize: 42,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 3,
+                                color: Color(0xFFFFE9CC),
+                                shadows: [
+                                  Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 10),
+                                ],
+                              ),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    'Combo x${state.comboCount}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
                     ),
                   ),
                 ),
