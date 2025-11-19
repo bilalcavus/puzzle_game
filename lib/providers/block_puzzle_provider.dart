@@ -22,6 +22,23 @@ final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzz
 enum BlockGameStatus { playing, failed }
 
 const _selectionSentinel = Object();
+const double _levelEmptyCellRatio = 0.47;
+const double _levelObstacleRatio = 0.08;
+const int _levelMinObstacleCount = 3;
+const int _extraTokensPerGoal = 2;
+const Duration _blockExplosionDuration = Duration(milliseconds: 600);
+
+class BlockExplosionEffect {
+  const BlockExplosionEffect({
+    required this.id,
+    required this.index,
+    required this.color,
+  });
+
+  final int id;
+  final int index;
+  final Color color;
+}
 
 class BlockPuzzleState {
   const BlockPuzzleState({
@@ -46,6 +63,7 @@ class BlockPuzzleState {
     required this.levelGoals,
     required this.levelTargets,
     required this.levelCompleted,
+    required this.blockExplosions,
   });
 
   final int size;
@@ -69,6 +87,7 @@ class BlockPuzzleState {
   final List<BlockLevelGoal> levelGoals;
   final Map<int, BlockLevelToken> levelTargets;
   final bool levelCompleted;
+  final List<BlockExplosionEffect> blockExplosions;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -104,6 +123,7 @@ class BlockPuzzleState {
     List<BlockLevelGoal>? levelGoals,
     Map<int, BlockLevelToken>? levelTargets,
     bool? levelCompleted,
+    List<BlockExplosionEffect>? blockExplosions,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -127,6 +147,7 @@ class BlockPuzzleState {
       levelGoals: levelGoals ?? this.levelGoals,
       levelTargets: levelTargets ?? this.levelTargets,
       levelCompleted: levelCompleted ?? this.levelCompleted,
+      blockExplosions: blockExplosions ?? this.blockExplosions,
     );
   }
 
@@ -154,6 +175,7 @@ class BlockPuzzleState {
       levelGoals: const <BlockLevelGoal>[],
       levelTargets: const <int, BlockLevelToken>{},
       levelCompleted: false,
+      blockExplosions: const <BlockExplosionEffect>[],
     );
   }
 }
@@ -238,16 +260,17 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         showPerfectText: false,
         showParticleBurst: false,
         pulseBoard: false,
-      showInvalidPlacement: false,
-      seedIntroPlayed: seedIntroPlayed,
-      comboCount: comboCount,
-      showComboText: false,
-      levelMode: false,
-      level: 1,
-      levelGoals: const <BlockLevelGoal>[],
-      levelTargets: const <int, BlockLevelToken>{},
-      levelCompleted: false,
-    );
+        showInvalidPlacement: false,
+        seedIntroPlayed: seedIntroPlayed,
+        comboCount: comboCount,
+        showComboText: false,
+        levelMode: false,
+        level: 1,
+        levelGoals: const <BlockLevelGoal>[],
+        levelTargets: const <int, BlockLevelToken>{},
+        levelCompleted: false,
+        blockExplosions: const <BlockExplosionEffect>[],
+      );
     } catch (_) {
       state = state.copyWith(bestScore: best);
     }
@@ -311,6 +334,19 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     final clearResult = _clearCompletedLines(updatedCells);
+    final newExplosions = clearResult.removedCells.entries
+        .map(
+          (entry) => BlockExplosionEffect(
+            id: DateTime.now().microsecondsSinceEpoch + entry.key + _random.nextInt(1000),
+            index: entry.key,
+            color: entry.value,
+          ),
+        )
+        .toList(growable: false);
+    final explosionQueue = List<BlockExplosionEffect>.unmodifiable([
+      ...state.blockExplosions,
+      ...newExplosions,
+    ]);
     final linesCleared = clearResult.linesCleared;
     final earnedCombo = linesCleared > 0;
     final triggeredPerfect = linesCleared >= 2;
@@ -342,6 +378,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       showInvalidPlacement: false,
       comboCount: nextCombo,
       showComboText: showCombo,
+      blockExplosions: explosionQueue,
     );
     _persistState();
     if (triggeredPerfect) {
@@ -352,6 +389,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       unawaited(_ref.read(soundControllerProvider).playCombo());
     }
     _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
+    for (final effect in newExplosions) {
+      _scheduleExplosionCleanup(effect.id);
+    }
     return true;
   }
 
@@ -406,7 +446,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     if (clearedRows.isEmpty && clearedCols.isEmpty) {
-      return _ClearResult(cells: mutable, linesCleared: 0, removedIndices: const <int>{});
+      return _ClearResult(
+        cells: mutable,
+        linesCleared: 0,
+        removedIndices: const <int>{},
+        removedCells: const <int, Color>{},
+      );
     }
 
     final toRemove = <int>{};
@@ -420,12 +465,20 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         toRemove.add(row * size + col);
       }
     }
-    toRemove.forEach(mutable.remove);
+    final removedColors = <int, Color>{};
+    for (final index in toRemove) {
+      final color = cells[index];
+      if (color != null) {
+        removedColors[index] = color;
+      }
+      mutable.remove(index);
+    }
 
     return _ClearResult(
       cells: mutable,
       linesCleared: clearedRows.length + clearedCols.length,
       removedIndices: toRemove,
+      removedCells: removedColors,
     );
   }
 
@@ -491,6 +544,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
   }
 
+  void _scheduleExplosionCleanup(int id) {
+    Future.delayed(_blockExplosionDuration, () {
+      if (!mounted) return;
+      final filtered = state.blockExplosions.where((effect) => effect.id != id).toList(growable: false);
+      if (filtered.length == state.blockExplosions.length) return;
+      state = state.copyWith(blockExplosions: List<BlockExplosionEffect>.unmodifiable(filtered));
+    });
+  }
+
   void restart({int? size}) {
     _perfectTimer?.cancel();
     _particleTimer?.cancel();
@@ -514,8 +576,28 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final normalized = level.clamp(1, 99);
     final size = 8;
     final goals = _buildLevelGoals(normalized);
-    final tokens = _generateLevelTargets(size: size, goals: goals, level: normalized);
-    final obstacles = _generateLevelObstacles(size: size, exclude: tokens.keys.toSet(), level: normalized);
+    final totalCells = size * size;
+    final minTokenBudget = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+    final maxEmptyCells = totalCells - minTokenBudget;
+    final desiredEmptyCells = (totalCells * _levelEmptyCellRatio).round();
+    final initialEmptyCells = min(desiredEmptyCells, maxEmptyCells);
+    final targetEmptyCells = max(0, min(initialEmptyCells, totalCells));
+    final targetFilledCells = totalCells - targetEmptyCells;
+    final desiredObstacleCount = max(_levelMinObstacleCount, (totalCells * _levelObstacleRatio).round());
+    final paddedTokenBudget = minTokenBudget + (goals.length * _extraTokensPerGoal);
+    final baseTokenBudget = max(targetFilledCells - desiredObstacleCount, paddedTokenBudget);
+    final tokenBudget = min(targetFilledCells, baseTokenBudget);
+    final obstacleBudget = targetFilledCells - tokenBudget;
+    final tokens = _generateLevelTargets(
+      size: size,
+      goals: goals,
+      tokenBudget: tokenBudget,
+    );
+    final obstacles = _generateLevelObstacles(
+      size: size,
+      exclude: tokens.keys.toSet(),
+      count: obstacleBudget,
+    );
     final filled = <int, Color>{};
     tokens.forEach((index, token) {
       filled[index] = token.color;
@@ -605,15 +687,24 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Map<int, BlockLevelToken> _generateLevelTargets({
     required int size,
     required List<BlockLevelGoal> goals,
-    required int level,
+    required int tokenBudget,
   }) {
     final targets = <int, BlockLevelToken>{};
-    final padding = max(2, 6 - level ~/ 15);
+    if (tokenBudget <= 0 || goals.isEmpty) return targets;
     final used = <int>{};
+    final totalRequired = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+    final extraCells = max(0, tokenBudget - totalRequired);
+    final basePadding = extraCells ~/ goals.length;
+    var remainder = extraCells % goals.length;
+    var remainingBudget = tokenBudget;
     for (final goal in goals) {
-      final remaining = (size * size) - used.length;
-      if (remaining <= 0) break;
-      final quota = min(goal.required + padding, remaining);
+      if (remainingBudget <= 0) break;
+      final additional = basePadding + (remainder > 0 ? 1 : 0);
+      if (remainder > 0) remainder--;
+      final remainingCells = (size * size) - used.length;
+      if (remainingCells <= 0) break;
+      final quota = min(goal.required + additional, min(remainingBudget, remainingCells));
+      if (quota <= 0) continue;
       final cluster = _claimClusterIndices(
         size: size,
         count: quota,
@@ -625,15 +716,14 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         targets[index] = goal.token;
         used.add(index);
       }
+      remainingBudget = max(0, remainingBudget - cluster.length);
     }
     return targets;
   }
 
-  Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int level}) {
+  Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int count}) {
     final totalCells = size * size;
-    final progress = (level - 1).clamp(0, 98) / 98;
-    final ratio = 0.08 + (progress * 0.12); // 8% -> 20%
-    final targetCount = max(3, (totalCells * ratio).round());
+    final targetCount = max(0, min(count, totalCells - exclude.length));
     final used = exclude.toSet();
     final cluster = _claimClusterIndices(
       size: size,
@@ -700,11 +790,13 @@ class _ClearResult {
     required this.cells,
     required this.linesCleared,
     required this.removedIndices,
+    required this.removedCells,
   });
 
   final Map<int, Color> cells;
   final int linesCleared;
   final Set<int> removedIndices;
+  final Map<int, Color> removedCells;
 }
 
 const List<Color> _seedBoardColors = [
