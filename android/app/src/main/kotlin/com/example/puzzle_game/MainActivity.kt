@@ -1,4 +1,4 @@
-package com.example.puzzle_game
+package com.bilalcavus.woodenblock
 
 import io.flutter.embedding.android.FlutterActivity
 
