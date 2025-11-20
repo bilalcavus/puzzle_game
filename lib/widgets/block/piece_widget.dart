@@ -19,7 +19,7 @@ class PieceWidget extends StatelessWidget {
   final VoidCallback onSelect;
   final bool isSelected;
   final bool disabled;
-  static const double _dragFeedbackScale = 1.1;
+  static const double _dragFeedbackScale = 1.4;
 
   @override
   Widget build(BuildContext context) {

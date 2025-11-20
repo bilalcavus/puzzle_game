@@ -203,7 +203,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                   IconButton(
                     onPressed: () =>
                         ref.read(widget.provider.notifier).restart(),
-                    icon: const Icon(Iconsax.refresh),
+                    icon: const Icon(Iconsax.refresh, color: Colors.white,),
                   ),
                 ],
               ),
