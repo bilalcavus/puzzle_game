@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +5,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:kartal/kartal.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/core/extension/sized_box.dart';
-import 'package:puzzle_game/providers/sound_provider.dart';
 import 'package:puzzle_game/widgets/components/locale_menu_button.dart';
 
 import 'block_puzzle_view.dart';
@@ -23,13 +20,6 @@ class BlockPuzzleModeView extends ConsumerStatefulWidget {
 }
 
 class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(
-      () => ref.read(soundControllerProvider).ensureBackgroundMusicStarted(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
