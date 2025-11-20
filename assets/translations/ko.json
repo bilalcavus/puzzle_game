@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "슬라이딩 퍼즐"
+  },
+  "common": {
+    "play": "플레이",
+    "level": "레벨",
+    "level_with_number": "레벨 {level}",
+    "moves": "이동 수",
+    "time": "시간",
+    "restart": "다시 시작",
+    "next_level": "다음 레벨",
+    "leaderboards": "리더보드",
+    "score": "점수",
+    "lines": "줄",
+    "best": "최고",
+    "settings": "설정",
+    "background_music": "배경 음악",
+    "background_music_desc": "숲의 분위기 음악을 계속 재생",
+    "effects": "효과음",
+    "effects_desc": "이동·성공 사운드를 켜고 끄기",
+    "play_again": "다시 플레이",
+    "well_done": "잘했어요!",
+    "language": "언어",
+    "language_hint": "앱 언어 변경",
+    "language_names": {
+      "en": "영어",
+      "tr": "터키어",
+      "ja": "일본어",
+      "ko": "한국어",
+      "zh": "중국어",
+      "id": "인도네시아어",
+      "ms": "말레이어",
+      "th": "태국어",
+      "es": "스페인어",
+      "pt": "포르투갈어",
+      "vi": "베트남어",
+      "ar": "아랍어",
+      "ru": "러시아어",
+      "hi": "힌디어",
+      "fr": "프랑스어",
+      "sv": "스웨덴어"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "퍼즐 아케이드",
+    "subtitle": "클래식 슬라이딩 로직 또는 새로운 우드 블록 어드벤처를 선택하세요.",
+    "cards": {
+      "sliding": {
+        "title": "슬라이딩 퍼즐",
+        "description": "타이머, 리더보드, 햅틱, 부드러운 애니메이션을 갖춘 클래식 4x4 타일."
+      },
+      "block": {
+        "title": "우드 블록 퍼즐",
+        "description": "나무 조각을 정글 보드에 끌어와 줄을 지우고 완벽한 콤보에 도전하세요."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "어드벤처",
+      "subtitle": "목표 경로"
+    },
+    "classic": {
+      "title": "클래식",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "법적 정보",
+    "tabs": {
+      "terms": "이용 약관",
+      "privacy": "개인정보 처리방침"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "동의 및 업데이트",
+          "body": "앱을 다운로드하고 사용하면 본 약관에 동의한 것으로 간주됩니다. 규칙은 수시로 변경될 수 있으니 앱 내 공지를 확인하세요."
+        },
+        "fair_use": {
+          "title": "공정 이용",
+          "body": "치트, 자동화, 게임 밸런스를 깨뜨리는 행동은 금지됩니다. 기기와 계정 정보를 공유하지 말아 계정을 보호하세요."
+        },
+        "paid_content": {
+          "title": "유료 콘텐츠",
+          "body": "일부 꾸미기 또는 부스터 패키지는 유료일 수 있습니다. 구매는 스토어 제공자의 환불 정책을 따르며, 의심스러운 주문은 취소될 수 있습니다."
+        },
+        "liability": {
+          "title": "책임 제한",
+          "body": "앱은 \\\"있는 그대로\\\" 제공됩니다. 중단, 데이터 손실, 제3자 서비스 문제로 인한 손해에 대해서는 책임지지 않습니다."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "수집 데이터",
+          "body": "진행 상황, 점수, 선택 입력한 닉네임은 기기에 저장됩니다. 분석 및 충돌 보고는 익명이며 기기 식별자와 연결되지 않습니다."
+        },
+        "data_use": {
+          "title": "데이터 사용",
+          "body": "수집 정보는 게임 경험 개선, 기술 문제 해결, 새 기능 기획에 사용되며 광고 목적으로 제3자에게 공유되지 않습니다."
+        },
+        "retention": {
+          "title": "보관 기간",
+          "body": "로컬 저장 데이터는 기기에 남아 있는 동안 유지됩니다. 클라우드 동기화를 사용할 경우 계정을 삭제하거나 24개월 동안 미접속 시까지 보관됩니다."
+        },
+        "rights": {
+          "title": "당신의 권리",
+          "body": "데이터 열람·수정·삭제를 요청할 수 있습니다. 앱 내 피드백 화면에서 지원팀에 연락하세요."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "이전",
+      "current": "현재",
+      "next": "다음"
+    }
+  },
+  "block_game": {
+    "perfect": "퍼펙트!",
+    "combo": "콤보 x{count}",
+    "invalid_placement": "이 위치에는 둘 수 없습니다",
+    "level_failed": "실패",
+    "no_moves": "더 이상 움직일 수 없음"
+  },
+  "leaderboard": {
+    "title": "리더보드",
+    "empty": "첫 점수를 만들기 위해 플레이하세요!",
+    "entry": "{name} - {moves} 회",
+    "error": "리더보드를 불러올 수 없습니다: {error}",
+    "lines": "줄: {count}",
+    "points": "{points} 점",
+    "block": {
+      "title": "우드 리더보드",
+      "empty": "기록을 남기려면 한 판 플레이하세요."
+    }
+  },
+  "victory": {
+    "title": "퍼즐 완성!",
+    "moves": "이동 수: {value}",
+    "time": "시간: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "잎",
+      "wood": "통나무",
+      "mushroom": "버섯"
+    }
+  },
+  "adventure": {
+    "title": "어드벤처 모드",
+    "level_label": "정글 {index}",
+    "requirement": "다음 정글을 해금하려면 5줄을 지우세요."
+  }
+}

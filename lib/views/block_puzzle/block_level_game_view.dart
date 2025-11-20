@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import '../../models/block_level_models.dart';
 import '../../providers/block_puzzle_level_provider.dart';
 import '../../providers/block_puzzle_provider.dart';
 import '../../widgets/block/game_board.dart';
+import '../../widgets/components/locale_menu_button.dart';
 
 class BlockPuzzleLevelGameView extends ConsumerWidget {
   const BlockPuzzleLevelGameView({super.key});
@@ -66,7 +68,8 @@ class _LevelHeader extends StatelessWidget {
   const _LevelHeader({
     required this.level,
     required this.goals,
-    required this.onRestart, required this.ref,
+    required this.onRestart,
+    required this.ref,
   });
 
   final int level;
@@ -85,16 +88,16 @@ class _LevelHeader extends StatelessWidget {
             Padding(
               padding: context.padding.horizontalLow,
               child: Text(
-                'Level $level',
+                tr('common.level_with_number', namedArgs: {'level': '$level'}),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            Spacer(),
+            const Spacer(),
             IconButton(
-              tooltip: 'Yeniden başlat',
+              tooltip: tr('common.restart'),
               onPressed: onRestart,
               icon: const Icon(Iconsax.refresh, color: Colors.white),
             ),
@@ -110,6 +113,7 @@ class _LevelHeader extends StatelessWidget {
       ],
     );
   }
+
   void showSettingsSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
@@ -133,8 +137,11 @@ class _LevelHeader extends StatelessWidget {
                       const Icon(Iconsax.setting, color: Colors.white),
                       const SizedBox(width: 12),
                       Text(
-                        'Ayarlar',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                        tr('common.settings'),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -142,16 +149,51 @@ class _LevelHeader extends StatelessWidget {
                   SwitchListTile.adaptive(
                     value: settings.musicEnabled,
                     onChanged: notifier.setMusicEnabled,
-                    title: const Text('Arka plan müziği', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Doğa sesli müzik sürekli oynasın', style: TextStyle(color: Colors.white70)),
+                    title: Text(
+                      tr('common.background_music'),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      tr('common.background_music_desc'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     activeColor: Colors.tealAccent,
                   ),
                   SwitchListTile.adaptive(
                     value: settings.effectsEnabled,
                     onChanged: notifier.setEffectsEnabled,
-                    title: const Text('Efekt sesleri', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Hamle ve başarı seslerini aç/kapat', style: TextStyle(color: Colors.white70)),
+                    title: Text(
+                      tr('common.effects'),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      tr('common.effects_desc'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     activeColor: Colors.tealAccent,
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      tr('common.language'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      tr('common.language_hint'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    trailing: LocaleMenuButton(
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      textColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -174,9 +216,13 @@ class _GoalBadge extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Image.asset(goal.token.asset, width: context.dynamicWidth(0.2), height: context.dynamicHeight(0.05)),
+        Image.asset(
+          goal.token.asset,
+          width: context.dynamicWidth(0.2),
+          height: context.dynamicHeight(0.05),
+        ),
         Text(
-          goal.token.label,
+          'block_level.tokens.${goal.token.name}'.tr(),
           style: theme.textTheme.titleMedium?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -187,7 +233,7 @@ class _GoalBadge extends StatelessWidget {
           '${goal.remaining}/${goal.required}',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w900
+            fontWeight: FontWeight.w900,
           ),
         ),
       ],
@@ -231,7 +277,7 @@ class _LevelBoardSection extends StatelessWidget {
               Positioned.fill(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 1.9, sigmaY: 1.9),
-                  child: SizedBox.shrink()
+                  child: SizedBox.shrink(),
                 ),
               ),
             if (state.levelCompleted)
@@ -267,11 +313,23 @@ class _LevelCompletionOverlay extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 14, 57, 13).withValues(alpha: 0.95),
+            color: const Color.fromARGB(
+              255,
+              14,
+              57,
+              13,
+            ).withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.45), width: 2),
+            border: Border.all(
+              color: Colors.black.withValues(alpha: 0.45),
+              width: 2,
+            ),
             boxShadow: const [
-              BoxShadow(color: Colors.black54, blurRadius: 25, offset: Offset(0, 18)),
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 25,
+                offset: Offset(0, 18),
+              ),
             ],
           ),
           child: Row(
@@ -286,7 +344,7 @@ class _LevelCompletionOverlay extends StatelessWidget {
         ),
         context.dynamicHeight(0.02).height,
         Text(
-          'Well Done!',
+          tr('common.well_done'),
           style: theme.textTheme.displaySmall?.copyWith(
             color: const Color.fromARGB(255, 255, 154, 154),
             fontWeight: FontWeight.w900,
@@ -300,17 +358,23 @@ class _LevelCompletionOverlay extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: const Color.fromARGB(255, 5, 160, 20),
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
             elevation: 10,
             shadowColor: Colors.black45,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.play_arrow_rounded, size: context.dynamicHeight(0.03), color: Colors.white),
+              Icon(
+                Icons.play_arrow_rounded,
+                size: context.dynamicHeight(0.03),
+                color: Colors.white,
+              ),
               const SizedBox(width: 8),
               Text(
-                'Next Level',
+                tr('common.next_level'),
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
@@ -352,7 +416,7 @@ class _CompletionTokenBadge extends StatelessWidget {
           ),
           child: Padding(
             padding: context.padding.low,
-            child: Image.asset(goal.token.asset,),
+            child: Image.asset(goal.token.asset),
           ),
         ),
         context.dynamicHeight(0.015).height,

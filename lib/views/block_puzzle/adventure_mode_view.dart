@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
@@ -6,9 +7,15 @@ class AdventureModeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final levels = List.generate(12, (index) => 'Jungle ${index + 1}');
+    final levels = List.generate(
+      12,
+      (index) => 'adventure.level_label'.tr(
+        context: context,
+        namedArgs: {'index': '${index + 1}'},
+      ),
+    );
     return Scaffold(
-      appBar: AppBar(title: const Text('Adventure Mode')),
+      appBar: AppBar(title: Text(tr('adventure.title'))),
       body: ListView.separated(
         padding: EdgeInsets.all(context.dynamicHeight(0.05)),
         itemBuilder: (context, index) {
@@ -23,7 +30,11 @@ class AdventureModeView extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 6)),
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 6),
+                ),
               ],
             ),
             child: Row(
@@ -32,14 +43,24 @@ class AdventureModeView extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                    Text(
+                      label,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Clear 5 lines to unlock the next jungle.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                    Text(
+                      tr('adventure.requirement'),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                    ),
                   ],
                 ),
                 ElevatedButton(
                   onPressed: () {},
-                  child: const Text('Play'),
+                  child: Text(tr('common.play')),
                 ),
               ],
             ),

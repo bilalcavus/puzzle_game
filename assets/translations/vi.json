@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Câu Đố Trượt"
+  },
+  "common": {
+    "play": "Chơi",
+    "level": "Màn",
+    "level_with_number": "Màn {level}",
+    "moves": "Nước đi",
+    "time": "Thời gian",
+    "restart": "Chơi lại",
+    "next_level": "Màn tiếp",
+    "leaderboards": "Bảng xếp hạng",
+    "score": "Điểm",
+    "lines": "Hàng",
+    "best": "Kỷ lục",
+    "settings": "Cài đặt",
+    "background_music": "Nhạc nền",
+    "background_music_desc": "Giữ âm nhạc khu rừng phát liên tục",
+    "effects": "Hiệu ứng âm thanh",
+    "effects_desc": "Bật/tắt âm thanh di chuyển và chiến thắng",
+    "play_again": "Chơi thêm",
+    "well_done": "Tuyệt vời!",
+    "language": "Ngôn ngữ",
+    "language_hint": "Đổi ngôn ngữ ứng dụng",
+    "language_names": {
+      "en": "Tiếng Anh",
+      "tr": "Tiếng Thổ Nhĩ Kỳ",
+      "ja": "Tiếng Nhật",
+      "ko": "Tiếng Hàn",
+      "zh": "Tiếng Trung",
+      "id": "Tiếng Indonesia",
+      "ms": "Tiếng Mã Lai",
+      "th": "Tiếng Thái",
+      "es": "Tiếng Tây Ban Nha",
+      "pt": "Tiếng Bồ Đào Nha",
+      "vi": "Tiếng Việt",
+      "ar": "Tiếng Ả Rập",
+      "ru": "Tiếng Nga",
+      "hi": "Tiếng Hindi",
+      "fr": "Tiếng Pháp",
+      "sv": "Tiếng Thụy Điển"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Phòng trò chơi",
+    "subtitle": "Chọn thử thách: lô-gic trượt kinh điển hoặc cuộc phiêu lưu gỗ mới.",
+    "cards": {
+      "sliding": {
+        "title": "Câu Đố Trượt",
+        "description": "Bàn cờ 4x4 cổ điển với hẹn giờ, bảng hạng, rung phản hồi và hoạt ảnh mượt."
+      },
+      "block": {
+        "title": "Câu Đố Khối Gỗ",
+        "description": "Kéo khối gỗ vào bàn rừng, dọn hàng và truy tìm combo hoàn hảo."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Phiêu lưu",
+      "subtitle": "Đường mục tiêu"
+    },
+    "classic": {
+      "title": "Cổ điển",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Thông tin pháp lý",
+    "tabs": {
+      "terms": "Điều khoản",
+      "privacy": "Chính sách riêng tư"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Chấp nhận & cập nhật",
+          "body": "Tải và dùng ứng dụng đồng nghĩa bạn chấp nhận điều khoản này. Quy tắc có thể cập nhật, hãy xem thông báo trong app."
+        },
+        "fair_use": {
+          "title": "Chơi công bằng",
+          "body": "Cấm gian lận, tự động hóa hoặc hành vi phá vỡ cân bằng game. Đừng chia sẻ thiết bị hay tài khoản để bảo vệ bạn."
+        },
+        "paid_content": {
+          "title": "Nội dung trả phí",
+          "body": "Một số gói trang trí hoặc tăng tốc có thể mất phí. Mua hàng tuân thủ chính sách hoàn tiền của cửa hàng và đơn đáng ngờ có thể bị hủy."
+        },
+        "liability": {
+          "title": "Giới hạn trách nhiệm",
+          "body": "Ứng dụng được cung cấp \"nguyên trạng\". Chúng tôi không chịu trách nhiệm cho tổn thất do gián đoạn, mất dữ liệu hay lỗi dịch vụ bên thứ ba."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Dữ liệu thu thập",
+          "body": "Tiến trình, điểm số và biệt danh tùy chọn được lưu cục bộ. Phân tích và báo cáo lỗi là ẩn danh và không gắn với thiết bị."
+        },
+        "data_use": {
+          "title": "Sử dụng dữ liệu",
+          "body": "Thông tin dùng để cải thiện gameplay, sửa lỗi kỹ thuật và lập kế hoạch tính năng mới. Không chia sẻ với nhà quảng cáo."
+        },
+        "retention": {
+          "title": "Lưu trữ",
+          "body": "Lưu cục bộ tồn tại trên thiết bị. Khi đồng bộ đám mây, dữ liệu giữ tới khi xóa tài khoản hoặc 24 tháng không đăng nhập."
+        },
+        "rights": {
+          "title": "Quyền của bạn",
+          "body": "Bạn có thể yêu cầu truy cập, chỉnh sửa hoặc xóa dữ liệu. Liên hệ hỗ trợ qua mục phản hồi trong app."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Trước",
+      "current": "Hiện tại",
+      "next": "Tiếp"
+    }
+  },
+  "block_game": {
+    "perfect": "Hoàn hảo!",
+    "combo": "COMBO x{count}",
+    "invalid_placement": "Mảnh ghép không đặt được",
+    "level_failed": "Thất bại",
+    "no_moves": "Hết nước đi"
+  },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "empty": "Chơi để ghi điểm đầu tiên!",
+    "entry": "{name} - {moves} nước",
+    "error": "Không tải được: {error}",
+    "lines": "Hàng: {count}",
+    "points": "{points} điểm",
+    "block": {
+      "title": "Bảng khối gỗ",
+      "empty": "Chơi một ván để ghi điểm đầu tiên."
+    }
+  },
+  "victory": {
+    "title": "Đã giải xong!",
+    "moves": "Nước đi: {value}",
+    "time": "Thời gian: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Lá",
+      "wood": "Khúc gỗ",
+      "mushroom": "Nấm"
+    }
+  },
+  "adventure": {
+    "title": "Chế độ Phiêu lưu",
+    "level_label": "Khu rừng {index}",
+    "requirement": "Xóa 5 hàng để mở khóa khu rừng tiếp theo."
+  }
+}

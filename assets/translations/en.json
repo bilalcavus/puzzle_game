@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Sliding Puzzle"
+  },
+  "common": {
+    "play": "Play",
+    "level": "Level",
+    "level_with_number": "Level {level}",
+    "moves": "Moves",
+    "time": "Time",
+    "restart": "Restart",
+    "next_level": "Next Level",
+    "leaderboards": "Leaderboards",
+    "score": "Score",
+    "lines": "Lines",
+    "best": "Best",
+    "settings": "Settings",
+    "background_music": "Background music",
+    "background_music_desc": "Keep the ambient forest track playing",
+    "effects": "Effect sounds",
+    "effects_desc": "Toggle move and success sounds",
+    "play_again": "Play Again",
+    "well_done": "Well Done!",
+    "language": "Language",
+    "language_hint": "Change app language",
+    "language_names": {
+      "en": "English",
+      "tr": "Turkish",
+      "ja": "Japanese",
+      "ko": "Korean",
+      "zh": "Chinese",
+      "id": "Indonesian",
+      "ms": "Malay",
+      "th": "Thai",
+      "es": "Spanish",
+      "pt": "Portuguese",
+      "vi": "Vietnamese",
+      "ar": "Arabic",
+      "ru": "Russian",
+      "hi": "Hindi",
+      "fr": "French",
+      "sv": "Swedish"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Puzzle Arcade",
+    "subtitle": "Choose a challenge: classic sliding logic or the new wooden block adventure.",
+    "cards": {
+      "sliding": {
+        "title": "Sliding Puzzle",
+        "description": "Classic 4x4 tile slider with timers, leaderboards, haptics, and smooth animations."
+      },
+      "block": {
+        "title": "Wooden Block Puzzle",
+        "description": "Drag wooden pieces onto a jungle board, clear rows for sparkles, and chase the perfect combo."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Adventure",
+      "subtitle": "Goal path"
+    },
+    "classic": {
+      "title": "Classic",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Legal Info",
+    "tabs": {
+      "terms": "Terms of Use",
+      "privacy": "Privacy Policy"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Acceptance & Updates",
+          "body": "By downloading and using the app you accept these terms. Rules may be updated from time to time; keeping up with in-app announcements is your responsibility."
+        },
+        "fair_use": {
+          "title": "Fair Play",
+          "body": "Cheating, automation, or behaviour that breaks the balance of the game is forbidden. Keep your device and credentials private to protect your account."
+        },
+        "paid_content": {
+          "title": "Paid Content",
+          "body": "Some cosmetic or booster bundles may be paid. Purchases follow your store provider's refund policy, and we reserve the right to cancel suspicious orders."
+        },
+        "liability": {
+          "title": "Liability Disclaimer",
+          "body": "The app is provided \"as is\". We cannot be held responsible for losses caused by interruptions, data corruption, or failures of third-party services."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Collected Data",
+          "body": "Your progress, scores, and the optional nickname you provide are stored locally. Analytics and crash reports stay anonymous and aren't linked to device identifiers."
+        },
+        "data_use": {
+          "title": "Data Usage",
+          "body": "We use this information to improve gameplay, fix technical issues, and plan new features. Data is never shared with advertisers."
+        },
+        "retention": {
+          "title": "Retention Period",
+          "body": "Local saves remain on your device. If cloud sync is enabled, data is stored until you delete your account or stay inactive for 24 months."
+        },
+        "rights": {
+          "title": "Your Rights",
+          "body": "You can request access, correction, or deletion of your data. Contact support via the in-app feedback panel to exercise these rights."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Previous",
+      "current": "Current",
+      "next": "Next"
+    }
+  },
+  "block_game": {
+    "perfect": "Perfect!",
+    "combo": "COMBO x{count}",
+    "invalid_placement": "The block does not fit here",
+    "level_failed": "Level failed",
+    "no_moves": "No more moves"
+  },
+  "leaderboard": {
+    "title": "Leaderboards",
+    "empty": "Play to create your first score!",
+    "entry": "{name} - {moves} moves",
+    "error": "Unable to load leaderboard: {error}",
+    "lines": "Lines: {count}",
+    "points": "{points} pts",
+    "block": {
+      "title": "Wooden Leaderboard",
+      "empty": "Play a round to record your first score."
+    }
+  },
+  "victory": {
+    "title": "Puzzle Solved!",
+    "moves": "Moves: {value}",
+    "time": "Time: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Leaf",
+      "wood": "Log",
+      "mushroom": "Mushroom"
+    }
+  },
+  "adventure": {
+    "title": "Adventure Mode",
+    "level_label": "Jungle {index}",
+    "requirement": "Clear 5 lines to unlock the next jungle."
+  }
+}

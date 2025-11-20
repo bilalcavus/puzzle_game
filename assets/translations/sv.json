@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Skjutpussel"
+  },
+  "common": {
+    "play": "Spela",
+    "level": "Nivå",
+    "level_with_number": "Nivå {level}",
+    "moves": "Drag",
+    "time": "Tid",
+    "restart": "Starta om",
+    "next_level": "Nästa nivå",
+    "leaderboards": "Topplistor",
+    "score": "Poäng",
+    "lines": "Rader",
+    "best": "Bästa",
+    "settings": "Inställningar",
+    "background_music": "Bakgrundsmusik",
+    "background_music_desc": "Låt skogsmusiken spela hela tiden",
+    "effects": "Ljudeffekter",
+    "effects_desc": "Slå på/av ljud för drag och seger",
+    "play_again": "Spela igen",
+    "well_done": "Snyggt!",
+    "language": "Språk",
+    "language_hint": "Byt appens språk",
+    "language_names": {
+      "en": "Engelska",
+      "tr": "Turkiska",
+      "ja": "Japanska",
+      "ko": "Koreanska",
+      "zh": "Kinesiska",
+      "id": "Indonesiska",
+      "ms": "Malajiska",
+      "th": "Thailändska",
+      "es": "Spanska",
+      "pt": "Portugisiska",
+      "vi": "Vietnamesiska",
+      "ar": "Arabiska",
+      "ru": "Ryska",
+      "hi": "Hindi",
+      "fr": "Franska",
+      "sv": "Svenska"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Pusselarkad",
+    "subtitle": "Välj en utmaning: klassisk skjutlogik eller ett nytt träblocksäventyr.",
+    "cards": {
+      "sliding": {
+        "title": "Skjutpussel",
+        "description": "Klassiskt 4x4-bräde med timers, topplistor, haptik och mjuka animationer."
+      },
+      "block": {
+        "title": "Träblockspussel",
+        "description": "Dra träbitar till djungelbrädet, rensa rader och jaga den perfekta kombon."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Äventyr",
+      "subtitle": "Målstig"
+    },
+    "classic": {
+      "title": "Klassisk",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Juridisk info",
+    "tabs": {
+      "terms": "Användarvillkor",
+      "privacy": "Integritetspolicy"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Godkännande och uppdateringar",
+          "body": "Genom att ladda ner och använda appen accepterar du villkoren. Regler kan ändras; följ aviseringarna i appen."
+        },
+        "fair_use": {
+          "title": "Rättvist spel",
+          "body": "Fusk, automatisering eller beteende som bryter spelets balans är förbjudet. Dela inte enhet eller inloggning."
+        },
+        "paid_content": {
+          "title": "Betalt innehåll",
+          "body": "Vissa kosmetiska paket kan kosta. Köp följer butikens återbetalningspolicy och misstänkta order kan avbrytas."
+        },
+        "liability": {
+          "title": "Ansvarsbegränsning",
+          "body": "Appen tillhandahålls \"i befintligt skick\". Vi ansvarar inte för avbrott, dataförlust eller fel hos tredje part."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Insamlad data",
+          "body": "Framsteg, poäng och valfritt smeknamn sparas lokalt. Analys och kraschnivåer är anonyma."
+        },
+        "data_use": {
+          "title": "Dataanvändning",
+          "body": "Informationen används för att förbättra spelet, fixa tekniska problem och planera nya funktioner."
+        },
+        "retention": {
+          "title": "Lagringstid",
+          "body": "Lokala sparfiler stannar på enheten och med molnsynk behålls de tills kontot tas bort eller 24 månader utan inloggning."
+        },
+        "rights": {
+          "title": "Dina rättigheter",
+          "body": "Du kan begära åtkomst, rättelse eller radering via feedbackskärmen."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Föregående",
+      "current": "Nuvarande",
+      "next": "Nästa"
+    }
+  },
+  "block_game": {
+    "perfect": "Perfekt!",
+    "combo": "KOMBO x{count}",
+    "invalid_placement": "Blocket får inte plats",
+    "level_failed": "Nivån misslyckades",
+    "no_moves": "Inga drag kvar"
+  },
+  "leaderboard": {
+    "title": "Topplista",
+    "empty": "Spela för att skapa din första poäng!",
+    "entry": "{name} - {moves} drag",
+    "error": "Kunde inte ladda: {error}",
+    "lines": "Rader: {count}",
+    "points": "{points} p",
+    "block": {
+      "title": "Träblockstopplista",
+      "empty": "Spela en runda för att registrera första poängen."
+    }
+  },
+  "victory": {
+    "title": "Pusslet löst!",
+    "moves": "Drag: {value}",
+    "time": "Tid: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Löv",
+      "wood": "Stock",
+      "mushroom": "Svamp"
+    }
+  },
+  "adventure": {
+    "title": "Äventyrsläge",
+    "level_label": "Djungel {index}",
+    "requirement": "Rensa 5 rader för att låsa upp nästa djungel."
+  }
+}

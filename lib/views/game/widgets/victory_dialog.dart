@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../providers/puzzle_provider.dart';
@@ -41,17 +42,26 @@ class VictoryDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Puzzle Solved!', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              tr('victory.title'),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 16),
-            Text('Moves: ${state.moves}\nTime: ${state.formattedTime}', textAlign: TextAlign.center),
+            Text(
+              '${tr('victory.moves', namedArgs: {'value': '${state.moves}'})}\n${tr('victory.time', namedArgs: {'value': state.formattedTime})}',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
-            AppButton(label: 'Play Again', onPressed: () {
-              Navigator.of(context).pop();
-              onRestart();
-            }),
+            AppButton(
+              label: tr('common.play_again'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onRestart();
+              },
+            ),
             const SizedBox(height: 12),
             AppButton(
-              label: 'Next Level',
+              label: tr('common.next_level'),
               onPressed: () {
                 Navigator.of(context).pop();
                 onNextLevel();

@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Quebra-cabeça Deslizante"
+  },
+  "common": {
+    "play": "Jogar",
+    "level": "Nível",
+    "level_with_number": "Nível {level}",
+    "moves": "Movimentos",
+    "time": "Tempo",
+    "restart": "Reiniciar",
+    "next_level": "Próximo nível",
+    "leaderboards": "Classificações",
+    "score": "Pontuação",
+    "lines": "Linhas",
+    "best": "Recorde",
+    "settings": "Configurações",
+    "background_music": "Música de fundo",
+    "background_music_desc": "Mantenha a trilha da floresta tocando",
+    "effects": "Efeitos sonoros",
+    "effects_desc": "Ative/desative sons de movimentos e vitórias",
+    "play_again": "Jogar novamente",
+    "well_done": "Muito bem!",
+    "language": "Idioma",
+    "language_hint": "Altere o idioma do app",
+    "language_names": {
+      "en": "Inglês",
+      "tr": "Turco",
+      "ja": "Japonês",
+      "ko": "Coreano",
+      "zh": "Chinês",
+      "id": "Indonésio",
+      "ms": "Malaio",
+      "th": "Tailandês",
+      "es": "Espanhol",
+      "pt": "Português",
+      "vi": "Vietnamita",
+      "ar": "Árabe",
+      "ru": "Russo",
+      "hi": "Hindi",
+      "fr": "Francês",
+      "sv": "Sueco"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Arcade de Quebra-cabeças",
+    "subtitle": "Escolha um desafio: lógica deslizante clássica ou a nova aventura de blocos de madeira.",
+    "cards": {
+      "sliding": {
+        "title": "Quebra-cabeça Deslizante",
+        "description": "Clássico tabuleiro 4x4 com temporizadores, rankings, tátil e animações suaves."
+      },
+      "block": {
+        "title": "Quebra-cabeça de Blocos",
+        "description": "Arraste peças de madeira para o tabuleiro da selva, limpe linhas e persiga o combo perfeito."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Aventura",
+      "subtitle": "Trilha do objetivo"
+    },
+    "classic": {
+      "title": "Clássico",
+      "subtitle": "8x8 e 10x10"
+    }
+  },
+  "legal": {
+    "title": "Informações legais",
+    "tabs": {
+      "terms": "Termos de uso",
+      "privacy": "Privacidade"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Aceite e atualizações",
+          "body": "Ao baixar e usar o app você aceita estes termos. As regras podem mudar; acompanhe os avisos no app."
+        },
+        "fair_use": {
+          "title": "Uso justo",
+          "body": "Trapaças, automação ou atitudes que quebrem o equilíbrio do jogo são proibidas. Proteja sua conta não compartilhando dispositivo nem credenciais."
+        },
+        "paid_content": {
+          "title": "Conteúdo pago",
+          "body": "Alguns pacotes cosméticos ou reforços podem ser pagos. Compras seguem a política de reembolso da loja e pedidos suspeitos podem ser cancelados."
+        },
+        "liability": {
+          "title": "Limitação de responsabilidade",
+          "body": "O app é fornecido \"no estado em que se encontra\". Não respondemos por perdas causadas por interrupções, danos de dados ou falhas de serviços terceiros."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Dados coletados",
+          "body": "Seu progresso, pontuações e apelido opcional ficam armazenados localmente. Análises e relatórios de falhas são anônimos."
+        },
+        "data_use": {
+          "title": "Uso dos dados",
+          "body": "Usamos essas informações para melhorar o jogo, corrigir problemas técnicos e planejar novos recursos. Não compartilhamos com anunciantes."
+        },
+        "retention": {
+          "title": "Retenção",
+          "body": "Dados locais permanecem no dispositivo. Com sincronização em nuvem, ficam até apagar a conta ou passar 24 meses sem login."
+        },
+        "rights": {
+          "title": "Seus direitos",
+          "body": "Você pode solicitar acesso, correção ou exclusão dos dados. Fale conosco pela tela de feedback do app."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Anterior",
+      "current": "Atual",
+      "next": "Próximo"
+    }
+  },
+  "block_game": {
+    "perfect": "Perfeito!",
+    "combo": "COMBO x{count}",
+    "invalid_placement": "A peça não cabe aqui",
+    "level_failed": "Nível falhou",
+    "no_moves": "Sem jogadas"
+  },
+  "leaderboard": {
+    "title": "Classificações",
+    "empty": "Jogue para registrar sua primeira pontuação!",
+    "entry": "{name} - {moves} movimentos",
+    "error": "Não foi possível carregar: {error}",
+    "lines": "Linhas: {count}",
+    "points": "{points} pts",
+    "block": {
+      "title": "Ranking dos Blocos",
+      "empty": "Jogue uma rodada para registrar um placar."
+    }
+  },
+  "victory": {
+    "title": "Quebra-cabeça Resolvido!",
+    "moves": "Movimentos: {value}",
+    "time": "Tempo: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Folha",
+      "wood": "Tronco",
+      "mushroom": "Cogumelo"
+    }
+  },
+  "adventure": {
+    "title": "Modo Aventura",
+    "level_label": "Selva {index}",
+    "requirement": "Limpe 5 linhas para desbloquear a próxima selva."
+  }
+}

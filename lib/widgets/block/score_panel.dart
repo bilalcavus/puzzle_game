@@ -1,16 +1,15 @@
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/providers/sound_provider.dart';
 import '../../providers/block_puzzle_provider.dart';
+import '../components/locale_menu_button.dart';
 
 class ScorePanel extends ConsumerWidget {
-  const ScorePanel({
-    super.key,
-    required this.state,
-  });
+  const ScorePanel({super.key, required this.state});
 
   final BlockPuzzleState state;
 
@@ -25,11 +24,19 @@ class ScorePanel extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _stat(context, 'Score', state.score.toString()),
-              _stat(context, 'Lines', state.totalLinesCleared.toString()),
-              _stat(context, 'Best', state.bestScore.toString()),
-              IconButton(onPressed: () => ref.read(blockPuzzleProvider.notifier).restart(), icon: Icon(Iconsax.refresh)),
-              SettingsButton(onPressed: () => showSettingsSheet(context, ref))
+              _stat(context, tr('common.score'), state.score.toString()),
+              _stat(
+                context,
+                tr('common.lines'),
+                state.totalLinesCleared.toString(),
+              ),
+              _stat(context, tr('common.best'), state.bestScore.toString()),
+              IconButton(
+                onPressed: () =>
+                    ref.read(blockPuzzleProvider.notifier).restart(),
+                icon: Icon(Iconsax.refresh),
+              ),
+              SettingsButton(onPressed: () => showSettingsSheet(context, ref)),
             ],
           ),
         ),
@@ -60,8 +67,11 @@ class ScorePanel extends ConsumerWidget {
                       const Icon(Iconsax.setting, color: Colors.white),
                       const SizedBox(width: 12),
                       Text(
-                        'Ayarlar',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                        tr('common.settings'),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -69,16 +79,51 @@ class ScorePanel extends ConsumerWidget {
                   SwitchListTile.adaptive(
                     value: settings.musicEnabled,
                     onChanged: notifier.setMusicEnabled,
-                    title: const Text('Arka plan müziği', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Doğa sesli müzik sürekli oynasın', style: TextStyle(color: Colors.white70)),
+                    title: Text(
+                      tr('common.background_music'),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      tr('common.background_music_desc'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     activeColor: Colors.tealAccent,
                   ),
                   SwitchListTile.adaptive(
                     value: settings.effectsEnabled,
                     onChanged: notifier.setEffectsEnabled,
-                    title: const Text('Efekt sesleri', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Hamle ve başarı seslerini aç/kapat', style: TextStyle(color: Colors.white70)),
+                    title: Text(
+                      tr('common.effects'),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      tr('common.effects_desc'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     activeColor: Colors.tealAccent,
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      tr('common.language'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      tr('common.language_hint'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    trailing: LocaleMenuButton(
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      textColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -90,18 +135,22 @@ class ScorePanel extends ConsumerWidget {
     );
   }
 
-
   Widget _stat(BuildContext context, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70)),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+        ),
         Text(
           value,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -119,7 +168,7 @@ class SettingsButton extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: IconButton(
         icon: const Icon(Iconsax.setting, color: Colors.white),
-        tooltip: 'Ayarlar',
+        tooltip: tr('common.settings'),
         onPressed: onPressed,
       ),
     );

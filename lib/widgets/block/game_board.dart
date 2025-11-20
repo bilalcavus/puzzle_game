@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,7 +93,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
               opacity: state.showPerfectText ? 1 : 0,
               duration: const Duration(milliseconds: 300),
               child: Text(
-                'Perfect!',
+                tr('block_game.perfect'),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.amberAccent,
                   fontWeight: FontWeight.bold,
@@ -118,13 +119,23 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          'COMBO x${state.comboCount}',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          tr(
+                            'block_game.combo',
+                            namedArgs: {'count': '${state.comboCount}'},
+                          ),
+                          style:
+                              Theme.of(
+                                context,
+                              ).textTheme.displaySmall?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 3,
                                 color: const Color(0xFFFFE9CC),
                                 shadows: const [
-                                  Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 10),
+                                  Shadow(
+                                    color: Colors.black54,
+                                    offset: Offset(0, 4),
+                                    blurRadius: 10,
+                                  ),
                                 ],
                               ) ??
                               const TextStyle(
@@ -133,7 +144,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                                 letterSpacing: 3,
                                 color: Color(0xFFFFE9CC),
                                 shadows: [
-                                  Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 10),
+                                  Shadow(
+                                    color: Colors.black54,
+                                    offset: Offset(0, 4),
+                                    blurRadius: 10,
+                                  ),
                                 ],
                               ),
                         ),
@@ -156,7 +171,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'Blok bu alana sığmıyor',
+                  tr('block_game.invalid_placement'),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -178,7 +193,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    state.levelMode ? 'Level failed' : 'No more moves',
+                    state.levelMode
+                        ? tr('block_game.level_failed')
+                        : tr('block_game.no_moves'),
                     style: Theme.of(
                       context,
                     ).textTheme.headlineSmall?.copyWith(color: Colors.white),
@@ -259,7 +276,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final blockSize = cellSize * innerScale;
     final explosionMap = <int, List<BlockExplosionEffect>>{};
     for (final effect in state.blockExplosions) {
-      explosionMap.putIfAbsent(effect.index, () => <BlockExplosionEffect>[]).add(effect);
+      explosionMap
+          .putIfAbsent(effect.index, () => <BlockExplosionEffect>[])
+          .add(effect);
     }
     return Container(
       width: widget.dimension,

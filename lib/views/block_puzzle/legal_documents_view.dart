@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class LegalDocumentsView extends StatelessWidget {
@@ -9,23 +10,23 @@ class LegalDocumentsView extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Hukuki Bilgiler'),
-          bottom: const TabBar(
+          title: Text(tr('legal.title')),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Kullanım Şartları'),
-              Tab(text: 'Gizlilik Politikası'),
+              Tab(text: tr('legal.tabs.terms')),
+              Tab(text: tr('legal.tabs.privacy')),
             ],
           ),
         ),
         body: const TabBarView(
           children: [
             _LegalContent(
-              title: 'Kullanım Şartları',
-              sections: _termsSections,
+              titleKey: 'legal.tabs.terms',
+              sectionKeys: _termsSectionKeys,
             ),
             _LegalContent(
-              title: 'Gizlilik Politikası',
-              sections: _privacySections,
+              titleKey: 'legal.tabs.privacy',
+              sectionKeys: _privacySectionKeys,
             ),
           ],
         ),
@@ -35,13 +36,10 @@ class LegalDocumentsView extends StatelessWidget {
 }
 
 class _LegalContent extends StatelessWidget {
-  const _LegalContent({
-    required this.title,
-    required this.sections,
-  });
+  const _LegalContent({required this.titleKey, required this.sectionKeys});
 
-  final String title;
-  final List<_LegalSection> sections;
+  final String titleKey;
+  final List<String> sectionKeys;
 
   @override
   Widget build(BuildContext context) {
@@ -50,14 +48,15 @@ class _LegalContent extends StatelessWidget {
       color: const Color(0xFFF8F3EC),
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        itemCount: sections.length + 1,
+        itemCount: sectionKeys.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                title,
-                style: textTheme.headlineSmall?.copyWith(
+                tr(titleKey),
+                style:
+                    textTheme.headlineSmall?.copyWith(
                       color: const Color(0xFF5B2C07),
                       fontWeight: FontWeight.w800,
                     ) ??
@@ -69,15 +68,16 @@ class _LegalContent extends StatelessWidget {
               ),
             );
           }
-          final section = sections[index - 1];
+          final sectionKey = sectionKeys[index - 1];
           return Padding(
             padding: const EdgeInsets.only(bottom: 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  section.title,
-                  style: textTheme.titleMedium?.copyWith(
+                  tr('$sectionKey.title'),
+                  style:
+                      textTheme.titleMedium?.copyWith(
                         color: const Color(0xFF7A4A22),
                         fontWeight: FontWeight.w700,
                       ) ??
@@ -89,8 +89,9 @@ class _LegalContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  section.body,
-                  style: textTheme.bodyMedium?.copyWith(
+                  tr('$sectionKey.body'),
+                  style:
+                      textTheme.bodyMedium?.copyWith(
                         color: const Color(0xFF4D3423),
                         height: 1.4,
                       ) ??
@@ -109,55 +110,16 @@ class _LegalContent extends StatelessWidget {
   }
 }
 
-class _LegalSection {
-  const _LegalSection({required this.title, required this.body});
-
-  final String title;
-  final String body;
-}
-
-const List<_LegalSection> _termsSections = [
-  _LegalSection(
-    title: 'Kabul ve Güncellemeler',
-    body:
-        'Uygulamayı indirip kullanarak bu şartları kabul etmiş olursunuz. Kurallar zaman zaman güncellenebilir; değişiklikleri uygulama içi duyurulardan takip etmek sizin sorumluluğunuzdadır.',
-  ),
-  _LegalSection(
-    title: 'Adil Kullanım',
-    body:
-        'Hile, otomasyon veya oyunun dengesini bozan davranışlar yasaktır. Hesabınızın güvenliğini korumak için cihazınızı ve giriş bilgilerinizi üçüncü kişilerle paylaşmayın.',
-  ),
-  _LegalSection(
-    title: 'Ücretli İçerikler',
-    body:
-        'Bazı kozmetik veya hızlandırıcı paketler ücretli olabilir. Satın alımlar mağaza sağlayıcınızın iade politikalarına tabidir. Yetkisiz ödeme tespit edilirse siparişi iptal etme hakkımız saklıdır.',
-  ),
-  _LegalSection(
-    title: 'Sorumluluk Reddi',
-    body:
-        'Uygulama “olduğu gibi” sunulur. Kesintiler, veri kayıpları ya da üçüncü taraf hizmetlerinden kaynaklanan aksaklıklardan doğacak zararlardan sorumlu tutulamayız.',
-  ),
+const List<String> _termsSectionKeys = [
+  'legal.sections.terms.accept',
+  'legal.sections.terms.fair_use',
+  'legal.sections.terms.paid_content',
+  'legal.sections.terms.liability',
 ];
 
-const List<_LegalSection> _privacySections = [
-  _LegalSection(
-    title: 'Toplanan Veriler',
-    body:
-        'Oyun ilerlemeniz, skorlarınız ve isteğe bağlı olarak sağladığınız kullanıcı adı yerel olarak saklanır. Analiz ve hata raporları anonimdir ve cihaz bilgileriyle ilişkilendirilmez.',
-  ),
-  _LegalSection(
-    title: 'Veri Kullanımı',
-    body:
-        'Toplanan bilgiler oyun deneyimini iyileştirmek, teknik sorunları gidermek ve yeni özellikleri planlamak için kullanılır. Veriler reklam amaçlı üçüncü taraflarla paylaşılmaz.',
-  ),
-  _LegalSection(
-    title: 'Saklama Süresi',
-    body:
-        'Yerel kayıtlar cihazınızda kaldığı sürece saklanır. Bulut eşitleme tercih edildiğinde, hesabınız silinene veya 24 ay boyunca oturum açılmayana kadar veriler korunur.',
-  ),
-  _LegalSection(
-    title: 'Haklarınız',
-    body:
-        'Verilerinize erişme, düzeltme ya da silme talebinde bulunabilirsiniz. Destek ekibimizle uygulama içindeki geri bildirim ekranından iletişime geçerek bu hakları kullanabilirsiniz.',
-  ),
+const List<String> _privacySectionKeys = [
+  'legal.sections.privacy.data_collection',
+  'legal.sections.privacy.data_use',
+  'legal.sections.privacy.retention',
+  'legal.sections.privacy.rights',
 ];

@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Kaydırmalı Bulmaca"
+  },
+  "common": {
+    "play": "Oyna",
+    "level": "Seviye",
+    "level_with_number": "Seviye {level}",
+    "moves": "Hamle",
+    "time": "Süre",
+    "restart": "Yeniden başlat",
+    "next_level": "Sonraki Seviye",
+    "leaderboards": "Liderlik Tabloları",
+    "score": "Skor",
+    "lines": "Satırlar",
+    "best": "Rekor",
+    "settings": "Ayarlar",
+    "background_music": "Arka plan müziği",
+    "background_music_desc": "Orman atmosferli müzik sürekli çalsın",
+    "effects": "Efekt sesleri",
+    "effects_desc": "Hamle ve başarı seslerini aç/kapat",
+    "play_again": "Tekrar Oyna",
+    "well_done": "Harika!",
+    "language": "Dil",
+    "language_hint": "Uygulama dilini değiştir",
+    "language_names": {
+      "en": "İngilizce",
+      "tr": "Türkçe",
+      "ja": "Japonca",
+      "ko": "Korece",
+      "zh": "Çince",
+      "id": "Endonezce",
+      "ms": "Malayca",
+      "th": "Tayca",
+      "es": "İspanyolca",
+      "pt": "Portekizce",
+      "vi": "Vietnamca",
+      "ar": "Arapça",
+      "ru": "Rusça",
+      "hi": "Hintçe",
+      "fr": "Fransızca",
+      "sv": "İsveççe"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Bulmaca Salonu",
+    "subtitle": "Bir meydan okuma seç: klasik kaydırmalı mantık ya da yeni ahşap blok macerası.",
+    "cards": {
+      "sliding": {
+        "title": "Kaydırmalı Bulmaca",
+        "description": "Zamanlayıcılar, lider tabloları, titreşim ve akıcı animasyonlarla klasik 4x4 kaydırma deneyimi."
+      },
+      "block": {
+        "title": "Ahşap Blok Bulmacası",
+        "description": "Ahşap parçaları orman tahtasına sürükle, satırları temizle ve kusursuz kombonun peşine düş."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Macera",
+      "subtitle": "Hedef parkuru"
+    },
+    "classic": {
+      "title": "Klasik",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Hukuki Bilgiler",
+    "tabs": {
+      "terms": "Kullanım Şartları",
+      "privacy": "Gizlilik Politikası"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Kabul ve Güncellemeler",
+          "body": "Uygulamayı indirip kullanarak bu şartları kabul etmiş olursunuz. Kurallar zaman zaman güncellenebilir; değişiklikleri uygulama içi duyurulardan takip etmek sizin sorumluluğunuzdadır."
+        },
+        "fair_use": {
+          "title": "Adil Kullanım",
+          "body": "Hile, otomasyon veya oyunun dengesini bozan davranışlar yasaktır. Hesabınızın güvenliğini korumak için cihazınızı ve giriş bilgilerinizi üçüncü kişilerle paylaşmayın."
+        },
+        "paid_content": {
+          "title": "Ücretli İçerikler",
+          "body": "Bazı kozmetik veya hızlandırıcı paketler ücretli olabilir. Satın alımlar mağaza sağlayıcınızın iade politikalarına tabidir ve şüpheli işlemleri iptal etme hakkımız saklıdır."
+        },
+        "liability": {
+          "title": "Sorumluluk Reddi",
+          "body": "Uygulama \"olduğu gibi\" sunulur. Kesintiler, veri kayıpları ya da üçüncü taraf hizmetlerinden kaynaklanan aksaklıklardan doğacak zararlardan sorumlu tutulamayız."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Toplanan Veriler",
+          "body": "Oyun ilerlemeniz, skorlarınız ve isteğe bağlı kullanıcı adınız yerel olarak saklanır. Analiz ve hata raporları anonimizdir ve cihaz kimliğiyle ilişkilendirilmez."
+        },
+        "data_use": {
+          "title": "Veri Kullanımı",
+          "body": "Bu bilgiler oyun deneyimini iyileştirmek, teknik sorunları gidermek ve yeni özellikleri planlamak için kullanılır. Veriler reklam amaçlı üçüncü taraflarla paylaşılmaz."
+        },
+        "retention": {
+          "title": "Saklama Süresi",
+          "body": "Yerel kayıtlar cihazınızda kaldığı sürece saklanır. Bulut eşitleme açıldığında, hesabınızı silene veya 24 ay oturum açmayana kadar veriler korunur."
+        },
+        "rights": {
+          "title": "Haklarınız",
+          "body": "Verilerinize erişme, düzeltme ya da silme talebinde bulunabilirsiniz. Bu hakları kullanmak için uygulama içindeki geri bildirim ekranından destek ekibimizle iletişime geçebilirsiniz."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Önceki",
+      "current": "Güncel",
+      "next": "Sonraki"
+    }
+  },
+  "block_game": {
+    "perfect": "Mükemmel!",
+    "combo": "KOMBO x{count}",
+    "invalid_placement": "Blok bu alana sığmıyor",
+    "level_failed": "Seviye başarısız",
+    "no_moves": "Hamle kalmadı"
+  },
+  "leaderboard": {
+    "title": "Liderlik Tabloları",
+    "empty": "İlk skorunu oluşturmak için oyna!",
+    "entry": "{name} - {moves} hamle",
+    "error": "Liderlik tablosu yüklenemedi: {error}",
+    "lines": "Satırlar: {count}",
+    "points": "{points} puan",
+    "block": {
+      "title": "Ahşap Liderlik Tablosu",
+      "empty": "İlk skorunu kaydetmek için bir tur oyna."
+    }
+  },
+  "victory": {
+    "title": "Bulmaca Çözüldü!",
+    "moves": "Hamle: {value}",
+    "time": "Süre: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Yaprak",
+      "wood": "Kütük",
+      "mushroom": "Mantar"
+    }
+  },
+  "adventure": {
+    "title": "Macera Modu",
+    "level_label": "Orman {index}",
+    "requirement": "Sonraki ormanı açmak için 5 satır temizle."
+  }
+}

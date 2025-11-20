@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
@@ -190,11 +191,11 @@ class _LevelPathHeader extends StatelessWidget {
         context.dynamicWidth(0.23).width,
         Center(
           child: Text(
-            'Adventure',
+            tr('block_mode.adventure.title'),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w700,
               color: Colors.white,
-            )
+            ),
           ),
         ),
       ],
@@ -229,8 +230,6 @@ class _CircleButton extends StatelessWidget {
 class _TrophyIntro extends StatelessWidget {
   const _TrophyIntro();
 
-  
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -247,7 +246,7 @@ class _TrophyIntro extends StatelessWidget {
           ),
         ],
       ),
-      child:  Icon(
+      child: Icon(
         Icons.emoji_events_rounded,
         color: Color(0xFFFFE299),
         size: context.dynamicHeight(0.05),
@@ -255,7 +254,6 @@ class _TrophyIntro extends StatelessWidget {
     );
   }
 }
-
 
 class _AdventureBoard extends StatelessWidget {
   const _AdventureBoard({
@@ -464,20 +462,20 @@ class _BoardFooter extends StatelessWidget {
     return Row(
       children: [
         _MiniTile(
-          label: 'Previous',
+          label: tr('level_path.footer.previous'),
           level: prevLevel,
           enabled: prevLevel <= unlockedLevel,
         ),
         const SizedBox(width: 12),
         _MiniTile(
-          label: 'Current',
+          label: tr('level_path.footer.current'),
           level: currentLevel,
           enabled: true,
           highlight: true,
         ),
         const SizedBox(width: 12),
         _MiniTile(
-          label: 'Next',
+          label: tr('level_path.footer.next'),
           level: nextLevel,
           enabled: nextLevel <= unlockedLevel + 1,
         ),
@@ -538,7 +536,7 @@ class _MiniTile extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Level $level',
+              tr('common.level_with_number', namedArgs: {'level': '$level'}),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w700,
@@ -583,7 +581,9 @@ class _LevelActionButton extends StatelessWidget {
           shadowColor: Colors.black38,
           textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
         ),
-        child: Text('Level $level'),
+        child: Text(
+          tr('common.level_with_number', namedArgs: {'level': '$level'}),
+        ),
       ),
     );
   }

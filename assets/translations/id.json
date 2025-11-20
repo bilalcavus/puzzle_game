@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Teka-teki Geser"
+  },
+  "common": {
+    "play": "Main",
+    "level": "Level",
+    "level_with_number": "Level {level}",
+    "moves": "Langkah",
+    "time": "Waktu",
+    "restart": "Mulai ulang",
+    "next_level": "Level berikut",
+    "leaderboards": "Papan Skor",
+    "score": "Skor",
+    "lines": "Baris",
+    "best": "Terbaik",
+    "settings": "Pengaturan",
+    "background_music": "Musik latar",
+    "background_music_desc": "Putar terus musik hutan",
+    "effects": "Efek suara",
+    "effects_desc": "Aktifkan/nonaktifkan suara langkah dan kemenangan",
+    "play_again": "Main lagi",
+    "well_done": "Kerja bagus!",
+    "language": "Bahasa",
+    "language_hint": "Ubah bahasa aplikasi",
+    "language_names": {
+      "en": "Inggris",
+      "tr": "Turki",
+      "ja": "Jepang",
+      "ko": "Korea",
+      "zh": "Tionghoa",
+      "id": "Indonesia",
+      "ms": "Melayu",
+      "th": "Thai",
+      "es": "Spanyol",
+      "pt": "Portugis",
+      "vi": "Vietnam",
+      "ar": "Arab",
+      "ru": "Rusia",
+      "hi": "Hindi",
+      "fr": "Prancis",
+      "sv": "Swedia"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Arena Teka-teki",
+    "subtitle": "Pilih tantangan: logika geser klasik atau petualangan balok kayu baru.",
+    "cards": {
+      "sliding": {
+        "title": "Teka-teki Geser",
+        "description": "Slider 4x4 klasik dengan timer, papan skor, haptik, dan animasi halus."
+      },
+      "block": {
+        "title": "Teka-teki Balok Kayu",
+        "description": "Seret balok kayu ke papan hutan, bersihkan baris, dan buru kombo sempurna."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Petualangan",
+      "subtitle": "Jalur target"
+    },
+    "classic": {
+      "title": "Klasik",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Info Hukum",
+    "tabs": {
+      "terms": "Syarat Penggunaan",
+      "privacy": "Kebijakan Privasi"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Persetujuan & Pembaruan",
+          "body": "Dengan mengunduh dan menggunakan aplikasi ini Anda menyetujui syarat ini. Aturan dapat diperbarui sewaktu-waktu; pantau pengumuman dalam aplikasi."
+        },
+        "fair_use": {
+          "title": "Permainan adil",
+          "body": "Kecurangan, otomatisasi, atau perilaku yang merusak keseimbangan game dilarang. Lindungi akun dengan tidak berbagi perangkat atau kredensial."
+        },
+        "paid_content": {
+          "title": "Konten berbayar",
+          "body": "Beberapa paket kosmetik atau booster mungkin berbayar. Pembelian mengikuti kebijakan refund toko, dan kami dapat membatalkan pesanan mencurigakan."
+        },
+        "liability": {
+          "title": "Batas tanggung jawab",
+          "body": "Aplikasi disediakan \"sebagaimana adanya\". Kami tidak bertanggung jawab atas kerugian akibat gangguan, kerusakan data, atau kegagalan layanan pihak ketiga."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Data yang dikumpulkan",
+          "body": "Progres, skor, dan nama panggilan opsional disimpan secara lokal. Analitik dan laporan crash anonim dan tidak ditautkan ke perangkat."
+        },
+        "data_use": {
+          "title": "Penggunaan data",
+          "body": "Informasi ini dipakai untuk meningkatkan gameplay, memperbaiki masalah teknis, dan merencanakan fitur baru. Data tidak dibagikan dengan pengiklan."
+        },
+        "retention": {
+          "title": "Masa simpan",
+          "body": "Simpan lokal tetap selama ada di perangkat. Jika sinkronisasi cloud aktif, data disimpan sampai akun dihapus atau 24 bulan tidak aktif."
+        },
+        "rights": {
+          "title": "Hak Anda",
+          "body": "Anda dapat meminta akses, perbaikan, atau penghapusan data. Hubungi dukungan melalui menu umpan balik dalam aplikasi."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Sebelumnya",
+      "current": "Saat ini",
+      "next": "Berikutnya"
+    }
+  },
+  "block_game": {
+    "perfect": "Sempurna!",
+    "combo": "KOMBO x{count}",
+    "invalid_placement": "Balok tidak muat di sini",
+    "level_failed": "Level gagal",
+    "no_moves": "Tidak ada langkah lagi"
+  },
+  "leaderboard": {
+    "title": "Papan Skor",
+    "empty": "Main untuk membuat skor pertamamu!",
+    "entry": "{name} - {moves} langkah",
+    "error": "Tidak dapat memuat papan skor: {error}",
+    "lines": "Baris: {count}",
+    "points": "{points} poin",
+    "block": {
+      "title": "Papan Balok Kayu",
+      "empty": "Main satu ronde untuk mencatat skor perdana."
+    }
+  },
+  "victory": {
+    "title": "Teka-teki Selesai!",
+    "moves": "Langkah: {value}",
+    "time": "Waktu: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Daun",
+      "wood": "Kayu",
+      "mushroom": "Jamur"
+    }
+  },
+  "adventure": {
+    "title": "Mode Petualangan",
+    "level_label": "Rimba {index}",
+    "requirement": "Bersihkan 5 baris untuk membuka rimba berikutnya."
+  }
+}

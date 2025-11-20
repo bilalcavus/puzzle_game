@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Casse-tête Glissant"
+  },
+  "common": {
+    "play": "Jouer",
+    "level": "Niveau",
+    "level_with_number": "Niveau {level}",
+    "moves": "Coups",
+    "time": "Temps",
+    "restart": "Recommencer",
+    "next_level": "Niveau suivant",
+    "leaderboards": "Classements",
+    "score": "Score",
+    "lines": "Lignes",
+    "best": "Record",
+    "settings": "Réglages",
+    "background_music": "Musique d'ambiance",
+    "background_music_desc": "Laissez jouer la mélodie de la forêt",
+    "effects": "Effets sonores",
+    "effects_desc": "Activer/désactiver les sons de mouvements et de victoire",
+    "play_again": "Rejouer",
+    "well_done": "Bravo !",
+    "language": "Langue",
+    "language_hint": "Changer la langue de l'application",
+    "language_names": {
+      "en": "Anglais",
+      "tr": "Turc",
+      "ja": "Japonais",
+      "ko": "Coréen",
+      "zh": "Chinois",
+      "id": "Indonésien",
+      "ms": "Malais",
+      "th": "Thaï",
+      "es": "Espagnol",
+      "pt": "Portugais",
+      "vi": "Vietnamien",
+      "ar": "Arabe",
+      "ru": "Russe",
+      "hi": "Hindi",
+      "fr": "Français",
+      "sv": "Suédois"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Arcade de Casse-têtes",
+    "subtitle": "Choisissez un défi : logique glissante classique ou nouvelle aventure des blocs de bois.",
+    "cards": {
+      "sliding": {
+        "title": "Casse-tête Glissant",
+        "description": "Classique grille 4x4 avec minuteurs, classements, retour haptique et animations fluides."
+      },
+      "block": {
+        "title": "Blocs de Bois",
+        "description": "Faites glisser des pièces sur un plateau jungle, nettoyez les lignes et poursuivez le combo parfait."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Aventure",
+      "subtitle": "Parcours d'objectif"
+    },
+    "classic": {
+      "title": "Classique",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Informations légales",
+    "tabs": {
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Acceptation & mises à jour",
+          "body": "En téléchargeant et utilisant l'app vous acceptez ces conditions. Les règles peuvent évoluer, suivez les annonces intégrées."
+        },
+        "fair_use": {
+          "title": "Jeu équitable",
+          "body": "La triche, l'automatisation ou toute action brisant l'équilibre sont interdites. Protégez votre compte en gardant vos identifiants."
+        },
+        "paid_content": {
+          "title": "Contenu payant",
+          "body": "Certains packs cosmétiques ou boosters peuvent être payants. Les achats suivent la politique de remboursement de la boutique."
+        },
+        "liability": {
+          "title": "Limite de responsabilité",
+          "body": "L'app est fournie \"en l'état\". Nous ne sommes pas responsables des pertes dues aux interruptions ou services tiers."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Données collectées",
+          "body": "Progrès, scores et surnom facultatif sont stockés localement. Analyses et rapports d'erreurs restent anonymes."
+        },
+        "data_use": {
+          "title": "Usage des données",
+          "body": "Elles servent à améliorer le gameplay, corriger les problèmes techniques et planifier de nouvelles fonctions."
+        },
+        "retention": {
+          "title": "Conservation",
+          "body": "Les sauvegardes locales restent sur l'appareil. En cloud, elles persistent jusqu'à suppression ou 24 mois d'inactivité."
+        },
+        "rights": {
+          "title": "Vos droits",
+          "body": "Demandez accès, rectification ou suppression via l'écran de feedback."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Précédent",
+      "current": "Actuel",
+      "next": "Suivant"
+    }
+  },
+  "block_game": {
+    "perfect": "Parfait !",
+    "combo": "COMBO x{count}",
+    "invalid_placement": "La pièce ne rentre pas ici",
+    "level_failed": "Échec du niveau",
+    "no_moves": "Plus de mouvements"
+  },
+  "leaderboard": {
+    "title": "Classements",
+    "empty": "Jouez pour enregistrer votre premier score !",
+    "entry": "{name} - {moves} coups",
+    "error": "Impossible de charger : {error}",
+    "lines": "Lignes : {count}",
+    "points": "{points} pts",
+    "block": {
+      "title": "Classement Bois",
+      "empty": "Jouez une partie pour créer un score."
+    }
+  },
+  "victory": {
+    "title": "Puzzle résolu !",
+    "moves": "Coups : {value}",
+    "time": "Temps : {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Feuille",
+      "wood": "Bûche",
+      "mushroom": "Champignon"
+    }
+  },
+  "adventure": {
+    "title": "Mode Aventure",
+    "level_label": "Jungle {index}",
+    "requirement": "Nettoyez 5 lignes pour débloquer la jungle suivante."
+  }
+}

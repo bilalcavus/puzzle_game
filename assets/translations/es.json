@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Rompecabezas Deslizante"
+  },
+  "common": {
+    "play": "Jugar",
+    "level": "Nivel",
+    "level_with_number": "Nivel {level}",
+    "moves": "Movimientos",
+    "time": "Tiempo",
+    "restart": "Reiniciar",
+    "next_level": "Siguiente nivel",
+    "leaderboards": "Clasificaciones",
+    "score": "Puntuación",
+    "lines": "Líneas",
+    "best": "Récord",
+    "settings": "Ajustes",
+    "background_music": "Música de fondo",
+    "background_music_desc": "Mantén sonando la melodía del bosque",
+    "effects": "Efectos de sonido",
+    "effects_desc": "Activa o desactiva sonidos de jugadas y victorias",
+    "play_again": "Jugar otra vez",
+    "well_done": "¡Bien hecho!",
+    "language": "Idioma",
+    "language_hint": "Cambia el idioma de la app",
+    "language_names": {
+      "en": "Inglés",
+      "tr": "Turco",
+      "ja": "Japonés",
+      "ko": "Coreano",
+      "zh": "Chino",
+      "id": "Indonesio",
+      "ms": "Malayo",
+      "th": "Tailandés",
+      "es": "Español",
+      "pt": "Portugués",
+      "vi": "Vietnamita",
+      "ar": "Árabe",
+      "ru": "Ruso",
+      "hi": "Hindi",
+      "fr": "Francés",
+      "sv": "Sueco"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Arcade de Rompecabezas",
+    "subtitle": "Elige un desafío: lógica clásica deslizante o la nueva aventura de bloques de madera.",
+    "cards": {
+      "sliding": {
+        "title": "Rompecabezas Deslizante",
+        "description": "Clásico tablero 4x4 con temporizadores, clasificaciones, hápticos y animaciones suaves."
+      },
+      "block": {
+        "title": "Bloques de Madera",
+        "description": "Arrastra piezas sobre un tablero selvático, limpia filas y persigue el combo perfecto."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Aventura",
+      "subtitle": "Recorrido objetivo"
+    },
+    "classic": {
+      "title": "Clásico",
+      "subtitle": "8x8 y 10x10"
+    }
+  },
+  "legal": {
+    "title": "Información legal",
+    "tabs": {
+      "terms": "Términos de uso",
+      "privacy": "Política de privacidad"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Aceptación y cambios",
+          "body": "Al descargar y usar la app aceptas estos términos. Las reglas pueden cambiar; revisa los avisos dentro de la app."
+        },
+        "fair_use": {
+          "title": "Juego justo",
+          "body": "Se prohíbe hacer trampas, automatizar o romper el equilibrio del juego. Protege tu cuenta no compartiendo el dispositivo ni tus credenciales."
+        },
+        "paid_content": {
+          "title": "Contenido de pago",
+          "body": "Algunos paquetes cosméticos o potenciadores pueden ser de pago. Las compras siguen la política de reembolsos de la tienda y podemos cancelar pedidos sospechosos."
+        },
+        "liability": {
+          "title": "Limitación de responsabilidad",
+          "body": "La app se entrega \"tal cual\". No respondemos por pérdidas causadas por interrupciones, daños de datos o fallos de servicios externos."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Datos recopilados",
+          "body": "Tu progreso, puntuaciones y apodo opcional se guardan localmente. Analíticas e informes de fallos son anónimos y no se vinculan al dispositivo."
+        },
+        "data_use": {
+          "title": "Uso de datos",
+          "body": "Usamos la información para mejorar la jugabilidad, corregir problemas técnicos y planear nuevas funciones. No compartimos datos con anunciantes."
+        },
+        "retention": {
+          "title": "Retención",
+          "body": "Los datos locales permanecen en el dispositivo. Con sincronización en la nube, se conservan hasta borrar la cuenta o 24 meses sin iniciar sesión."
+        },
+        "rights": {
+          "title": "Tus derechos",
+          "body": "Puedes solicitar acceso, rectificación o eliminación de tus datos. Contáctanos desde el panel de comentarios de la app."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Anterior",
+      "current": "Actual",
+      "next": "Siguiente"
+    }
+  },
+  "block_game": {
+    "perfect": "¡Perfecto!",
+    "combo": "COMBO x{count}",
+    "invalid_placement": "La pieza no cabe aquí",
+    "level_failed": "Nivel fallido",
+    "no_moves": "Sin movimientos"
+  },
+  "leaderboard": {
+    "title": "Clasificaciones",
+    "empty": "¡Juega para crear tu primera puntuación!",
+    "entry": "{name} - {moves} movimientos",
+    "error": "No se pudo cargar: {error}",
+    "lines": "Líneas: {count}",
+    "points": "{points} pts",
+    "block": {
+      "title": "Tabla de bloques",
+      "empty": "Juega una partida para registrar tu primer puntaje."
+    }
+  },
+  "victory": {
+    "title": "¡Rompecabezas resuelto!",
+    "moves": "Movimientos: {value}",
+    "time": "Tiempo: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Hoja",
+      "wood": "Tronco",
+      "mushroom": "Hongo"
+    }
+  },
+  "adventure": {
+    "title": "Modo Aventura",
+    "level_label": "Jungla {index}",
+    "requirement": "Limpia 5 líneas para desbloquear la siguiente jungla."
+  }
+}

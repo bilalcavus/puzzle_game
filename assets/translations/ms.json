@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "Teka-teki Gelongsor"
+  },
+  "common": {
+    "play": "Main",
+    "level": "Tahap",
+    "level_with_number": "Tahap {level}",
+    "moves": "Langkah",
+    "time": "Masa",
+    "restart": "Mula semula",
+    "next_level": "Tahap seterusnya",
+    "leaderboards": "Papan Pendahulu",
+    "score": "Skor",
+    "lines": "Baris",
+    "best": "Terbaik",
+    "settings": "Tetapan",
+    "background_music": "Muzik latar",
+    "background_music_desc": "Terus mainkan muzik suasana hutan",
+    "effects": "Bunyi kesan",
+    "effects_desc": "Hidupkan/matikan bunyi pergerakan dan kemenangan",
+    "play_again": "Main lagi",
+    "well_done": "Hebat!",
+    "language": "Bahasa",
+    "language_hint": "Tukar bahasa aplikasi",
+    "language_names": {
+      "en": "Inggeris",
+      "tr": "Turki",
+      "ja": "Jepun",
+      "ko": "Korea",
+      "zh": "Cina",
+      "id": "Indonesia",
+      "ms": "Melayu",
+      "th": "Thai",
+      "es": "Sepanyol",
+      "pt": "Portugis",
+      "vi": "Vietnam",
+      "ar": "Arab",
+      "ru": "Rusia",
+      "hi": "Hindi",
+      "fr": "Perancis",
+      "sv": "Sweden"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "Arked Teka-teki",
+    "subtitle": "Pilih cabaran: logik gelongsor klasik atau pengembaraan blok kayu baharu.",
+    "cards": {
+      "sliding": {
+        "title": "Teka-teki Gelongsor",
+        "description": "Slider 4x4 klasik dengan pemasa, papan pendahulu, haptik dan animasi lancar."
+      },
+      "block": {
+        "title": "Teka-teki Blok Kayu",
+        "description": "Seret blok kayu ke papan rimba, bersihkan baris dan buru kombo sempurna."
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "Pengembaraan",
+      "subtitle": "Laluan sasaran"
+    },
+    "classic": {
+      "title": "Klasik",
+      "subtitle": "8x8 & 10x10"
+    }
+  },
+  "legal": {
+    "title": "Maklumat Perundangan",
+    "tabs": {
+      "terms": "Syarat Penggunaan",
+      "privacy": "Dasar Privasi"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "Penerimaan & Kemas Kini",
+          "body": "Dengan memuat turun dan menggunakan aplikasi ini anda menerima syarat ini. Peraturan boleh dikemas kini dari semasa ke semasa; ikuti pengumuman dalam aplikasi."
+        },
+        "fair_use": {
+          "title": "Penggunaan adil",
+          "body": "Penipuan, automasi atau tingkah laku yang merosakkan keseimbangan permainan adalah dilarang. Lindungi akaun anda dengan tidak berkongsi peranti atau kelayakan."
+        },
+        "paid_content": {
+          "title": "Kandungan berbayar",
+          "body": "Sesetengah pakej kosmetik atau booster mungkin berbayar. Pembelian mengikut dasar bayaran balik stor dan kami berhak membatalkan pesanan yang mencurigakan."
+        },
+        "liability": {
+          "title": "Had liabiliti",
+          "body": "Aplikasi disediakan \"seadanya\". Kami tidak bertanggungjawab atas kerugian akibat gangguan, kerosakan data atau kegagalan perkhidmatan pihak ketiga."
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "Data dikumpul",
+          "body": "Kemajuan, skor dan nama samaran pilihan disimpan secara tempatan. Analitik dan laporan kerosakan adalah tanpa nama dan tidak dipautkan kepada peranti."
+        },
+        "data_use": {
+          "title": "Penggunaan data",
+          "body": "Maklumat ini digunakan untuk menambah baik permainan, membetulkan isu teknikal dan merancang ciri baharu. Data tidak dikongsi dengan pengiklan."
+        },
+        "retention": {
+          "title": "Tempoh simpan",
+          "body": "Simpanan tempatan kekal selagi berada pada peranti anda. Jika penyegerakan awan diaktifkan, data disimpan sehingga akaun dipadam atau 24 bulan tanpa log masuk."
+        },
+        "rights": {
+          "title": "Hak anda",
+          "body": "Anda boleh meminta akses, pembetulan atau pemadaman data. Hubungi sokongan melalui skrin maklum balas dalam aplikasi."
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "Sebelum",
+      "current": "Semasa",
+      "next": "Seterusnya"
+    }
+  },
+  "block_game": {
+    "perfect": "Sempurna!",
+    "combo": "KOMBO x{count}",
+    "invalid_placement": "Blok tidak muat di sini",
+    "level_failed": "Tahap gagal",
+    "no_moves": "Tiada gerakan lagi"
+  },
+  "leaderboard": {
+    "title": "Papan Pendahulu",
+    "empty": "Main untuk cipta skor pertamamu!",
+    "entry": "{name} - {moves} langkah",
+    "error": "Tidak dapat memuat papan pendahulu: {error}",
+    "lines": "Baris: {count}",
+    "points": "{points} mata",
+    "block": {
+      "title": "Papan Blok Kayu",
+      "empty": "Main satu pusingan untuk mencatat skor pertama."
+    }
+  },
+  "victory": {
+    "title": "Teka-teki Selesai!",
+    "moves": "Langkah: {value}",
+    "time": "Masa: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "Daun",
+      "wood": "Kayu",
+      "mushroom": "Cendawan"
+    }
+  },
+  "adventure": {
+    "title": "Mod Pengembaraan",
+    "level_label": "Rimba {index}",
+    "requirement": "Bersihkan 5 baris untuk membuka rimba seterusnya."
+  }
+}

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,22 +11,36 @@ class BlockLeaderboardView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final leaderboard = ref.watch(blockLeaderboardProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Wooden Leaderboard')),
+      appBar: AppBar(title: Text(tr('leaderboard.block.title'))),
       body: leaderboard.when(
         data: (entries) {
           if (entries.isEmpty) {
-            return const Center(child: Text('Play a round to record your first score.'));
+            return Center(child: Text(tr('leaderboard.block.empty')));
           }
           return ListView.separated(
             padding: const EdgeInsets.all(24),
             itemBuilder: (context, index) {
               final entry = entries[index];
               return ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                tileColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 title: Text('${index + 1}. ${entry.name}'),
-                subtitle: Text('Lines: ${entry.linesCleared}'),
-                trailing: Text('${entry.score} pts'),
+                subtitle: Text(
+                  tr(
+                    'leaderboard.lines',
+                    namedArgs: {'count': '${entry.linesCleared}'},
+                  ),
+                ),
+                trailing: Text(
+                  tr(
+                    'leaderboard.points',
+                    namedArgs: {'points': '${entry.score}'},
+                  ),
+                ),
               );
             },
             separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -33,7 +48,9 @@ class BlockLeaderboardView extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Unable to load leaderboard: $error')),
+        error: (error, _) => Center(
+          child: Text(tr('leaderboard.error', namedArgs: {'error': '$error'})),
+        ),
       ),
     );
   }

@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  easy_localization: ^3.0.5
   flutter_riverpod: ^2.5.1
   audioplayers: ^5.2.1
   shared_preferences: ^2.2.2
@@ -45,6 +46,7 @@ flutter:
     - assets/images/
     - assets/lottie/
     - assets/icons/
+    - assets/translations/
 
   fonts:
     - family: Baloo2
@@ -59,5 +61,4 @@ flutter:
           weight: 700
         - asset: assets/fonts/Baloo2-ExtraBold.ttf
           weight: 800
-
 

@@ -1,0 +1,175 @@
+{
+  "app": {
+    "title": "滑块拼图"
+  },
+  "common": {
+    "play": "开始",
+    "level": "关卡",
+    "level_with_number": "关卡 {level}",
+    "moves": "步数",
+    "time": "时间",
+    "restart": "重新开始",
+    "next_level": "下一关",
+    "leaderboards": "排行榜",
+    "score": "得分",
+    "lines": "行",
+    "best": "最高",
+    "settings": "设置",
+    "background_music": "背景音乐",
+    "background_music_desc": "持续播放森林氛围音乐",
+    "effects": "音效",
+    "effects_desc": "开关移动与胜利音效",
+    "play_again": "再玩一次",
+    "well_done": "干得好！",
+    "language": "语言",
+    "language_hint": "更改应用语言",
+    "language_names": {
+      "en": "英语",
+      "tr": "土耳其语",
+      "ja": "日语",
+      "ko": "韩语",
+      "zh": "中文",
+      "id": "印尼语",
+      "ms": "马来语",
+      "th": "泰语",
+      "es": "西班牙语",
+      "pt": "葡萄牙语",
+      "vi": "越南语",
+      "ar": "阿拉伯语",
+      "ru": "俄语",
+      "hi": "印地语",
+      "fr": "法语",
+      "sv": "瑞典语"
+    },
+    "language_short": {
+      "en": "EN",
+      "tr": "TR",
+      "ja": "JA",
+      "ko": "KO",
+      "zh": "ZH",
+      "id": "ID",
+      "ms": "MS",
+      "th": "TH",
+      "es": "ES",
+      "pt": "PT",
+      "vi": "VI",
+      "ar": "AR",
+      "ru": "RU",
+      "hi": "HI",
+      "fr": "FR",
+      "sv": "SV"
+    }
+  },
+  "home": {
+    "title": "拼图街机",
+    "subtitle": "在经典滑块逻辑和全新木块冒险之间做出选择。",
+    "cards": {
+      "sliding": {
+        "title": "滑块拼图",
+        "description": "提供计时器、排行榜、震动反馈与流畅动画的经典 4x4 滑块。"
+      },
+      "block": {
+        "title": "木块拼图",
+        "description": "将木块拖到丛林棋盘上，清除行并追逐完美连击。"
+      }
+    }
+  },
+  "block_mode": {
+    "adventure": {
+      "title": "冒险",
+      "subtitle": "目标路径"
+    },
+    "classic": {
+      "title": "经典",
+      "subtitle": "8x8 与 10x10"
+    }
+  },
+  "legal": {
+    "title": "法律信息",
+    "tabs": {
+      "terms": "使用条款",
+      "privacy": "隐私政策"
+    },
+    "sections": {
+      "terms": {
+        "accept": {
+          "title": "接受与更新",
+          "body": "下载并使用本应用即表示您接受这些条款。规则可能随时更新，请留意应用内公告。"
+        },
+        "fair_use": {
+          "title": "公平游戏",
+          "body": "禁止作弊、自动化或破坏游戏平衡的行为。请勿分享设备或凭证以保护账号安全。"
+        },
+        "paid_content": {
+          "title": "付费内容",
+          "body": "部分装饰或增益包可能收费。购买遵循商店退款政策，我们保留取消可疑订单的权利。"
+        },
+        "liability": {
+          "title": "责任限制",
+          "body": "应用按“原样”提供。因中断、数据损坏或第三方服务故障造成的损失我们概不负责。"
+        }
+      },
+      "privacy": {
+        "data_collection": {
+          "title": "收集数据",
+          "body": "进度、得分以及可选昵称会本地保存。分析与崩溃报告保持匿名，不会关联设备标识。"
+        },
+        "data_use": {
+          "title": "数据用途",
+          "body": "我们使用这些信息改进游戏体验、修复技术问题并规划新功能，不会为广告向第三方分享。"
+        },
+        "retention": {
+          "title": "保留期限",
+          "body": "本地存档会一直留在设备上。启用云同步时，数据会保留至删除账号或 24 个月未登录。"
+        },
+        "rights": {
+          "title": "您的权利",
+          "body": "您可以请求访问、修改或删除数据。请通过应用内反馈界面联系我们。"
+        }
+      }
+    }
+  },
+  "level_path": {
+    "footer": {
+      "previous": "上一关",
+      "current": "当前",
+      "next": "下一关"
+    }
+  },
+  "block_game": {
+    "perfect": "完美！",
+    "combo": "连击 x{count}",
+    "invalid_placement": "无法放在这里",
+    "level_failed": "关卡失败",
+    "no_moves": "无可用移动"
+  },
+  "leaderboard": {
+    "title": "排行榜",
+    "empty": "开始游戏，创造首个成绩！",
+    "entry": "{name} - {moves} 步",
+    "error": "无法加载排行榜：{error}",
+    "lines": "行数: {count}",
+    "points": "{points} 分",
+    "block": {
+      "title": "木块排行榜",
+      "empty": "玩一局即可记录首个成绩。"
+    }
+  },
+  "victory": {
+    "title": "拼图完成！",
+    "moves": "步数: {value}",
+    "time": "时间: {value}"
+  },
+  "block_level": {
+    "tokens": {
+      "leaf": "树叶",
+      "wood": "原木",
+      "mushroom": "蘑菇"
+    }
+  },
+  "adventure": {
+    "title": "冒险模式",
+    "level_label": "丛林 {index}",
+    "requirement": "清除 5 行即可解锁下一片丛林。"
+  }
+}

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
@@ -7,6 +8,7 @@ import 'package:kartal/kartal.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/core/extension/sized_box.dart';
 import 'package:puzzle_game/providers/sound_provider.dart';
+import 'package:puzzle_game/widgets/components/locale_menu_button.dart';
 
 import 'block_puzzle_view.dart';
 import 'level_path_view.dart';
@@ -16,14 +18,17 @@ class BlockPuzzleModeView extends ConsumerStatefulWidget {
   const BlockPuzzleModeView({super.key});
 
   @override
-  ConsumerState<BlockPuzzleModeView> createState() => _BlockPuzzleModeViewState();
+  ConsumerState<BlockPuzzleModeView> createState() =>
+      _BlockPuzzleModeViewState();
 }
 
 class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(soundControllerProvider).ensureBackgroundMusicStarted());
+    Future.microtask(
+      () => ref.read(soundControllerProvider).ensureBackgroundMusicStarted(),
+    );
   }
 
   @override
@@ -31,47 +36,65 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
     return Scaffold(
       body: BlockPuzzleBackground(
         child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Column(
-                children: [
-                  const Spacer(),
-                  Image.asset('assets/images/wooden_block_logo2.png', height: 300,),
-                  context.dynamicHeight(0.04).height,
-                  _WoodButton(
-                    label: 'Adventure',
-                    subtitle: 'Hedef parkuru',
-                    icon: Icons.explore_outlined,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LevelPathView()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _WoodButton(
-                    label: 'Classic',
-                    subtitle: '8x8 & 10x10',
-                    icon: Iconsax.paintbucket1,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const BlockPuzzleGameView()),
-                      );
-                    },
-                  ),
-                  const Spacer(),
-                  const _FooterDecoration(),
-                ],
+          child: Stack(
+            children: [
+              Positioned(
+                top: 12,
+                right: 16,
+                child: LocaleMenuButton(
+                  backgroundColor: Colors.black.withOpacity(0.35),
+                  textColor: const Color(0xFFFEEACC),
+                ),
               ),
-            ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Column(
+                    children: [
+                      const Spacer(),
+                      Image.asset(
+                        'assets/images/wooden_block_logo2.png',
+                        height: 300,
+                      ),
+                      context.dynamicHeight(0.04).height,
+                      _WoodButton(
+                        label: tr('block_mode.adventure.title'),
+                        subtitle: tr('block_mode.adventure.subtitle'),
+                        icon: Icons.explore_outlined,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LevelPathView(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _WoodButton(
+                        label: tr('block_mode.classic.title'),
+                        subtitle: tr('block_mode.classic.subtitle'),
+                        icon: Iconsax.paintbucket1,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const BlockPuzzleGameView(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Spacer(),
+                      const _FooterDecoration(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
-
 
 class _WoodButton extends StatelessWidget {
   const _WoodButton({
@@ -104,7 +127,12 @@ class _WoodButton extends StatelessWidget {
               end: Alignment.bottomCenter,
             ),
             boxShadow: const [
-              BoxShadow(color: Color(0x55000000), offset: Offset(0, 8), blurRadius: 16, spreadRadius: -6),
+              BoxShadow(
+                color: Color(0x55000000),
+                offset: Offset(0, 8),
+                blurRadius: 16,
+                spreadRadius: -6,
+              ),
             ],
           ),
           child: Row(
@@ -116,7 +144,11 @@ class _WoodButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   color: const Color(0xFF7A4A22),
                   boxShadow: const [
-                    BoxShadow(color: Color(0x33000000), offset: Offset(0, 6), blurRadius: 10),
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      offset: Offset(0, 6),
+                      blurRadius: 10,
+                    ),
                   ],
                 ),
                 child: Icon(icon, color: const Color(0xFFFEEACC), size: 26),
@@ -156,11 +188,10 @@ class _WoodButton extends StatelessWidget {
   }
 }
 
-
 class _FooterDecoration extends StatelessWidget {
   const _FooterDecoration();
 
-  static const _legalLabels = ['Kullanım Şartları', 'Gizlilik Politikası'];
+  static const _legalLabelKeys = ['legal.tabs.terms', 'legal.tabs.privacy'];
 
   @override
   Widget build(BuildContext context) {
@@ -172,11 +203,23 @@ class _FooterDecoration extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 34, height: 2, color: const Color.fromARGB(255, 223, 195, 156),),
+              Container(
+                width: 34,
+                height: 2,
+                color: const Color.fromARGB(255, 223, 195, 156),
+              ),
               const SizedBox(width: 12),
-              const Icon(Icons.circle, size: 6, color: const Color.fromARGB(255, 223, 195, 156),),
+              const Icon(
+                Icons.circle,
+                size: 6,
+                color: const Color.fromARGB(255, 223, 195, 156),
+              ),
               const SizedBox(width: 12),
-              Container(width: 34, height: 2, color: const Color.fromARGB(255, 223, 195, 156),),
+              Container(
+                width: 34,
+                height: 2,
+                color: const Color.fromARGB(255, 223, 195, 156),
+              ),
             ],
           ),
           context.dynamicHeight(0.01).height,
@@ -184,14 +227,18 @@ class _FooterDecoration extends StatelessWidget {
             alignment: WrapAlignment.center,
             spacing: 12,
             children: [
-              for (final label in _legalLabels)
+              for (final key in _legalLabelKeys)
                 TextButton(
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     foregroundColor: const Color.fromARGB(255, 223, 195, 156),
-                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   onPressed: () {
+                    final label = tr(key);
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const LegalDocumentsView(),
@@ -199,7 +246,7 @@ class _FooterDecoration extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Text(label),
+                  child: Text(tr(key)),
                 ),
             ],
           ),
