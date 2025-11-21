@@ -2,47 +2,104 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-class BlockTile extends StatelessWidget {
+class BlockTile extends StatefulWidget {
   const BlockTile({
     super.key,
     required this.size,
     this.color,
     this.pulse = false,
     this.borderRadius = 5,
+    this.bounceOnAppear = false,
   });
 
   final double size;
   final Color? color;
   final bool pulse;
   final double borderRadius;
+  final bool bounceOnAppear;
+
+  @override
+  State<BlockTile> createState() => _BlockTileState();
+}
+
+class _BlockTileState extends State<BlockTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _bounceAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 1.15)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.15, end: 0.95)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 30,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.95, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 30,
+      ),
+    ]).animate(_controller);
+
+    if (widget.bounceOnAppear && widget.color != null) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // final baseColor = color ?? Colors.transparent;
-    final woodBase = color ?? const Color(0xFF8B5A2B);
+    final woodBase = widget.color ?? const Color(0xFF8B5A2B);
     final light = _tint(woodBase, 0.22);
     final dark = _shade(woodBase, 0.2);
 
-    return AnimatedScale(
-      scale: pulse ? 1.05 : 1.0,
-      duration: const Duration(milliseconds: 180),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final bounceScale = widget.bounceOnAppear ? _bounceAnimation.value : 1.0;
+        final pulseScale = widget.pulse ? 1.05 : 1.0;
+        final totalScale = bounceScale * pulseScale;
+        
+        return Transform.scale(
+          scale: totalScale,
+          child: child,
+        );
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        width: size,
-        height: size,
+        width: widget.size,
+        height: widget.size,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: color == null ? Border.all(color: Colors.white24, width: 1) : null,
-          boxShadow: color == null
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: widget.color == null ? Border.all(color: Colors.white24, width: 1) : null,
+          boxShadow: widget.color == null
               ? null
               : [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: pulse ? 18 : 12,
+                    blurRadius: widget.pulse ? 18 : 12,
                     offset: const Offset(0, 8),
                   ),
                 ],
-          gradient: color == null
+          gradient: widget.color == null
               ? null
               : LinearGradient(
                   colors: [
@@ -54,10 +111,10 @@ class BlockTile extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
         ),
-        child: color == null
+        child: widget.color == null
             ? null
             : ClipRRect(
-                borderRadius: BorderRadius.circular(borderRadius),
+                borderRadius: BorderRadius.circular(widget.borderRadius),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -82,10 +139,10 @@ class BlockTile extends StatelessWidget {
                     Align(
                       alignment: Alignment.topLeft,
                       child: Container(
-                        width: size * 0.35,
-                        height: size * 0.35,
+                        width: widget.size * 0.35,
+                        height: widget.size * 0.35,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(borderRadius),
+                          borderRadius: BorderRadius.circular(widget.borderRadius),
                           gradient: RadialGradient(
                             colors: [
                               Colors.white.withValues(alpha: 0.18),

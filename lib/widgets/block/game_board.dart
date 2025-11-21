@@ -352,6 +352,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                     color: color,
                     pulse: false,
                     borderRadius: pieceRadius,
+                    bounceOnAppear: isSeedCell && seedVisible,
                   ),
                 if (shatters != null)
                   ...shatters.map(
@@ -584,3 +585,4 @@ class _LevelTokenOverlay extends StatelessWidget {
     );
   }
 }
+
