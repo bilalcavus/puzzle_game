@@ -10,6 +10,7 @@ class PieceWidget extends StatelessWidget {
     required this.piece,
     required this.cellSize,
     required this.onSelect,
+    this.onDragStart,
     this.isSelected = false,
     this.disabled = false,
   });
@@ -17,9 +18,10 @@ class PieceWidget extends StatelessWidget {
   final PieceModel piece;
   final double cellSize;
   final VoidCallback onSelect;
+  final VoidCallback? onDragStart;
   final bool isSelected;
   final bool disabled;
-  static const double _dragFeedbackScale = 1.1;
+  static const double _dragFeedbackScale = 1.4;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +67,10 @@ class PieceWidget extends StatelessWidget {
           ),
         ),
         childWhenDragging: Opacity(opacity: 0.3, child: child),
-        onDragStarted: onSelect,
+        onDragStarted: () {
+          onDragStart?.call();
+          onSelect();
+        },
         child: child,
       ),
     );

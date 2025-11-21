@@ -146,19 +146,7 @@ class _LevelHeader extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  SwitchListTile.adaptive(
-                    value: settings.musicEnabled,
-                    onChanged: notifier.setMusicEnabled,
-                    title: Text(
-                      tr('common.background_music'),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      tr('common.background_music_desc'),
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    activeColor: Colors.tealAccent,
-                  ),
+                 
                   SwitchListTile.adaptive(
                     value: settings.effectsEnabled,
                     onChanged: notifier.setEffectsEnabled,

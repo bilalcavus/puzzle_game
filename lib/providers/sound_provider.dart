@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -33,7 +35,6 @@ class SoundSettings {
 class SoundSettingsNotifier extends StateNotifier<SoundSettings> {
   SoundSettingsNotifier(this._ref, this._controller)
     : super(const SoundSettings()) {
-    unawaited(_controller.setMusicEnabled(state.musicEnabled));
     _controller.setEffectsEnabled(state.effectsEnabled);
   }
 
@@ -43,7 +44,6 @@ class SoundSettingsNotifier extends StateNotifier<SoundSettings> {
   void setMusicEnabled(bool enabled) {
     if (state.musicEnabled == enabled) return;
     state = state.copyWith(musicEnabled: enabled);
-    unawaited(_controller.setMusicEnabled(enabled));
   }
 
   void setEffectsEnabled(bool enabled) {
@@ -63,12 +63,12 @@ class SoundController with WidgetsBindingObserver {
       _failPlayer,
       _perfectPlayer,
       _levelPlayer,
+      _dragPlayer,
     ]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
     _backgroundPlayer.setReleaseMode(ReleaseMode.loop);
     WidgetsBinding.instance.addObserver(this);
-    unawaited(_ensureBackgroundLoop());
   }
 
   final AudioPlayer _slidePlayer = AudioPlayer();
@@ -78,14 +78,16 @@ class SoundController with WidgetsBindingObserver {
   final AudioPlayer _comboPlayer = AudioPlayer();
   final AudioPlayer _levelPlayer = AudioPlayer();
   final AudioPlayer _failPlayer = AudioPlayer();
+  final AudioPlayer _dragPlayer = AudioPlayer();
   final AudioPlayer _backgroundPlayer = AudioPlayer();
-  bool _backgroundStarted = false;
   bool _effectsEnabled = true;
-  bool _musicEnabled = true;
-  bool _pausedForLifecycle = false;
 
   Future<void> playMove() async {
     await _playAsset(_slidePlayer, 'audio/move.wav');
+  }
+
+  Future<void> playDrag() async {
+    await _playAsset(_dragPlayer, 'audio/drag_sound.wav');
   }
 
   Future<void> playBlockPlace() async {
@@ -123,72 +125,8 @@ class SoundController with WidgetsBindingObserver {
         _levelPlayer.stop(),
         _failPlayer.stop(),
         _perfectPlayer.stop(),
+        _dragPlayer.stop(),
       ]);
-    }
-  }
-
-  Future<void> setMusicEnabled(bool enabled) async {
-    _musicEnabled = enabled;
-    if (enabled) {
-      await _ensureBackgroundLoop();
-    } else {
-      await _backgroundPlayer.stop();
-      _backgroundStarted = false;
-      _pausedForLifecycle = false;
-    }
-  }
-
-  Future<void> _ensureBackgroundLoop() async {
-    if (_backgroundStarted || !_musicEnabled) return;
-    _backgroundStarted = true;
-    try {
-      await _backgroundPlayer.setVolume(0.25);
-      await _backgroundPlayer.play(AssetSource('audio/background_sound.wav'));
-    } catch (_) {
-      _backgroundStarted = false;
-    }
-  }
-
-  Future<void> ensureBackgroundMusicStarted() async {
-    await _ensureBackgroundLoop();
-  }
-
-  Future<void> _pauseBackgroundForLifecycle() async {
-    if (!_backgroundStarted || _pausedForLifecycle) return;
-    _pausedForLifecycle = true;
-    try {
-      await _backgroundPlayer.pause();
-    } catch (_) {
-      // ignore runtime audio issues
-    }
-  }
-
-  Future<void> _resumeBackgroundAfterLifecycle() async {
-    if (!_pausedForLifecycle) return;
-    _pausedForLifecycle = false;
-    if (!_musicEnabled) return;
-    try {
-      await _backgroundPlayer.resume();
-    } catch (_) {
-      _backgroundStarted = false;
-      await _ensureBackgroundLoop();
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.resumed:
-        unawaited(_resumeBackgroundAfterLifecycle());
-        break;
-      case AppLifecycleState.inactive:
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-        unawaited(_pauseBackgroundForLifecycle());
-        break;
-      case AppLifecycleState.hidden:
-        unawaited(_pauseBackgroundForLifecycle());
-        break;
     }
   }
 
@@ -211,6 +149,7 @@ class SoundController with WidgetsBindingObserver {
     _levelPlayer.dispose();
     _failPlayer.dispose();
     _perfectPlayer.dispose();
+    _dragPlayer.dispose();
     _backgroundPlayer.dispose();
   }
 }
