@@ -63,6 +63,7 @@ class SoundController with WidgetsBindingObserver {
       _failPlayer,
       _perfectPlayer,
       _levelPlayer,
+      _dragPlayer,
     ]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
@@ -77,11 +78,16 @@ class SoundController with WidgetsBindingObserver {
   final AudioPlayer _comboPlayer = AudioPlayer();
   final AudioPlayer _levelPlayer = AudioPlayer();
   final AudioPlayer _failPlayer = AudioPlayer();
+  final AudioPlayer _dragPlayer = AudioPlayer();
   final AudioPlayer _backgroundPlayer = AudioPlayer();
   bool _effectsEnabled = true;
 
   Future<void> playMove() async {
     await _playAsset(_slidePlayer, 'audio/move.wav');
+  }
+
+  Future<void> playDrag() async {
+    await _playAsset(_dragPlayer, 'audio/drag_sound.wav');
   }
 
   Future<void> playBlockPlace() async {
@@ -119,6 +125,7 @@ class SoundController with WidgetsBindingObserver {
         _levelPlayer.stop(),
         _failPlayer.stop(),
         _perfectPlayer.stop(),
+        _dragPlayer.stop(),
       ]);
     }
   }
@@ -142,6 +149,7 @@ class SoundController with WidgetsBindingObserver {
     _levelPlayer.dispose();
     _failPlayer.dispose();
     _perfectPlayer.dispose();
+    _dragPlayer.dispose();
     _backgroundPlayer.dispose();
   }
 }

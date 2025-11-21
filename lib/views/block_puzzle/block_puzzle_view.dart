@@ -7,6 +7,7 @@ import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/core/extension/sized_box.dart';
 
 import '../../providers/block_puzzle_provider.dart';
+import '../../providers/sound_provider.dart';
 import '../../widgets/block/game_board.dart';
 import '../../widgets/block/piece_widget.dart';
 import '../../widgets/block/score_panel.dart';
@@ -205,7 +206,7 @@ class BlockPuzzleSidePanel extends StatelessWidget {
   }
 }
 
-class BlockPuzzlePiecesTray extends StatelessWidget {
+class BlockPuzzlePiecesTray extends ConsumerWidget {
   const BlockPuzzlePiecesTray({
     super.key,
     required this.state,
@@ -216,7 +217,7 @@ class BlockPuzzlePiecesTray extends StatelessWidget {
   final ValueChanged<String> onPieceSelect;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -230,6 +231,9 @@ class BlockPuzzlePiecesTray extends StatelessWidget {
                   isSelected: state.selectedPieceId == piece.id,
                   disabled: state.status == BlockGameStatus.failed,
                   onSelect: () => onPieceSelect(piece.id),
+                  onDragStart: () {
+                    ref.read(soundControllerProvider).playDrag();
+                  },
                 ),
               ),
             )

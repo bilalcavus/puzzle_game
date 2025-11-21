@@ -157,7 +157,10 @@ class BlockPuzzleState {
       size: size,
       filledCells: initialCells,
       seedIndices: Set<int>.unmodifiable(initialCells.keys.toSet()),
-      availablePieces: generateRandomPieces(),
+      availablePieces: generatePlayablePieces(
+        boardSize: size,
+        filledCells: initialCells,
+      ),
       selectedPieceId: null,
       score: 0,
       bestScore: 0,
@@ -247,11 +250,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
           .toList();
       final score = decoded['score'] as int? ?? 0;
       final selected = decoded['selected'] as String?;
+      final playablePieces = _ensurePiecesPlayable(piecesRaw, filledMap, size);
       state = BlockPuzzleState(
         size: size,
         filledCells: filledMap,
         seedIndices: Set<int>.unmodifiable(seedIndices.isEmpty ? filledMap.keys.toSet() : seedIndices),
-        availablePieces: piecesRaw.isEmpty ? generateRandomPieces() : piecesRaw,
+        availablePieces: playablePieces,
         selectedPieceId: selected,
         score: score,
         bestScore: best,
@@ -329,11 +333,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     final updatedPieces = List<PieceModel>.from(state.availablePieces)..removeWhere((element) => element.id == pieceId);
-    if (updatedPieces.isEmpty) {
-      updatedPieces.addAll(generateRandomPieces());
-    }
-
     final clearResult = _clearCompletedLines(updatedCells);
+    if (updatedPieces.isEmpty) {
+      updatedPieces.addAll(
+        generatePlayablePieces(
+          boardSize: state.size,
+          filledCells: clearResult.cells,
+        ),
+      );
+    }
     final newExplosions = clearResult.removedCells.entries
         .map(
           (entry) => BlockExplosionEffect(
@@ -482,8 +490,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     );
   }
 
-  bool _hasAnyValidMove(List<PieceModel> pieces, Map<int, Color> filled) {
-    final size = state.size;
+  bool _hasAnyValidMove(List<PieceModel> pieces, Map<int, Color> filled, {int? boardSize}) {
+    final size = boardSize ?? state.size;
     for (final piece in pieces) {
       for (var row = 0; row < size; row++) {
         for (var col = 0; col < size; col++) {
@@ -510,6 +518,20 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       }
     }
     return false;
+  }
+
+  List<PieceModel> _ensurePiecesPlayable(
+    List<PieceModel> pieces,
+    Map<int, Color> filled,
+    int size,
+  ) {
+    if (pieces.isEmpty) {
+      return generatePlayablePieces(boardSize: size, filledCells: filled);
+    }
+    if (_hasAnyValidMove(pieces, filled, boardSize: size)) {
+      return pieces;
+    }
+    return generatePlayablePieces(boardSize: size, filledCells: filled, count: pieces.length);
   }
 
   void _scheduleFlagReset(bool perfect, bool particles, bool comboActive) {
@@ -605,6 +627,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     for (final index in obstacles) {
       filled[index] = const Color(0xFF9B6A3C);
     }
+    final startingPieces = generatePlayablePieces(
+      boardSize: size,
+      filledCells: filled,
+    );
     state = BlockPuzzleState.initial(size: size).copyWith(
       filledCells: filled,
       seedIndices: {...tokens.keys, ...obstacles},
@@ -623,6 +649,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       levelTargets: tokens,
       levelCompleted: false,
       bestScore: state.bestScore,
+      availablePieces: startingPieces,
+      selectedPieceId: null,
     );
   }
 
