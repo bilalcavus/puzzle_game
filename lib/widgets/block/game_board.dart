@@ -16,6 +16,7 @@ import '../../providers/sound_provider.dart';
 import 'block_tile.dart';
 import 'particle_burst.dart';
 import 'block_shatter_effect.dart';
+import 'piece_drag_constants.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
@@ -435,7 +436,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context == null) return;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
-    final local = renderBox.globalToLocal(details.offset);
+    final adjustedOffset = details.offset.translate(0, -kPieceDragPointerYOffset);
+    final local = renderBox.globalToLocal(adjustedOffset);
     final coords = _coordsFromLocal(local, state);
     if (coords == null) return;
     final success = ref
@@ -454,7 +456,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context == null) return;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
-    final local = renderBox.globalToLocal(details.offset);
+    final adjustedOffset = details.offset.translate(0, -kPieceDragPointerYOffset);
+    final local = renderBox.globalToLocal(adjustedOffset);
     final coords = _coordsFromLocal(local, state);
     if (coords == null) {
       _clearHover();
