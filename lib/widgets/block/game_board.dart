@@ -268,7 +268,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   Widget _buildGrid(BuildContext context, BlockPuzzleState state) {
-    final cellSize = _cellSize(state.size);
+    final padding = _boardPadding(context);
+    final cellSize = _cellSize(state.size, padding);
     final previewCells = _previewCells(state);
     final baseRadius = _baseRadius(state.size);
     final pieceRadius = max(baseRadius - 3, 4.0);
@@ -283,7 +284,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return Container(
       width: widget.dimension,
       height: widget.dimension,
-      padding: EdgeInsets.all(context.dynamicHeight(0.005)),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         borderRadius: context.border.lowBorderRadius,
         gradient: const LinearGradient(
@@ -406,8 +407,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     );
   }
 
-  double _cellSize(int size) {
-    final usable = widget.dimension - (_padding * 2) - (_gap * (size - 1));
+  double _cellSize(int size, double padding) {
+    final usable = widget.dimension - (padding * 2) - (_gap * (size - 1));
     return max(usable / size, 18);
   }
 
@@ -531,9 +532,10 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     BlockPuzzleState state, {
     bool strictBounds = false,
   }) {
-    final boardStart = _padding;
-    final boardEnd = widget.dimension - _padding;
-    final dynamicTolerance = max(_edgeTolerance, _cellSize(state.size));
+    final padding = _resolvedPadding();
+    final boardStart = padding;
+    final boardEnd = widget.dimension - padding;
+    final dynamicTolerance = max(_edgeTolerance, _cellSize(state.size, padding));
     final tolerance = strictBounds ? 0 : dynamicTolerance;
     final withinHorizontal =
         local.dx >= boardStart - tolerance && local.dx <= boardEnd + tolerance;
@@ -544,7 +546,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     }
     final clampedX = local.dx.clamp(boardStart, boardEnd - 0.0001);
     final clampedY = local.dy.clamp(boardStart, boardEnd - 0.0001);
-    final cellSize = _cellSize(state.size);
+    final cellSize = _cellSize(state.size, padding);
     final extent = cellSize + _gap;
     final relativeX = clampedX - boardStart;
     final relativeY = clampedY - boardStart;
@@ -563,6 +565,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (ref.read(widget.provider).showParticleBurst) {
       sounds.playSuccess();
     }
+  }
+
+  double _boardPadding(BuildContext context) =>
+      max(_padding, context.dynamicHeight(0.005));
+
+  double _resolvedPadding() {
+    final context = _boardKey.currentContext;
+    if (context != null) return _boardPadding(context);
+    return _padding;
   }
 }
 
@@ -585,4 +596,3 @@ class _LevelTokenOverlay extends StatelessWidget {
     );
   }
 }
-
