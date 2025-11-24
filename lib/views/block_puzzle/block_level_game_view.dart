@@ -16,13 +16,33 @@ import '../../models/block_level_models.dart';
 import '../../providers/block_puzzle_level_provider.dart';
 import '../../providers/block_puzzle_provider.dart';
 import '../../widgets/block/game_board.dart';
+import '../../widgets/block/piece_drag_controller.dart';
 import '../../widgets/components/locale_menu_button.dart';
 
-class BlockPuzzleLevelGameView extends ConsumerWidget {
+class BlockPuzzleLevelGameView extends ConsumerStatefulWidget {
   const BlockPuzzleLevelGameView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BlockPuzzleLevelGameView> createState() => _BlockPuzzleLevelGameViewState();
+}
+
+class _BlockPuzzleLevelGameViewState extends ConsumerState<BlockPuzzleLevelGameView> {
+  late final BlockDragController _dragController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dragController = BlockDragController();
+  }
+
+  @override
+  void dispose() {
+    _dragController.detach();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(blockPuzzleLevelProvider);
     final notifier = ref.read(blockPuzzleLevelProvider.notifier);
 
@@ -44,12 +64,14 @@ class BlockPuzzleLevelGameView extends ConsumerWidget {
                 Expanded(
                   child: _LevelBoardSection(
                     state: state,
+                    dragController: _dragController,
                     onNextLevel: () => notifier.nextLevelChallenge(),
                   ),
                 ),
                 context.dynamicHeight(0.01).height,
                 BlockPuzzlePiecesTray(
                   state: state,
+                  dragController: _dragController,
                   onPieceSelect: (pieceId) {
                     HapticFeedback.selectionClick();
                     notifier.selectPiece(pieceId);
@@ -230,19 +252,23 @@ class _GoalBadge extends StatelessWidget {
 }
 
 class _LevelBoardSection extends StatelessWidget {
-  const _LevelBoardSection({required this.state, required this.onNextLevel});
+  const _LevelBoardSection({
+    required this.state,
+    required this.onNextLevel,
+    required this.dragController,
+  });
 
   final BlockPuzzleState state;
   final VoidCallback onNextLevel;
+  final BlockDragController dragController;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final media = MediaQuery.of(context);
-        final maxWidth = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : media.size.width;
+        final maxWidth =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : media.size.width;
         final base = maxWidth;
         final upperClamp = min(media.size.shortestSide * 0.98, 520.0);
         final lowerClamp = 320.0;
@@ -259,6 +285,7 @@ class _LevelBoardSection extends StatelessWidget {
               child: BlockGameBoard(
                 dimension: boardDimension,
                 provider: blockPuzzleLevelProvider,
+                dragController: dragController,
               ),
             ),
             if (state.levelCompleted)

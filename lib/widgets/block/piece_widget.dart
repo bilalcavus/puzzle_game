@@ -3,6 +3,7 @@ import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
 import 'block_tile.dart';
+import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
 
 class PieceWidget extends StatelessWidget {
@@ -12,6 +13,7 @@ class PieceWidget extends StatelessWidget {
     required this.cellSize,
     required this.onSelect,
     this.onDragStart,
+    this.dragController,
     this.isSelected = false,
     this.disabled = false,
   });
@@ -20,6 +22,7 @@ class PieceWidget extends StatelessWidget {
   final double cellSize;
   final VoidCallback onSelect;
   final VoidCallback? onDragStart;
+  final BlockDragController? dragController;
   final bool isSelected;
   final bool disabled;
   static const double _dragFeedbackScale = 1.4;
@@ -90,6 +93,16 @@ class PieceWidget extends StatelessWidget {
           onDragStart?.call();
           onSelect();
         },
+        onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
+        onDragEnd: (details) {
+          if (details.wasAccepted) {
+            dragController?.cancelHover();
+            return;
+          }
+          dragController?.completeDrop(piece, details.offset);
+        },
+        onDraggableCanceled: (_, __) => dragController?.cancelHover(),
+        onDragCompleted: () => dragController?.cancelHover(),
         child: child,
       ),
     );
