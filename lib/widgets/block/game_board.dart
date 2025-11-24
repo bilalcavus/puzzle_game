@@ -436,7 +436,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context == null) return;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
-    final adjustedOffset = details.offset.translate(0, -kPieceDragPointerYOffset);
+    // Align board hit test with visually lifted drag feedback.
+    final adjustedOffset =
+        details.offset.translate(0, -kPieceDragPointerYOffset);
     final local = renderBox.globalToLocal(adjustedOffset);
     final coords = _coordsFromLocal(local, state);
     if (coords == null) return;
@@ -456,7 +458,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context == null) return;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
-    final adjustedOffset = details.offset.translate(0, -kPieceDragPointerYOffset);
+    // Align board hover preview with visually lifted drag feedback.
+    final adjustedOffset =
+        details.offset.translate(0, -kPieceDragPointerYOffset);
     final local = renderBox.globalToLocal(adjustedOffset);
     final coords = _coordsFromLocal(local, state);
     if (coords == null) {

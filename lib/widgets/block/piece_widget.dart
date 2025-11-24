@@ -71,18 +71,20 @@ class PieceWidget extends StatelessWidget {
       onTap: onSelect,
       child: Draggable<PieceModel>(
         data: piece,
-        dragAnchorStrategy: childDragAnchorStrategy,
+        dragAnchorStrategy: pointerDragAnchorStrategy,
         feedback: Material(
           color: Colors.transparent,
-          child: _buildContent(
-            dragWidth,
-            dragHeight,
-            feedback: true,
-            cellSizeOverride: dragCellSize,
+          child: Transform.translate(
+            // Visually lift the piece; keeps drag geometry anchored to the finger.
+            offset: const Offset(0, -kPieceDragPointerYOffset),
+            child: _buildContent(
+              dragWidth,
+              dragHeight,
+              feedback: true,
+              cellSizeOverride: dragCellSize,
+            ),
           ),
         ),
-        // Start feedback slightly above the pointer so the piece hovers over the finger.
-        feedbackOffset: const Offset(0, -kPieceDragPointerYOffset),
         childWhenDragging: Opacity(opacity: 0.3, child: child),
         onDragStarted: () {
           onDragStart?.call();
