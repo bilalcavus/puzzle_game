@@ -5,11 +5,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:kartal/kartal.dart';
 import 'package:puzzle_game/providers/sound_provider.dart';
 import 'package:puzzle_game/views/block_puzzle/block_puzzle_view.dart';
-import 'package:puzzle_game/widgets/block/score_panel.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../core/extension/dynamic_size.dart';
 import '../../core/extension/sized_box.dart';
 import '../../models/block_level_models.dart';
@@ -105,28 +104,44 @@ class _LevelHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: context.padding.horizontalLow,
-              child: Text(
-                tr('common.level_with_number', namedArgs: {'level': '$level'}),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            _WoodIconButton(
+              icon: Icons.arrow_back_ios,
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  tr('common.level_with_number', namedArgs: {'level': '$level'}),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ) ??
+                      const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF6B3D1B),
+                      ),
                 ),
               ),
             ),
-            const Spacer(),
-            IconButton(
-              tooltip: tr('common.restart'),
-              onPressed: onRestart,
-              icon: const Icon(Iconsax.refresh, color: Colors.white),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _WoodIconButton(
+                  icon: Iconsax.refresh,
+                  onPressed: onRestart,
+                ),
+                SizedBox(width: context.dynamicWidth(0.02)),  
+                _WoodIconButton(
+                  icon: Icons.settings,
+                  onPressed: () => showSettingsSheet(context, ref),
+                ),
+              ],
             ),
-            SettingsButton(onPressed: () => showSettingsSheet(context, ref)),
           ],
         ),
-        context.dynamicHeight(0.01).height,
+        context.dynamicHeight(0.04).height,
         Row(
           children: goals
               .map((goal) => Expanded(child: _GoalBadge(goal: goal)))
@@ -216,6 +231,47 @@ class _LevelHeader extends StatelessWidget {
   }
 }
 
+class _WoodIconButton extends StatelessWidget {
+  const _WoodIconButton({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE7BC7D), Color(0xFFD59A55)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: const Color(0xFF8D581E), width: 1.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            color: const Color(0xFF7A3D1C),
+            size: 22,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GoalBadge extends StatelessWidget {
   const _GoalBadge({required this.goal});
 
@@ -228,8 +284,8 @@ class _GoalBadge extends StatelessWidget {
       children: [
         Image.asset(
           goal.token.asset,
-          width: context.dynamicWidth(0.2),
-          height: context.dynamicHeight(0.05),
+          width: context.dynamicWidth(0.24),
+          height: context.dynamicHeight(0.06),
         ),
         Text(
           'block_level.tokens.${goal.token.name}'.tr(),

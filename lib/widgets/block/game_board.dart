@@ -374,7 +374,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                       seed: effect.id,
                     ),
                   ),
-                if (state.levelMode)
+                if (state.levelMode && !state.levelCompleted)
                   _LevelTokenOverlay(
                     token: state.levelTokenAt(row, col),
                     cellSize: cellSize,
@@ -696,8 +696,8 @@ class _LevelTokenOverlay extends StatelessWidget {
     if (token == null) return const SizedBox.shrink();
     return Image.asset(
       token!.asset,
-      width: cellSize * 0.6,
-      height: cellSize * 0.6,
+      width: cellSize * 0.78,
+      height: cellSize * 0.78,
       fit: BoxFit.contain,
     );
   }

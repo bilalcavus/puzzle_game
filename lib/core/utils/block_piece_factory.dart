@@ -101,11 +101,18 @@ final List<List<List<int>>> _shapes = [
 const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];
 const _singleBlockShapeIndex = 0;
 
-List<PieceModel> generateRandomPieces([int count = 3]) {
+List<PieceModel> generateRandomPieces({
+  int count = 3,
+  double easyBias = 0.65,
+}) {
   final target = _normalizeCount(count);
   final pieces = <PieceModel>[];
-  final easyShape = _shapes[_easyShapeIndices[_random.nextInt(_easyShapeIndices.length)]];
-  pieces.add(_createRandomPiece(easyShape));
+  // At least one easy shape, optionally more based on bias.
+  final easyCount = max(1, (target * easyBias).round());
+  for (var i = 0; i < easyCount && pieces.length < target; i++) {
+    final easyShape = _shapes[_easyShapeIndices[_random.nextInt(_easyShapeIndices.length)]];
+    pieces.add(_createRandomPiece(easyShape));
+  }
   while (pieces.length < target) {
     pieces.add(_createRandomPiece());
   }
@@ -118,18 +125,19 @@ List<PieceModel> generatePlayablePieces({
   required Map<int, Color> filledCells,
   int count = 3,
   int maxAttempts = 32,
+  double easyBias = 0.65,
 }) {
   final attemptLimit = max(1, maxAttempts);
   final targetCount = _normalizeCount(count);
   for (var i = 0; i < attemptLimit; i++) {
-    final pieces = generateRandomPieces(targetCount);
+    final pieces = generateRandomPieces(count: targetCount, easyBias: easyBias);
     if (_hasAnyValidMove(pieces, filledCells, boardSize)) {
       return pieces;
     }
   }
   final fallback = <PieceModel>[];
   if (targetCount > 1) {
-    fallback.addAll(generateRandomPieces(targetCount - 1));
+    fallback.addAll(generateRandomPieces(count: targetCount - 1, easyBias: easyBias));
   }
   fallback.add(_createRandomPiece(_shapes[_singleBlockShapeIndex]));
   return fallback;
