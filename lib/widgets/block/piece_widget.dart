@@ -3,6 +3,8 @@ import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
 import 'block_tile.dart';
+import 'piece_drag_controller.dart';
+import 'piece_drag_constants.dart';
 
 class PieceWidget extends StatelessWidget {
   const PieceWidget({
@@ -11,6 +13,7 @@ class PieceWidget extends StatelessWidget {
     required this.cellSize,
     required this.onSelect,
     this.onDragStart,
+    this.dragController,
     this.isSelected = false,
     this.disabled = false,
   });
@@ -19,32 +22,47 @@ class PieceWidget extends StatelessWidget {
   final double cellSize;
   final VoidCallback onSelect;
   final VoidCallback? onDragStart;
+  final BlockDragController? dragController;
   final bool isSelected;
   final bool disabled;
   static const double _dragFeedbackScale = 1.4;
+  static const double _liftDistance = 100;
 
   @override
   Widget build(BuildContext context) {
     final footprintWidth = (piece.width * cellSize) + 8;
     final footprintHeight = (piece.height * cellSize) + 8;
+    final liftTarget = isSelected ? -_liftDistance : 0.0;
     final dragCellSize = cellSize * _dragFeedbackScale;
     final dragWidth = (piece.width * dragCellSize) + 8;
     final dragHeight = (piece.height * dragCellSize) + 8;
     final content = _buildContent(footprintWidth, footprintHeight);
     final child = Opacity(
       opacity: disabled ? 0.4 : 1,
-      child: AnimatedContainer(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: liftTarget),
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.all(context.dynamicHeight(0.015)),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,
-            width: 1,
+        curve: Curves.easeOutBack,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.all(context.dynamicHeight(0.015)),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,
+              width: 1,
+            ),
           ),
+          child: content,
         ),
-        child: content,
+        builder: (context, value, animatedChild) {
+          return Transform.translate(
+            offset: Offset(0, value),
+            transformHitTests: false,
+            child: animatedChild,
+          );
+        },
       ),
     );
 
@@ -52,13 +70,17 @@ class PieceWidget extends StatelessWidget {
       return child;
     }
 
-    return GestureDetector(
-      onTap: onSelect,
-      child: Draggable<PieceModel>(
-        data: piece,
-        dragAnchorStrategy: childDragAnchorStrategy,
-        feedback: Material(
-          color: Colors.transparent,
+    return LongPressDraggable<PieceModel>(
+      // Keep a minimal hold so taps don't trigger; effectively instant drag.
+      delay: const Duration(milliseconds: 60),
+      hapticFeedbackOnStart: true,
+      data: piece,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: Material(
+        color: Colors.transparent,
+        child: Transform.translate(
+          // Visually lift the piece; keeps drag geometry anchored to the finger.
+          offset: const Offset(0, -kPieceDragPointerYOffset),
           child: _buildContent(
             dragWidth,
             dragHeight,
@@ -66,13 +88,30 @@ class PieceWidget extends StatelessWidget {
             cellSizeOverride: dragCellSize,
           ),
         ),
-        childWhenDragging: Opacity(opacity: 0.3, child: child),
-        onDragStarted: () {
-          onDragStart?.call();
-          onSelect();
-        },
-        child: child,
       ),
+      childWhenDragging: Opacity(opacity: 0.3, child: child),
+      onDragStarted: () {
+        onDragStart?.call();
+        if (!isSelected) {
+          onSelect(); // Select so board drops can succeed during drag.
+        }
+      },
+      onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
+      // Only allow dragging for visual feedback; always snap back on release.
+      onDragEnd: (details) {
+        if (details.wasAccepted) {
+          dragController?.cancelHover();
+          return;
+        }
+        // If no target accepted, let the board try to place based on final offset.
+        dragController?.completeDrop(piece, details.offset);
+        if (isSelected) {
+          onSelect(); // Clear lift state so the piece returns to its slot.
+        }
+      },
+      onDraggableCanceled: (_, __) => dragController?.cancelHover(),
+      onDragCompleted: () => dragController?.cancelHover(),
+      child: child,
     );
   }
 

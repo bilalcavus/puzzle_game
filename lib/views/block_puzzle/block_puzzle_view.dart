@@ -9,14 +9,34 @@ import 'package:puzzle_game/core/extension/sized_box.dart';
 import '../../providers/block_puzzle_provider.dart';
 import '../../providers/sound_provider.dart';
 import '../../widgets/block/game_board.dart';
+import '../../widgets/block/piece_drag_controller.dart';
 import '../../widgets/block/piece_widget.dart';
 import '../../widgets/block/score_panel.dart';
 
-class BlockPuzzleGameView extends ConsumerWidget {
+class BlockPuzzleGameView extends ConsumerStatefulWidget {
   const BlockPuzzleGameView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BlockPuzzleGameView> createState() => _BlockPuzzleGameViewState();
+}
+
+class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
+  late final BlockDragController _dragController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dragController = BlockDragController();
+  }
+
+  @override
+  void dispose() {
+    _dragController.detach();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(blockPuzzleProvider);
     final notifier = ref.read(blockPuzzleProvider.notifier);
 
@@ -34,11 +54,13 @@ class BlockPuzzleGameView extends ConsumerWidget {
                   child: BlockPuzzleBoardSection(
                     state: state,
                     onSizeChanged: notifier.changeBoardSize,
+                    dragController: _dragController,
                   ),
                 ),
                 context.dynamicHeight(0.01).height,
                 BlockPuzzlePiecesTray(
                   state: state,
+                  dragController: _dragController,
                   onPieceSelect: (pieceId) {
                     HapticFeedback.selectionClick();
                     notifier.selectPiece(pieceId);
@@ -115,10 +137,12 @@ class BlockPuzzleBoardSection extends StatelessWidget {
     super.key,
     required this.state,
     required this.onSizeChanged,
+    required this.dragController,
   });
 
   final BlockPuzzleState state;
   final ValueChanged<int> onSizeChanged;
+  final BlockDragController dragController;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +156,11 @@ class BlockPuzzleBoardSection extends StatelessWidget {
         final lowerClamp = 360.0;
         final fallback = min(media.size.width * 0.82, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
-        final board = BlockGameBoard(dimension: boardDimension, provider: blockPuzzleProvider);
+        final board = BlockGameBoard(
+          dimension: boardDimension,
+          provider: blockPuzzleProvider,
+          dragController: dragController,
+        );
         final sidePanel = BlockPuzzleSidePanel(
           selectedSize: state.size,
           onSizeChanged: onSizeChanged,
@@ -211,10 +239,12 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
     super.key,
     required this.state,
     required this.onPieceSelect,
+    required this.dragController,
   });
 
   final BlockPuzzleState state;
   final ValueChanged<String> onPieceSelect;
+  final BlockDragController dragController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -230,6 +260,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                   cellSize: context.dynamicHeight(0.03),
                   isSelected: state.selectedPieceId == piece.id,
                   disabled: state.status == BlockGameStatus.failed,
+                  dragController: dragController,
                   onSelect: () => onPieceSelect(piece.id),
                   onDragStart: () {
                     ref.read(soundControllerProvider).playDrag();

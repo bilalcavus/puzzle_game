@@ -16,16 +16,20 @@ import '../../providers/sound_provider.dart';
 import 'block_tile.dart';
 import 'particle_burst.dart';
 import 'block_shatter_effect.dart';
+import 'piece_drag_controller.dart';
+import 'piece_drag_constants.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
     super.key,
     required this.dimension,
     required this.provider,
+    required this.dragController,
   });
 
   final double dimension;
   final StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState> provider;
+  final BlockDragController dragController;
 
   @override
   ConsumerState<BlockGameBoard> createState() => _BlockGameBoardState();
@@ -34,7 +38,7 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const double _padding = 8;
   static const double _gap = 2.0;
-  static const double _edgeTolerance = 28;
+  static const double _edgeTolerance = 220;
   final GlobalKey _boardKey = GlobalKey();
   int? _hoverRow;
   int? _hoverCol;
@@ -43,6 +47,35 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   final Set<int> _seedVisible = <int>{};
   bool _seedAnimationScheduled = false;
   int? _seedSignature;
+
+  @override
+  void initState() {
+    super.initState();
+    _attachController();
+  }
+
+  @override
+  void didUpdateWidget(covariant BlockGameBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.dragController != widget.dragController) {
+      oldWidget.dragController.detach();
+      _attachController();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.dragController.detach();
+    super.dispose();
+  }
+
+  void _attachController() {
+    final controller = widget.dragController;
+    controller.onHover = (piece, position) => _updateHoverFromGlobal(piece, position);
+    controller.onDrop =
+        (piece, position) => _handleDropAt(piece, position, ref.read(widget.provider));
+    controller.onCancelHover = _clearHover;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +89,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
         onTapUp: (details) => _handleTap(details, state),
         child: DragTarget<PieceModel>(
           onWillAcceptWithDetails: (details) {
-            _updateHoverPreview(details, state);
-            return true;
+            return _updateHoverPreview(details, state);
           },
           onMove: (details) => _updateHoverPreview(details, state),
           onLeave: (_) => _clearHover(),
@@ -268,7 +300,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   Widget _buildGrid(BuildContext context, BlockPuzzleState state) {
-    final cellSize = _cellSize(state.size);
+    final padding = _boardPadding(context);
+    final cellSize = _cellSize(state.size, padding);
     final previewCells = _previewCells(state);
     final baseRadius = _baseRadius(state.size);
     final pieceRadius = max(baseRadius - 3, 4.0);
@@ -283,7 +316,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return Container(
       width: widget.dimension,
       height: widget.dimension,
-      padding: EdgeInsets.all(context.dynamicHeight(0.005)),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         borderRadius: context.border.lowBorderRadius,
         gradient: const LinearGradient(
@@ -406,8 +439,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     );
   }
 
-  double _cellSize(int size) {
-    final usable = widget.dimension - (_padding * 2) - (_gap * (size - 1));
+  double _cellSize(int size, double padding) {
+    final usable = widget.dimension - (padding * 2) - (_gap * (size - 1));
     return max(usable / size, 18);
   }
 
@@ -430,42 +463,61 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     DragTargetDetails<PieceModel> details,
     BlockPuzzleState state,
   ) {
-    final context = _boardKey.currentContext;
-    if (context == null) return;
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    final local = renderBox.globalToLocal(details.offset);
-    final coords = _coordsFromLocal(local, state);
-    if (coords == null) return;
+    _handleDropAt(details.data, details.offset, state);
+  }
+
+  void _handleDropAt(
+    PieceModel piece,
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
+    final coords = _coordsFromGlobal(globalPosition, state);
+    if (coords == null) {
+      _clearHover();
+      return;
+    }
     final success = ref
         .read(widget.provider.notifier)
-        .tryPlacePiece(details.data.id, coords.row, coords.col);
+        .tryPlacePiece(piece.id, coords.row, coords.col);
+    _clearHover();
     if (success) {
       _handleFeedback();
     }
   }
 
-  void _updateHoverPreview(
+  bool _updateHoverPreview(
     DragTargetDetails<PieceModel> details,
     BlockPuzzleState state,
   ) {
-    final context = _boardKey.currentContext;
-    if (context == null) return;
-    final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    final local = renderBox.globalToLocal(details.offset);
-    final coords = _coordsFromLocal(local, state);
+    return _setHoverState(details.data, details.offset, state);
+  }
+
+  void _updateHoverFromGlobal(
+    PieceModel piece,
+    Offset globalPosition,
+  ) {
+    final state = ref.read(widget.provider);
+    _setHoverState(piece, globalPosition, state);
+  }
+
+  bool _setHoverState(
+    PieceModel piece,
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
+    final coords = _coordsFromGlobal(globalPosition, state);
     if (coords == null) {
       _clearHover();
-      return;
+      return false;
     }
-    final fits = _canPreviewPlace(details.data, coords.row, coords.col, state);
+    final fits = _canPreviewPlace(piece, coords.row, coords.col, state);
     setState(() {
       _hoverRow = coords.row;
       _hoverCol = coords.col;
-      _hoverPiece = details.data;
+      _hoverPiece = piece;
       _hoverValid = fits;
     });
+    return fits;
   }
 
   void _clearHover() {
@@ -526,14 +578,29 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return base.withValues(alpha: _hoverValid ? 0.45 : 0.35);
   }
 
+  ({int row, int col})? _coordsFromGlobal(
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
+    final context = _boardKey.currentContext;
+    if (context == null) return null;
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return null;
+    final adjustedOffset =
+        globalPosition.translate(0, -kPieceDragPointerYOffset);
+    final local = renderBox.globalToLocal(adjustedOffset);
+    return _coordsFromLocal(local, state);
+  }
+
   ({int row, int col})? _coordsFromLocal(
     Offset local,
     BlockPuzzleState state, {
     bool strictBounds = false,
   }) {
-    final boardStart = _padding;
-    final boardEnd = widget.dimension - _padding;
-    final dynamicTolerance = max(_edgeTolerance, _cellSize(state.size));
+    final padding = _resolvedPadding();
+    final boardStart = padding;
+    final boardEnd = widget.dimension - padding;
+    final dynamicTolerance = max(_edgeTolerance, _cellSize(state.size, padding));
     final tolerance = strictBounds ? 0 : dynamicTolerance;
     final withinHorizontal =
         local.dx >= boardStart - tolerance && local.dx <= boardEnd + tolerance;
@@ -544,7 +611,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     }
     final clampedX = local.dx.clamp(boardStart, boardEnd - 0.0001);
     final clampedY = local.dy.clamp(boardStart, boardEnd - 0.0001);
-    final cellSize = _cellSize(state.size);
+    final cellSize = _cellSize(state.size, padding);
     final extent = cellSize + _gap;
     final relativeX = clampedX - boardStart;
     final relativeY = clampedY - boardStart;
@@ -563,6 +630,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (ref.read(widget.provider).showParticleBurst) {
       sounds.playSuccess();
     }
+  }
+
+  double _boardPadding(BuildContext context) =>
+      max(_padding, context.dynamicHeight(0.005));
+
+  double _resolvedPadding() {
+    final context = _boardKey.currentContext;
+    if (context != null) return _boardPadding(context);
+    return _padding;
   }
 }
 
@@ -585,4 +661,3 @@ class _LevelTokenOverlay extends StatelessWidget {
     );
   }
 }
-

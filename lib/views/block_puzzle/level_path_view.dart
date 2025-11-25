@@ -100,14 +100,7 @@ class LevelPathView extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _LevelActionButton(
-                      level: currentLevel,
-                      unlocked: currentLevel <= unlockedLevel,
-                      onPressed: currentLevel <= unlockedLevel
-                          ? () => handleLevelTap(currentLevel)
-                          : null,
-                    ),
+                   
                   ],
                 ),
               ),
