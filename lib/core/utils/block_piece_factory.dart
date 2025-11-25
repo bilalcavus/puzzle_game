@@ -10,11 +10,11 @@ final _random = Random();
 int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
 const _palette = [
-  Color(0xFFDAA06D),
-  Color(0xFFEBC999),
-  Color(0xFFD58C42),
-  Color(0xFFE7B37A),
-  Color(0xFFBE8A4A),
+  Color(0xFFE7C07A),
+  Color(0xFFD8AB63),
+  Color(0xFFCC9650),
+  Color(0xFFBD8643),
+  Color(0xFFAD7536),
 ];
 
 final List<List<List<int>>> _shapes = [

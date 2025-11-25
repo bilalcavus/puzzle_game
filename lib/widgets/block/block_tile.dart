@@ -8,7 +8,7 @@ class BlockTile extends StatefulWidget {
     required this.size,
     this.color,
     this.pulse = false,
-    this.borderRadius = 5,
+    this.borderRadius = 0,
     this.bounceOnAppear = false,
   });
 
@@ -67,9 +67,9 @@ class _BlockTileState extends State<BlockTile>
   @override
   Widget build(BuildContext context) {
     // final baseColor = color ?? Colors.transparent;
-    final woodBase = widget.color ?? const Color(0xFF8B5A2B);
-    final light = _tint(woodBase, 0.22);
-    final dark = _shade(woodBase, 0.2);
+    final woodBase = widget.color ?? const Color(0xFFC58E46);
+    final light = _tint(woodBase, 0.16);
+    final dark = _shade(woodBase, 0.12);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -89,14 +89,16 @@ class _BlockTileState extends State<BlockTile>
         height: widget.size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          border: widget.color == null ? Border.all(color: Colors.white24, width: 1) : null,
+          border: widget.color == null
+              ? Border.all(color: Colors.white24, width: 1)
+              : Border.all(color: _shade(woodBase, 0.2), width: 0.8),
           boxShadow: widget.color == null
               ? null
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: widget.pulse ? 18 : 12,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: widget.pulse ? 10 : 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
           gradient: widget.color == null
