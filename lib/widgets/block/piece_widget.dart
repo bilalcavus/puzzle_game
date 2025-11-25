@@ -70,41 +70,48 @@ class PieceWidget extends StatelessWidget {
       return child;
     }
 
-    return GestureDetector(
-      onTap: onSelect,
-      child: Draggable<PieceModel>(
-        data: piece,
-        dragAnchorStrategy: pointerDragAnchorStrategy,
-        feedback: Material(
-          color: Colors.transparent,
-          child: Transform.translate(
-            // Visually lift the piece; keeps drag geometry anchored to the finger.
-            offset: const Offset(0, -kPieceDragPointerYOffset),
-            child: _buildContent(
-              dragWidth,
-              dragHeight,
-              feedback: true,
-              cellSizeOverride: dragCellSize,
-            ),
+    return LongPressDraggable<PieceModel>(
+      // Keep a minimal hold so taps don't trigger; effectively instant drag.
+      delay: const Duration(milliseconds: 60),
+      hapticFeedbackOnStart: true,
+      data: piece,
+      dragAnchorStrategy: pointerDragAnchorStrategy,
+      feedback: Material(
+        color: Colors.transparent,
+        child: Transform.translate(
+          // Visually lift the piece; keeps drag geometry anchored to the finger.
+          offset: const Offset(0, -kPieceDragPointerYOffset),
+          child: _buildContent(
+            dragWidth,
+            dragHeight,
+            feedback: true,
+            cellSizeOverride: dragCellSize,
           ),
         ),
-        childWhenDragging: Opacity(opacity: 0.3, child: child),
-        onDragStarted: () {
-          onDragStart?.call();
-          onSelect();
-        },
-        onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
-        onDragEnd: (details) {
-          if (details.wasAccepted) {
-            dragController?.cancelHover();
-            return;
-          }
-          dragController?.completeDrop(piece, details.offset);
-        },
-        onDraggableCanceled: (_, __) => dragController?.cancelHover(),
-        onDragCompleted: () => dragController?.cancelHover(),
-        child: child,
       ),
+      childWhenDragging: Opacity(opacity: 0.3, child: child),
+      onDragStarted: () {
+        onDragStart?.call();
+        if (!isSelected) {
+          onSelect(); // Select so board drops can succeed during drag.
+        }
+      },
+      onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
+      // Only allow dragging for visual feedback; always snap back on release.
+      onDragEnd: (details) {
+        if (details.wasAccepted) {
+          dragController?.cancelHover();
+          return;
+        }
+        // If no target accepted, let the board try to place based on final offset.
+        dragController?.completeDrop(piece, details.offset);
+        if (isSelected) {
+          onSelect(); // Clear lift state so the piece returns to its slot.
+        }
+      },
+      onDraggableCanceled: (_, __) => dragController?.cancelHover(),
+      onDragCompleted: () => dragController?.cancelHover(),
+      child: child,
     );
   }
 

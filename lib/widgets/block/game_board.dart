@@ -72,7 +72,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   void _attachController() {
     final controller = widget.dragController;
     controller.onHover = (piece, position) => _updateHoverFromGlobal(piece, position);
-    controller.onDrop = (piece, position) => _handleDropAt(piece, position);
+    controller.onDrop =
+        (piece, position) => _handleDropAt(piece, position, ref.read(widget.provider));
     controller.onCancelHover = _clearHover;
   }
 
@@ -88,8 +89,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
         onTapUp: (details) => _handleTap(details, state),
         child: DragTarget<PieceModel>(
           onWillAcceptWithDetails: (details) {
-            _updateHoverPreview(details, state);
-            return true;
+            return _updateHoverPreview(details, state);
           },
           onMove: (details) => _updateHoverPreview(details, state),
           onLeave: (_) => _clearHover(),
@@ -463,21 +463,14 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     DragTargetDetails<PieceModel> details,
     BlockPuzzleState state,
   ) {
-    _handleDropAt(details.data, details.offset);
-  }
-
-  void _updateHoverPreview(
-    DragTargetDetails<PieceModel> details,
-    BlockPuzzleState state,
-  ) {
-    _updateHoverFromGlobal(details.data, details.offset);
+    _handleDropAt(details.data, details.offset, state);
   }
 
   void _handleDropAt(
     PieceModel piece,
     Offset globalPosition,
+    BlockPuzzleState state,
   ) {
-    final state = ref.read(widget.provider);
     final coords = _coordsFromGlobal(globalPosition, state);
     if (coords == null) {
       _clearHover();
@@ -492,15 +485,30 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     }
   }
 
+  bool _updateHoverPreview(
+    DragTargetDetails<PieceModel> details,
+    BlockPuzzleState state,
+  ) {
+    return _setHoverState(details.data, details.offset, state);
+  }
+
   void _updateHoverFromGlobal(
     PieceModel piece,
     Offset globalPosition,
   ) {
     final state = ref.read(widget.provider);
+    _setHoverState(piece, globalPosition, state);
+  }
+
+  bool _setHoverState(
+    PieceModel piece,
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
     final coords = _coordsFromGlobal(globalPosition, state);
     if (coords == null) {
       _clearHover();
-      return;
+      return false;
     }
     final fits = _canPreviewPlace(piece, coords.row, coords.col, state);
     setState(() {
@@ -509,6 +517,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       _hoverPiece = piece;
       _hoverValid = fits;
     });
+    return fits;
   }
 
   void _clearHover() {

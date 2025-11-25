@@ -101,7 +101,7 @@ final List<List<List<int>>> _shapes = [
 const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];
 const _singleBlockShapeIndex = 0;
 
-List<PieceModel> generateRandomPieces([int count = 4]) {
+List<PieceModel> generateRandomPieces([int count = 3]) {
   final target = _normalizeCount(count);
   final pieces = <PieceModel>[];
   final easyShape = _shapes[_easyShapeIndices[_random.nextInt(_easyShapeIndices.length)]];
@@ -116,7 +116,7 @@ List<PieceModel> generateRandomPieces([int count = 4]) {
 List<PieceModel> generatePlayablePieces({
   required int boardSize,
   required Map<int, Color> filledCells,
-  int count = 4,
+  int count = 3,
   int maxAttempts = 32,
 }) {
   final attemptLimit = max(1, maxAttempts);
