@@ -18,7 +18,7 @@ val hasReleaseKeystore = keystoreProperties.isNotEmpty()
 val hasCompleteReleaseKeys = listOf("storeFile", "storePassword", "keyAlias", "keyPassword").all { keystoreProperties.containsKey(it) }
 
 android {
-    namespace = "com.bilalcavus.woodenblock.development"
+    namespace = "com.bilalcavus.woodenblock"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -33,13 +33,13 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.bilalcavus.woodenblock.development"
+        applicationId = "com.bilalcavus.woodenblock"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 3
-        versionName = "1.0.0"
+        versionCode = 4
+        versionName = "1.0.1"
     }
 
     signingConfigs {

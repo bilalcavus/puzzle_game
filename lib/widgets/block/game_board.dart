@@ -38,7 +38,7 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const double _padding = 8;
   static const double _gap = 0.0;
-  static const double _edgeTolerance = 220;
+  static const double _edgeTolerance = 80;
   static const _frameHighlight = Color(0xFFEBC68E);
   static const _frameMid = Color(0xFFC48337);
   static const _frameShadow = Color(0xFF8B4A1C);
@@ -47,7 +47,6 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const _innerBoardMid = Color(0xFF392314);
   static const _innerBoardEdge = Color(0xFF1F1209);
   static const _cellBase = Color(0xFF3B2112);
-  static const _cellShadow = Color(0xFF140904);
   static const _cellHighlight = Color(0xFF5B3A22);
   final GlobalKey _boardKey = GlobalKey();
   int? _hoverRow;
@@ -95,22 +94,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       key: _boardKey,
       width: widget.dimension,
       height: widget.dimension,
-      child: GestureDetector(
-        onTapUp: (details) => _handleTap(details, state),
-        child: DragTarget<PieceModel>(
-          onWillAcceptWithDetails: (details) {
-            return _updateHoverPreview(details, state);
-          },
-          onMove: (details) => _updateHoverPreview(details, state),
-          onLeave: (_) => _clearHover(),
-          onAcceptWithDetails: (details) {
-            _clearHover();
-            _handleDrop(details, state);
-          },
-          builder: (context, candidateData, rejectedData) {
-            return _buildGrid(context, state);
-          },
-        ),
+      child: DragTarget<PieceModel>(
+        onWillAcceptWithDetails: (_) => true,
+        onAcceptWithDetails: (details) {
+          _clearHover();
+          _handleDrop(details, state);
+        },
+        builder: (context, candidateData, rejectedData) {
+          return _buildGrid(context, state);
+        },
       ),
     );
 
@@ -422,21 +414,6 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return max(usable / size, 18);
   }
 
-  void _handleTap(TapUpDetails details, BlockPuzzleState state) {
-    final coords = _coordsFromLocal(
-      details.localPosition,
-      state,
-      strictBounds: true,
-    );
-    if (coords == null) return;
-    final success = ref
-        .read(widget.provider.notifier)
-        .tryPlaceSelected(coords.row, coords.col);
-    if (success) {
-      _handleFeedback();
-    }
-  }
-
   void _handleDrop(
     DragTargetDetails<PieceModel> details,
     BlockPuzzleState state,
@@ -564,6 +541,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context == null) return null;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return null;
+    final boardOrigin = renderBox.localToGlobal(Offset.zero);
+    final boardRect = boardOrigin & renderBox.size;
+    if (!boardRect.inflate(_edgeTolerance).contains(globalPosition)) {
+      return null;
+    }
     final adjustedOffset =
         globalPosition.translate(0, -kPieceDragPointerYOffset);
     final local = renderBox.globalToLocal(adjustedOffset);

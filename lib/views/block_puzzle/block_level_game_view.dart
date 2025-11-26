@@ -242,8 +242,8 @@ class _WoodIconButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 42,
-        height: 42,
+        width: context.dynamicHeight(0.05),
+        height: context.dynamicHeight(0.05),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           gradient: const LinearGradient(
@@ -264,7 +264,7 @@ class _WoodIconButton extends StatelessWidget {
           child: Icon(
             icon,
             color: const Color(0xFF7A3D1C),
-            size: 22,
+            size: context.dynamicHeight(0.028),
           ),
         ),
       ),
@@ -284,16 +284,16 @@ class _GoalBadge extends StatelessWidget {
       children: [
         Image.asset(
           goal.token.asset,
-          width: context.dynamicWidth(0.24),
-          height: context.dynamicHeight(0.06),
+          width: context.dynamicWidth(0.2),
+          height: context.dynamicHeight(0.05),
         ),
-        Text(
-          'block_level.tokens.${goal.token.name}'.tr(),
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        // Text(
+        //   'block_level.tokens.${goal.token.name}'.tr(),
+        //   style: theme.textTheme.titleMedium?.copyWith(
+        //     color: Colors.white,
+        //     fontWeight: FontWeight.bold,
+        //   ),
+        // ),
         context.dynamicHeight(0.01).height,
         Text(
           '${goal.remaining}/${goal.required}',
