@@ -89,7 +89,8 @@ class PieceWidget extends StatelessWidget {
           ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.3, child: child),
+      // Do not leave a ghost copy in the tray while dragging.
+      childWhenDragging: const SizedBox.shrink(),
       onDragStarted: () {
         onDragStart?.call();
         if (!isSelected) {
@@ -99,15 +100,13 @@ class PieceWidget extends StatelessWidget {
       onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
       // Only allow dragging for visual feedback; always snap back on release.
       onDragEnd: (details) {
-        if (details.wasAccepted) {
-          dragController?.cancelHover();
-          return;
+        // Let the board decide; always clear hover so we don't leave floating previews.
+        if (!details.wasAccepted) {
+          // If no target accepted, let the board try to place based on final offset.
+          final dropPosition = dragController?.lastHoverPosition ?? details.offset;
+          dragController?.completeDrop(piece, dropPosition);
         }
-        // If no target accepted, let the board try to place based on final offset.
-        dragController?.completeDrop(piece, details.offset);
-        if (isSelected) {
-          onSelect(); // Clear lift state so the piece returns to its slot.
-        }
+        dragController?.cancelHover();
       },
       onDraggableCanceled: (_, __) => dragController?.cancelHover(),
       onDragCompleted: () => dragController?.cancelHover(),

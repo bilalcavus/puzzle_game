@@ -18,6 +18,7 @@ import 'particle_burst.dart';
 import 'block_shatter_effect.dart';
 import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
+import 'piece_drag_constants.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
@@ -37,8 +38,17 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const double _padding = 8;
-  static const double _gap = 2.0;
-  static const double _edgeTolerance = 220;
+  static const double _gap = 0.0;
+  static const double _edgeTolerance = 80;
+  static const _frameHighlight = Color(0xFFEBC68E);
+  static const _frameMid = Color(0xFFC48337);
+  static const _frameShadow = Color(0xFF8B4A1C);
+  static const _frameEdge = Color(0xFF5C2C0F);
+  static const _innerBoardDark = Color(0xFF2F170C);
+  static const _innerBoardMid = Color(0xFF392314);
+  static const _innerBoardEdge = Color(0xFF1F1209);
+  static const _cellBase = Color(0xFF3B2112);
+  static const _cellHighlight = Color(0xFF5B3A22);
   final GlobalKey _boardKey = GlobalKey();
   int? _hoverRow;
   int? _hoverCol;
@@ -85,22 +95,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       key: _boardKey,
       width: widget.dimension,
       height: widget.dimension,
-      child: GestureDetector(
-        onTapUp: (details) => _handleTap(details, state),
-        child: DragTarget<PieceModel>(
-          onWillAcceptWithDetails: (details) {
-            return _updateHoverPreview(details, state);
-          },
-          onMove: (details) => _updateHoverPreview(details, state),
-          onLeave: (_) => _clearHover(),
-          onAcceptWithDetails: (details) {
-            _clearHover();
-            _handleDrop(details, state);
-          },
-          builder: (context, candidateData, rejectedData) {
-            return _buildGrid(context, state);
-          },
-        ),
+      child: DragTarget<PieceModel>(
+        onWillAcceptWithDetails: (_) => true,
+        onAcceptWithDetails: (details) {
+          _clearHover();
+          _handleDrop(details, state);
+        },
+        builder: (context, candidateData, rejectedData) {
+          return _buildGrid(context, state);
+        },
       ),
     );
 
@@ -304,7 +307,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final cellSize = _cellSize(state.size, padding);
     final previewCells = _previewCells(state);
     final baseRadius = _baseRadius(state.size);
-    final pieceRadius = max(baseRadius - 3, 4.0);
+    final pieceRadius = 0.0;
     final innerScale = state.size >= 10 ? 0.88 : 0.9;
     final blockSize = cellSize * innerScale;
     final explosionMap = <int, List<BlockExplosionEffect>>{};
@@ -317,27 +320,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       width: widget.dimension,
       height: widget.dimension,
       padding: EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        borderRadius: context.border.lowBorderRadius,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF5C3B1E), Color(0xFF3B240F)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-        border: Border.all(color: Colors.black54, width: 2),
-      ),
+      decoration: _outerFrameDecoration(),
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          color: Colors.black.withValues(alpha: 0.05),
-        ),
+        decoration: _innerBoardDecoration(),
         child: GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           primary: false,
@@ -363,21 +348,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 Container(
                   width: cellSize,
                   height: cellSize,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2E1B0E),
-                    borderRadius: BorderRadius.circular(baseRadius),
-                    border: Border.all(
-                      color: const Color(0xFF1C0F06),
-                      width: 1.4,
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x33000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                  decoration: _cellDecoration(baseRadius),
                 ),
                 if (color != null)
                   BlockTile(
@@ -396,7 +367,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                       seed: effect.id,
                     ),
                   ),
-                if (state.levelMode)
+                if (state.levelMode && !state.levelCompleted)
                   _LevelTokenOverlay(
                     token: state.levelTokenAt(row, col),
                     cellSize: cellSize,
@@ -444,21 +415,6 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return max(usable / size, 18);
   }
 
-  void _handleTap(TapUpDetails details, BlockPuzzleState state) {
-    final coords = _coordsFromLocal(
-      details.localPosition,
-      state,
-      strictBounds: true,
-    );
-    if (coords == null) return;
-    final success = ref
-        .read(widget.provider.notifier)
-        .tryPlaceSelected(coords.row, coords.col);
-    if (success) {
-      _handleFeedback();
-    }
-  }
-
   void _handleDrop(
     DragTargetDetails<PieceModel> details,
     BlockPuzzleState state,
@@ -474,6 +430,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final coords = _coordsFromGlobal(globalPosition, state);
     if (coords == null) {
       _clearHover();
+      // Deselect the piece so it returns to the tray when dropped off-board.
+      ref.read(widget.provider.notifier).selectPiece(piece.id);
       return;
     }
     final success = ref
@@ -586,6 +544,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context == null) return null;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return null;
+    final boardOrigin = renderBox.localToGlobal(Offset.zero);
+    final boardRect = boardOrigin & renderBox.size;
+    if (!boardRect.inflate(_edgeTolerance).contains(globalPosition)) {
+      return null;
+    }
     final adjustedOffset =
         globalPosition.translate(0, -kPieceDragPointerYOffset);
     final local = renderBox.globalToLocal(adjustedOffset);
@@ -640,9 +603,72 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (context != null) return _boardPadding(context);
     return _padding;
   }
+
+  BoxDecoration _outerFrameDecoration() {
+    return BoxDecoration(
+      borderRadius: context.border.lowBorderRadius,
+      gradient: const LinearGradient(
+        colors: [_frameHighlight, _frameMid, _frameShadow],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      border: Border.all(color: _frameEdge, width: 2.4),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x33000000),
+          blurRadius: 18,
+          offset: Offset(0, 10),
+        ),
+        BoxShadow(
+          color: Color(0x22000000),
+          blurRadius: 6,
+          offset: Offset(0, -2),
+        ),
+      ],
+    );
+  }
+
+  BoxDecoration _innerBoardDecoration() {
+    return BoxDecoration(
+      borderRadius: context.border.lowBorderRadius,
+      gradient: const LinearGradient(
+        colors: [_innerBoardMid, _innerBoardDark],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
+      border: Border.all(color: _innerBoardEdge, width: 1.4),
+    );
+  }
+
+  BoxDecoration _cellDecoration(double radius) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(radius + 6),
+      gradient: const LinearGradient(
+        colors: [_cellHighlight, _cellBase],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      border: Border.all(
+        color: Colors.black.withValues(alpha: 0.35),
+        width: 1,
+      ),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x55000000),
+          offset: Offset(0, 1.6),
+          blurRadius: 2.2,
+        ),
+        BoxShadow(
+          color: Color(0x22000000),
+          offset: Offset(0, -1.2),
+          blurRadius: 1.6,
+        ),
+      ],
+    );
+  }
 }
 
-double _baseRadius(int size) => size >= 10 ? 4 : 7;
+double _baseRadius(int size) => 0;
 
 class _LevelTokenOverlay extends StatelessWidget {
   const _LevelTokenOverlay({required this.token, required this.cellSize});
@@ -655,8 +681,8 @@ class _LevelTokenOverlay extends StatelessWidget {
     if (token == null) return const SizedBox.shrink();
     return Image.asset(
       token!.asset,
-      width: cellSize * 0.6,
-      height: cellSize * 0.6,
+      width: cellSize * 0.78,
+      height: cellSize * 0.78,
       fit: BoxFit.contain,
     );
   }

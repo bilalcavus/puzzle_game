@@ -55,6 +55,7 @@ class SoundSettingsNotifier extends StateNotifier<SoundSettings> {
 
 class SoundController with WidgetsBindingObserver {
   SoundController() {
+    unawaited(_configureAudioContext());
     for (final player in [
       _slidePlayer,
       _blockPlayer,
@@ -64,6 +65,7 @@ class SoundController with WidgetsBindingObserver {
       _perfectPlayer,
       _levelPlayer,
       _dragPlayer,
+      _backgroundPlayer,
     ]) {
       player.setReleaseMode(ReleaseMode.stop);
     }
@@ -151,5 +153,34 @@ class SoundController with WidgetsBindingObserver {
     _perfectPlayer.dispose();
     _dragPlayer.dispose();
     _backgroundPlayer.dispose();
+  }
+
+  Future<void> _configureAudioContext() async {
+    const audioContext = AudioContext(
+      android: AudioContextAndroid(
+        isSpeakerphoneOn: false,
+        stayAwake: false,
+        contentType: AndroidContentType.music,
+        usageType: AndroidUsageType.game,
+        audioFocus: AndroidAudioFocus.none,
+      ),
+      iOS: AudioContextIOS(
+        category: AVAudioSessionCategory.ambient,
+        options: [AVAudioSessionOptions.mixWithOthers],
+      ),
+    );
+
+    await AudioPlayer.global.setAudioContext(audioContext);
+    await Future.wait([
+      _slidePlayer.setAudioContext(audioContext),
+      _blockPlayer.setAudioContext(audioContext),
+      _successPlayer.setAudioContext(audioContext),
+      _perfectPlayer.setAudioContext(audioContext),
+      _comboPlayer.setAudioContext(audioContext),
+      _levelPlayer.setAudioContext(audioContext),
+      _failPlayer.setAudioContext(audioContext),
+      _dragPlayer.setAudioContext(audioContext),
+      _backgroundPlayer.setAudioContext(audioContext),
+    ]);
   }
 }

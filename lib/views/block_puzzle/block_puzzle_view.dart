@@ -85,49 +85,16 @@ class BlockPuzzleBackground extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color.fromARGB(255, 24, 77, 55), Color(0xFF1E1F26)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [
+            Color.fromARGB(255, 91, 51, 27),
+            Color.fromARGB(255, 66, 38, 20),
+            Color.fromARGB(255, 37, 21, 10),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: context.dynamicHeight(0.04) * -0.05,
-            left: context.dynamicWidth(0.7),
-            child: Opacity(
-              opacity: 0.7,
-              child: Image.asset(
-                'assets/images/image.png',
-                width: context.dynamicWidth(0.4),
-              ),
-            ),
-          ),
-          Positioned(
-            top: context.dynamicHeight(0.3),
-            left: context.dynamicWidth(0.15) * -0.5,
-            child: Opacity(
-              opacity: 0.7,
-              child: Image.asset(
-                'assets/images/wind.png',
-                width: context.dynamicWidth(0.25),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: context.dynamicHeight(0.01) * -1,
-            right: context.dynamicWidth(0.3),
-            child: Opacity(
-              opacity: 0.6,
-              child: Image.asset(
-                'assets/images/campfire1.png',
-                width: context.dynamicWidth(0.4),
-              ),
-            ),
-          ),
-          child,
-        ],
-      ),
+      child: child,
     );
   }
 }
@@ -161,17 +128,13 @@ class BlockPuzzleBoardSection extends StatelessWidget {
           provider: blockPuzzleProvider,
           dragController: dragController,
         );
-        final sidePanel = BlockPuzzleSidePanel(
-          selectedSize: state.size,
-          onSizeChanged: onSizeChanged,
-        );
+        
 
         if (isWide) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: Center(child: board)),
-              sidePanel,
             ],
           );
         }
@@ -181,7 +144,7 @@ class BlockPuzzleBoardSection extends StatelessWidget {
             children: [
               Center(child: board),
               context.dynamicHeight(0.02).height,
-              sidePanel,
+               
             ],
           ),
         );
@@ -190,49 +153,6 @@ class BlockPuzzleBoardSection extends StatelessWidget {
   }
 }
 
-class BlockPuzzleSidePanel extends StatelessWidget {
-  const BlockPuzzleSidePanel({
-    super.key,
-    required this.selectedSize,
-    required this.onSizeChanged,
-  });
-
-  final int selectedSize;
-  final ValueChanged<int> onSizeChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SegmentedButton<int>(
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) return Colors.green.withOpacity(0.15);
-              return Colors.grey.withOpacity(0.05);
-            }),
-            side: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) return const BorderSide(color: Colors.blue, width: 1.5);
-              return BorderSide(color: Colors.grey.withAlpha(75));
-            }),
-            shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(context.dynamicHeight(0.02)),
-              ),
-            ),
-            animationDuration: const Duration(milliseconds: 200),
-          ),
-          segments: const [
-            ButtonSegment(value: 8, label: Text('8x8')),
-            ButtonSegment(value: 10, label: Text('10x10')),
-          ],
-          selected: {selectedSize},
-          onSelectionChanged: (value) => onSizeChanged(value.first),
-        ),
-      ],
-    );
-  }
-}
 
 class BlockPuzzlePiecesTray extends ConsumerWidget {
   const BlockPuzzlePiecesTray({

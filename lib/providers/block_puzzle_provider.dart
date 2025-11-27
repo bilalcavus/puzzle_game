@@ -22,11 +22,22 @@ final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzz
 enum BlockGameStatus { playing, failed }
 
 const _selectionSentinel = Object();
-const double _levelEmptyCellRatio = 0.47;
 const double _levelObstacleRatio = 0.08;
 const int _levelMinObstacleCount = 3;
 const int _extraTokensPerGoal = 2;
 const Duration _blockExplosionDuration = Duration(milliseconds: 600);
+
+double _levelEmptyRatioFor(int level) {
+  final normalized = max(0, level - 1);
+  final growth = min(normalized, 30) * 0.006; // gradually increase empty space
+  return (0.35 + growth).clamp(0.35, 0.6);
+}
+
+double _levelEasyBiasFor(int level) {
+  final normalized = max(0, level - 1);
+  final decay = min(normalized, 30) * 0.012; // reduce easy-piece bias over time
+  return (0.9 - decay).clamp(0.5, 0.9);
+}
 
 class BlockExplosionEffect {
   const BlockExplosionEffect({
@@ -335,10 +346,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final updatedPieces = List<PieceModel>.from(state.availablePieces)..removeWhere((element) => element.id == pieceId);
     final clearResult = _clearCompletedLines(updatedCells);
     if (updatedPieces.isEmpty) {
+      final bias = state.levelMode ? _levelEasyBiasFor(state.level) : 0.65;
       updatedPieces.addAll(
         generatePlayablePieces(
           boardSize: state.size,
           filledCells: clearResult.cells,
+          easyBias: bias,
         ),
       );
     }
@@ -524,14 +537,20 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     List<PieceModel> pieces,
     Map<int, Color> filled,
     int size,
+    {double easyBias = 0.65}
   ) {
     if (pieces.isEmpty) {
-      return generatePlayablePieces(boardSize: size, filledCells: filled);
+      return generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
     }
     if (_hasAnyValidMove(pieces, filled, boardSize: size)) {
       return pieces;
     }
-    return generatePlayablePieces(boardSize: size, filledCells: filled, count: pieces.length);
+    return generatePlayablePieces(
+      boardSize: size,
+      filledCells: filled,
+      count: pieces.length,
+      easyBias: easyBias,
+    );
   }
 
   void _scheduleFlagReset(bool perfect, bool particles, bool comboActive) {
@@ -596,12 +615,14 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   void startLevelChallenge({int level = 1}) {
     final normalized = level.clamp(1, 99);
+    final emptyRatio = _levelEmptyRatioFor(normalized);
+    final easyBias = _levelEasyBiasFor(normalized);
     final size = 8;
     final goals = _buildLevelGoals(normalized);
     final totalCells = size * size;
     final minTokenBudget = goals.fold<int>(0, (sum, goal) => sum + goal.required);
     final maxEmptyCells = totalCells - minTokenBudget;
-    final desiredEmptyCells = (totalCells * _levelEmptyCellRatio).round();
+    final desiredEmptyCells = (totalCells * emptyRatio).round();
     final initialEmptyCells = min(desiredEmptyCells, maxEmptyCells);
     final targetEmptyCells = max(0, min(initialEmptyCells, totalCells));
     final targetFilledCells = totalCells - targetEmptyCells;
@@ -627,9 +648,11 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     for (final index in obstacles) {
       filled[index] = const Color(0xFF9B6A3C);
     }
+    _breakFullLines(filled, size, Random(DateTime.now().millisecondsSinceEpoch));
     final startingPieces = generatePlayablePieces(
       boardSize: size,
       filledCells: filled,
+      easyBias: easyBias,
     );
     state = BlockPuzzleState.initial(size: size).copyWith(
       filledCells: filled,
@@ -691,7 +714,11 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   void _triggerInvalidPlacement() {
     _errorTimer?.cancel();
-    state = state.copyWith(showInvalidPlacement: true);
+    // Clear selection so the dragged piece returns to the tray after an invalid drop.
+    state = state.copyWith(
+      showInvalidPlacement: true,
+      selectedPieceId: null,
+    );
     _errorTimer = Timer(const Duration(milliseconds: 900), () {
       state = state.copyWith(showInvalidPlacement: false);
     });
@@ -788,13 +815,30 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final completed = updatedGoals.every((goal) => goal.isComplete);
     final unlockedLevel = state.level + 1;
     final alreadyCompleted = state.levelCompleted;
-    state = state.copyWith(
-      levelGoals: updatedGoals,
-      levelTargets: targets,
-      levelCompleted: completed,
-      showPerfectText: completed || state.showPerfectText,
-      showParticleBurst: completed || state.showParticleBurst,
-    );
+    if (completed) {
+      final clearedCells = Map<int, Color>.from(state.filledCells);
+      for (final index in targets.keys) {
+        clearedCells.remove(index);
+      }
+      final clearedSeeds = Set<int>.from(state.seedIndices)..removeAll(targets.keys);
+      state = state.copyWith(
+        levelGoals: updatedGoals,
+        levelTargets: const {},
+        levelCompleted: true,
+        showPerfectText: true,
+        showParticleBurst: true,
+        filledCells: clearedCells,
+        seedIndices: clearedSeeds,
+      );
+    } else {
+      state = state.copyWith(
+        levelGoals: updatedGoals,
+        levelTargets: targets,
+        levelCompleted: false,
+        showPerfectText: state.showPerfectText,
+        showParticleBurst: state.showParticleBurst,
+      );
+    }
     if (completed && !alreadyCompleted) {
       final soundController = _ref.read(soundControllerProvider);
       unawaited(soundController.playSuccess());
@@ -998,5 +1042,34 @@ Map<int, Color> _generateInitialFilledCells(int size) {
   for (final index in filled) {
     cells[index] = _seedBoardColors[random.nextInt(_seedBoardColors.length)];
   }
+
+  _breakFullLines(cells, size, random);
   return cells;
+}
+
+void _breakFullLines(Map<int, Color> cells, int size, Random random) {
+  if (size <= 0 || cells.isEmpty) return;
+  var iterations = 0;
+  bool changed;
+  do {
+    changed = false;
+    iterations++;
+    for (var row = 0; row < size; row++) {
+      final start = row * size;
+      final rowFilled = List<int>.generate(size, (i) => start + i);
+      if (rowFilled.every(cells.containsKey)) {
+        final removeIndex = rowFilled[random.nextInt(rowFilled.length)];
+        cells.remove(removeIndex);
+        changed = true;
+      }
+    }
+    for (var col = 0; col < size; col++) {
+      final colFilled = List<int>.generate(size, (i) => i * size + col);
+      if (colFilled.every(cells.containsKey)) {
+        final removeIndex = colFilled[random.nextInt(colFilled.length)];
+        cells.remove(removeIndex);
+        changed = true;
+      }
+    }
+  } while (changed && iterations < size * 3);
 }

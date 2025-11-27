@@ -22,21 +22,32 @@ class ScorePanel extends ConsumerWidget {
         child: Padding(
           padding: EdgeInsets.all(context.dynamicHeight(0.015)),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _stat(context, tr('common.score'), state.score.toString()),
-              _stat(
-                context,
-                tr('common.lines'),
-                state.totalLinesCleared.toString(),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _stat(context, tr('common.score'), state.score.toString()),
+                    _stat(
+                      context,
+                      tr('common.lines'),
+                      state.totalLinesCleared.toString(),
+                    ),
+                    _stat(context, tr('common.best'), state.bestScore.toString()),
+                  ],
+                ),
               ),
-              _stat(context, tr('common.best'), state.bestScore.toString()),
-              IconButton(
+              SizedBox(width: context.dynamicWidth(0.06)),
+              _WoodIconButton(
                 onPressed: () =>
                     ref.read(blockPuzzleProvider.notifier).restart(),
-                icon: Icon(Iconsax.refresh),
+                icon: Iconsax.refresh,
               ),
-              SettingsButton(onPressed: () => showSettingsSheet(context, ref)),
+              SizedBox(width: context.dynamicWidth(0.02)),
+              _WoodIconButton(
+                icon: Iconsax.setting,
+                onPressed: () => showSettingsSheet(context, ref),
+              ),
             ],
           ),
         ),
@@ -145,19 +156,42 @@ class ScorePanel extends ConsumerWidget {
   }
 }
 
-class SettingsButton extends StatelessWidget {
-  const SettingsButton({super.key, required this.onPressed});
+class _WoodIconButton extends StatelessWidget {
+  const _WoodIconButton({required this.icon, required this.onPressed});
 
+  final IconData icon;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: IconButton(
-        icon: const Icon(Iconsax.setting, color: Colors.white),
-        tooltip: tr('common.settings'),
-        onPressed: onPressed,
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: context.dynamicHeight(0.05),
+        height: context.dynamicHeight(0.05),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE7BC7D), Color(0xFFD59A55)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: const Color(0xFF8D581E), width: 1.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            color: const Color(0xFF7A3D1C),
+            size: context.dynamicHeight(0.03),
+          ),
+        ),
       ),
     );
   }
