@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Bulmaca Salonu",
-    "subtitle": "Bir meydan okuma seç: klasik kaydırmalı mantık ya da yeni ahşap blok macerası.",
+    "subtitle": "Bir meydan okuma seç: klasik kaydırmalı mantık ya da yeni ahşap blok yolculuğu.",
     "cards": {
       "sliding": {
         "title": "Kaydırmalı Bulmaca",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Macera",
+      "title": "Yolculuk",
       "subtitle": "Hedef parkuru"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Macera Modu",
+    "title": "Yolculuk Modu",
     "level_label": "Orman {index}",
     "requirement": "Sonraki ormanı açmak için 5 satır temizle."
   }

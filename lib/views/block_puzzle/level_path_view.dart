@@ -52,8 +52,8 @@ class LevelPathView extends ConsumerWidget {
           }
 
           final unlockedLevel = snapshot.data!.clamp(1, _totalLevels);
-          final currentState = ref.watch(blockPuzzleLevelProvider);
-          final currentLevel = currentState.level.clamp(1, _totalLevels);
+          // Highlight the furthest level reached/unlocked.
+          final currentLevel = unlockedLevel;
 
           void handleLevelTap(int level) {
             ref

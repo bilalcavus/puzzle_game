@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Phòng trò chơi",
-    "subtitle": "Chọn thử thách: lô-gic trượt kinh điển hoặc cuộc phiêu lưu gỗ mới.",
+    "subtitle": "Chọn thử thách: lô-gic trượt kinh điển hoặc hành trình khối gỗ mới.",
     "cards": {
       "sliding": {
         "title": "Câu Đố Trượt",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Phiêu lưu",
+      "title": "Hành trình",
       "subtitle": "Đường mục tiêu"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Chế độ Phiêu lưu",
+    "title": "Chế độ Hành trình",
     "level_label": "Khu rừng {index}",
     "requirement": "Xóa 5 hàng để mở khóa khu rừng tiếp theo."
   }

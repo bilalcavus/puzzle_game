@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Arena Teka-teki",
-    "subtitle": "Pilih tantangan: logika geser klasik atau petualangan balok kayu baru.",
+    "subtitle": "Pilih tantangan: logika geser klasik atau perjalanan balok kayu baru.",
     "cards": {
       "sliding": {
         "title": "Teka-teki Geser",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Petualangan",
+      "title": "Perjalanan",
       "subtitle": "Jalur target"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Mode Petualangan",
+    "title": "Mode Perjalanan",
     "level_label": "Rimba {index}",
     "requirement": "Bersihkan 5 baris untuk membuka rimba berikutnya."
   }

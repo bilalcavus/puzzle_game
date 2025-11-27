@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Arcade de Casse-têtes",
-    "subtitle": "Choisissez un défi : logique glissante classique ou nouvelle aventure des blocs de bois.",
+    "subtitle": "Choisissez un défi : logique glissante classique ou nouveau voyage des blocs de bois.",
     "cards": {
       "sliding": {
         "title": "Casse-tête Glissant",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Aventure",
+      "title": "Voyage",
       "subtitle": "Parcours d'objectif"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Mode Aventure",
+    "title": "Mode Voyage",
     "level_label": "Jungle {index}",
     "requirement": "Nettoyez 5 lignes pour débloquer la jungle suivante."
   }

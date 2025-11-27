@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Arked Teka-teki",
-    "subtitle": "Pilih cabaran: logik gelongsor klasik atau pengembaraan blok kayu baharu.",
+    "subtitle": "Pilih cabaran: logik gelongsor klasik atau perjalanan blok kayu baharu.",
     "cards": {
       "sliding": {
         "title": "Teka-teki Gelongsor",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Pengembaraan",
+      "title": "Perjalanan",
       "subtitle": "Laluan sasaran"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Mod Pengembaraan",
+    "title": "Mod Perjalanan",
     "level_label": "Rimba {index}",
     "requirement": "Bersihkan 5 baris untuk membuka rimba seterusnya."
   }

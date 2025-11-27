@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Pusselarkad",
-    "subtitle": "Välj en utmaning: klassisk skjutlogik eller ett nytt träblocksäventyr.",
+    "subtitle": "Välj en utmaning: klassisk skjutlogik eller en ny träblocksresa.",
     "cards": {
       "sliding": {
         "title": "Skjutpussel",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Äventyr",
+      "title": "Resa",
       "subtitle": "Målstig"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Äventyrsläge",
+    "title": "Resläge",
     "level_label": "Djungel {index}",
     "requirement": "Rensa 5 rader för att låsa upp nästa djungel."
   }

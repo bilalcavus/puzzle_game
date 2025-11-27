@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Arcade de Rompecabezas",
-    "subtitle": "Elige un desafío: lógica clásica deslizante o la nueva aventura de bloques de madera.",
+    "subtitle": "Elige un desafío: lógica clásica deslizante o el nuevo viaje de bloques de madera.",
     "cards": {
       "sliding": {
         "title": "Rompecabezas Deslizante",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Aventura",
+      "title": "Viaje",
       "subtitle": "Recorrido objetivo"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Modo Aventura",
+    "title": "Modo Viaje",
     "level_label": "Jungla {index}",
     "requirement": "Limpia 5 líneas para desbloquear la siguiente jungla."
   }
