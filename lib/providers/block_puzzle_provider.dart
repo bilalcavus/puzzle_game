@@ -28,15 +28,16 @@ const int _extraTokensPerGoal = 2;
 const Duration _blockExplosionDuration = Duration(milliseconds: 600);
 
 double _levelEmptyRatioFor(int level) {
+  // Easier early levels: start with more empty space, slowly reduce.
   final normalized = max(0, level - 1);
-  final growth = min(normalized, 30) * 0.006; // gradually increase empty space
-  return (0.35 + growth).clamp(0.35, 0.6);
+  final decay = min(normalized, 30) * 0.007;
+  return (0.6 - decay).clamp(0.4, 0.6);
 }
 
 double _levelEasyBiasFor(int level) {
   final normalized = max(0, level - 1);
-  final decay = min(normalized, 30) * 0.012; // reduce easy-piece bias over time
-  return (0.9 - decay).clamp(0.5, 0.9);
+  final decay = min(normalized, 40) * 0.012; // reduce easy-piece bias over time
+  return (1.0 - decay).clamp(0.45, 1.0);
 }
 
 class BlockExplosionEffect {
