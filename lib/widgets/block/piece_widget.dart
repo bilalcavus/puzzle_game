@@ -89,7 +89,8 @@ class PieceWidget extends StatelessWidget {
           ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.3, child: child),
+      // Do not leave a ghost copy in the tray while dragging.
+      childWhenDragging: const SizedBox.shrink(),
       onDragStarted: () {
         onDragStart?.call();
         if (!isSelected) {
