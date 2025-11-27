@@ -23,6 +23,13 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final shortest = media.size.shortestSide;
+    final isTablet = shortest >= 700;
+    final logoHeight = isTablet ? media.size.height * 0.32 : 300.0;
+    final maxWidth = isTablet ? 520.0 : 380.0;
+    final verticalPadding = isTablet ? 32.0 : 20.0;
+
     return Scaffold(
       body: BlockPuzzleBackground(
         child: SafeArea(
@@ -38,15 +45,15 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
               ),
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
+                  constraints: BoxConstraints(maxWidth: maxWidth),
                   child: Column(
                     children: [
                       const Spacer(),
                       Image.asset(
                         'assets/images/wooden_block_logo2.png',
-                        height: 300,
+                        height: logoHeight,
                       ),
-                      context.dynamicHeight(0.04).height,
+                      SizedBox(height: verticalPadding),
                       _WoodButton(
                         label: tr('block_mode.adventure.title'),
                         subtitle: tr('block_mode.adventure.subtitle'),

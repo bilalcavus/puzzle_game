@@ -68,18 +68,21 @@ class _BlockPuzzleLevelGameViewState extends ConsumerState<BlockPuzzleLevelGameV
                   ),
                 ),
                 context.dynamicHeight(0.01).height,
-                BlockPuzzlePiecesTray(
-                  state: state,
-                  dragController: _dragController,
-                  onPieceSelect: (pieceId) {
-                    HapticFeedback.selectionClick();
-                    notifier.selectPiece(pieceId);
-                  },
+                Transform.translate(
+                  offset: Offset(0, -context.dynamicHeight(0.012)),
+                  child: BlockPuzzlePiecesTray(
+                    state: state,
+                    dragController: _dragController,
+                    onPieceSelect: (pieceId) {
+                      HapticFeedback.selectionClick();
+                      notifier.selectPiece(pieceId);
+                    },
+                  ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
+      ),
       ),
     );
   }
