@@ -18,6 +18,7 @@ import 'particle_burst.dart';
 import 'block_shatter_effect.dart';
 import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
+import 'piece_drag_constants.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
@@ -429,6 +430,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final coords = _coordsFromGlobal(globalPosition, state);
     if (coords == null) {
       _clearHover();
+      // Deselect the piece so it returns to the tray when dropped off-board.
+      ref.read(widget.provider.notifier).selectPiece(piece.id);
       return;
     }
     final success = ref

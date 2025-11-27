@@ -10,8 +10,12 @@ class BlockDragController {
   void Function(PieceModel piece, Offset globalPosition)? onHover;
   void Function(PieceModel piece, Offset globalPosition)? onDrop;
   VoidCallback? onCancelHover;
+  Offset? _lastHoverPosition;
+
+  Offset? get lastHoverPosition => _lastHoverPosition;
 
   void updateHover(PieceModel piece, Offset globalPosition) {
+    _lastHoverPosition = globalPosition;
     onHover?.call(piece, globalPosition);
   }
 
@@ -20,10 +24,12 @@ class BlockDragController {
   }
 
   void cancelHover() {
+    _lastHoverPosition = null;
     onCancelHover?.call();
   }
 
   void detach() {
+    _lastHoverPosition = null;
     onHover = null;
     onDrop = null;
     onCancelHover = null;

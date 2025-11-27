@@ -714,7 +714,11 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   void _triggerInvalidPlacement() {
     _errorTimer?.cancel();
-    state = state.copyWith(showInvalidPlacement: true);
+    // Clear selection so the dragged piece returns to the tray after an invalid drop.
+    state = state.copyWith(
+      showInvalidPlacement: true,
+      selectedPieceId: null,
+    );
     _errorTimer = Timer(const Duration(milliseconds: 900), () {
       state = state.copyWith(showInvalidPlacement: false);
     });
