@@ -285,10 +285,24 @@ class _GoalBadge extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Image.asset(
-          goal.token.asset,
-          width: context.dynamicWidth(0.2),
-          height: context.dynamicHeight(0.05),
+        Container(
+          height: context.dynamicHeight(0.055),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withValues(alpha: 0.2),
+                goal.token.color.withValues(alpha: 0.4),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: Image.asset(
+            goal.token.asset,
+            width: context.dynamicWidth(0.2),
+            height: context.dynamicHeight(0.05),
+          ),
         ),
         // Text(
         //   'block_level.tokens.${goal.token.name}'.tr(),

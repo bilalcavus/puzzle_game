@@ -35,7 +35,6 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 60, 34, 18),
       body: SafeArea(
         child: Center(
           child: Column(

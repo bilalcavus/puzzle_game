@@ -91,16 +91,15 @@ class LevelPathView extends ConsumerWidget {
                               onLevelTap: handleLevelTap,
                             ),
                             const SizedBox(height: 24),
-                            _BoardFooter(
-                              unlockedLevel: unlockedLevel,
-                              currentLevel: currentLevel,
-                              totalLevels: _totalLevels,
-                            ),
                           ],
                         ),
                       ),
                     ),
-                   
+                    const SizedBox(height: 12),
+                    _BottomBar(
+                      highestLevel: unlockedLevel,
+                      onJump: () => handleLevelTap(unlockedLevel),
+                    ),
                   ],
                 ),
               ),
@@ -436,146 +435,44 @@ class _LevelTile extends StatelessWidget {
   }
 }
 
-class _BoardFooter extends StatelessWidget {
-  const _BoardFooter({
-    required this.unlockedLevel,
-    required this.currentLevel,
-    required this.totalLevels,
+class _BottomBar extends StatelessWidget {
+  const _BottomBar({
+    required this.highestLevel,
+    required this.onJump,
   });
 
-  final int unlockedLevel;
-  final int currentLevel;
-  final int totalLevels;
+  final int highestLevel;
+  final VoidCallback onJump;
 
   @override
   Widget build(BuildContext context) {
-    final prevLevel = (currentLevel - 1).clamp(1, totalLevels);
-    final nextLevel = (currentLevel + 1).clamp(1, totalLevels);
-
-    return Row(
-      children: [
-        _MiniTile(
-          label: tr('level_path.footer.previous'),
-          level: prevLevel,
-          enabled: prevLevel <= unlockedLevel,
-        ),
-        const SizedBox(width: 12),
-        _MiniTile(
-          label: tr('level_path.footer.current'),
-          level: currentLevel,
-          enabled: true,
-          highlight: true,
-        ),
-        const SizedBox(width: 12),
-        _MiniTile(
-          label: tr('level_path.footer.next'),
-          level: nextLevel,
-          enabled: nextLevel <= unlockedLevel + 1,
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniTile extends StatelessWidget {
-  const _MiniTile({
-    required this.label,
-    required this.level,
-    required this.enabled,
-    this.highlight = false,
-  });
-
-  final String label;
-  final int level;
-  final bool enabled;
-  final bool highlight;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color fill = highlight
-        ? const Color(0xFFFFE29A)
-        : enabled
-        ? const Color(0xFFDAB37D)
-        : const Color(0xFF59432D);
-    final Color textColor = highlight
-        ? const Color(0xFF42210B)
-        : enabled
-        ? const Color(0xFF2d1608)
-        : const Color(0xFF9D8A6E);
-
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: fill,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0x33000000)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: textColor.withOpacity(0.7),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              tr('common.level_with_number', namedArgs: {'level': '$level'}),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LevelActionButton extends StatelessWidget {
-  const _LevelActionButton({
-    required this.level,
-    required this.unlocked,
-    required this.onPressed,
-  });
-
-  final int level;
-  final bool unlocked;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color background = unlocked
-        ? const Color(0xFF52b435)
-        : const Color(0xFF4c4c4c);
-
-    return SizedBox(
+    final Color barColor = const Color(0xFF3b2313).withOpacity(0.9);
+    return Container(
+      height: context.dynamicHeight(0.1),
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
+      padding: context.padding.normal,
+      decoration: BoxDecoration(
+
+        borderRadius: context.border.normalBorderRadius,
+       
+      ),
+      child: ElevatedButton.icon(
+        onPressed: onJump,
         style: ElevatedButton.styleFrom(
-          backgroundColor: background,
+          backgroundColor: const Color(0xFF52b435),
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          padding: context.padding.low,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           elevation: 8,
-          shadowColor: Colors.black38,
-          textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          shadowColor: Colors.black45,
         ),
-        child: Text(
-          tr('common.level_with_number', namedArgs: {'level': '$level'}),
+        icon: const Icon(Icons.arrow_upward_rounded, color: Colors.white),
+        label: Text(
+          tr('common.level_with_number', namedArgs: {'level': '$highestLevel'}),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          )
         ),
       ),
     );

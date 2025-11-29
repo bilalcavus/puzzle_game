@@ -90,14 +90,13 @@ class BlockPuzzleBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-             Color.fromARGB(255, 110, 61, 31),
-            Color.fromARGB(255, 78, 44, 23),
-            Color.fromARGB(255, 37, 21, 10),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        image: DecorationImage(
+          image: AssetImage('assets/images/2.png'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(
+            Color.fromARGB(80, 0, 0, 0),
+            BlendMode.darken,
+          ),
         ),
       ),
       child: child,
@@ -187,7 +186,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                   padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
                   child: PieceWidget(
                     piece: piece,
-                    cellSize: min(context.dynamicHeight(0.033), context.dynamicWidth(0.075)),
+                    cellSize: min(context.dynamicHeight(0.035), context.dynamicWidth(0.075)),
                     isSelected: state.selectedPieceId == piece.id,
                     disabled: state.status == BlockGameStatus.failed,
                     dragController: dragController,

@@ -110,16 +110,16 @@ class _WoodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: context.border.normalBorderRadius,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: context.border.normalBorderRadius,
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          padding: context.padding.normal,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: context.border.normalBorderRadius,
             gradient: const LinearGradient(
-              colors: [Color.fromARGB(255, 252, 222, 197), Color(0xFFE1B072)],
+              colors: [Color.fromARGB(255, 242, 205, 174), Color(0xFFE1B072)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
