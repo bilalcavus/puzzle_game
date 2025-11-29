@@ -104,17 +104,25 @@ const _singleBlockShapeIndex = 0;
 List<PieceModel> generateRandomPieces({
   int count = 3,
   double easyBias = 0.65,
+  int? maxWidth,
+  int? maxHeight,
 }) {
   final target = _normalizeCount(count);
   final pieces = <PieceModel>[];
+  final filteredShapes = _filterShapes(maxWidth: maxWidth, maxHeight: maxHeight);
+  final easyShapes =
+      filteredShapes.where((shape) => _easyShapeIndices.contains(_shapes.indexOf(shape))).toList();
+  final shapePool = filteredShapes.isEmpty ? _shapes : filteredShapes;
+  final easyPool = easyShapes.isEmpty ? shapePool : easyShapes;
   // At least one easy shape, optionally more based on bias.
   final easyCount = max(1, (target * easyBias).round());
   for (var i = 0; i < easyCount && pieces.length < target; i++) {
-    final easyShape = _shapes[_easyShapeIndices[_random.nextInt(_easyShapeIndices.length)]];
+    final easyShape = easyPool[_random.nextInt(easyPool.length)];
     pieces.add(_createRandomPiece(easyShape));
   }
   while (pieces.length < target) {
-    pieces.add(_createRandomPiece());
+    final shape = shapePool[_random.nextInt(shapePool.length)];
+    pieces.add(_createRandomPiece(shape));
   }
   pieces.shuffle(_random);
   return pieces;
@@ -129,8 +137,14 @@ List<PieceModel> generatePlayablePieces({
 }) {
   final attemptLimit = max(1, maxAttempts);
   final targetCount = _normalizeCount(count);
+  final spans = _maxEmptySpans(boardSize, filledCells);
   for (var i = 0; i < attemptLimit; i++) {
-    final pieces = generateRandomPieces(count: targetCount, easyBias: easyBias);
+    final pieces = generateRandomPieces(
+      count: targetCount,
+      easyBias: easyBias,
+      maxWidth: spans.maxColSpan,
+      maxHeight: spans.maxRowSpan,
+    );
     if (_hasAnyValidMove(pieces, filledCells, boardSize)) {
       return pieces;
     }
@@ -177,4 +191,54 @@ bool _hasAnyValidMove(List<PieceModel> pieces, Map<int, Color> filled, int size)
     }
   }
   return false;
+}
+
+({int maxRowSpan, int maxColSpan}) _maxEmptySpans(int size, Map<int, Color> filled) {
+  var maxRowSpan = 1;
+  var maxColSpan = 1;
+  for (var row = 0; row < size; row++) {
+    var run = 0;
+    for (var col = 0; col < size; col++) {
+      final index = row * size + col;
+      if (filled.containsKey(index)) {
+        run = 0;
+      } else {
+        run++;
+        if (run > maxRowSpan) maxRowSpan = run;
+      }
+    }
+  }
+  for (var col = 0; col < size; col++) {
+    var run = 0;
+    for (var row = 0; row < size; row++) {
+      final index = row * size + col;
+      if (filled.containsKey(index)) {
+        run = 0;
+      } else {
+        run++;
+        if (run > maxColSpan) maxColSpan = run;
+      }
+    }
+  }
+  return (maxRowSpan: maxRowSpan, maxColSpan: maxColSpan);
+}
+
+List<List<List<int>>> _filterShapes({int? maxWidth, int? maxHeight}) {
+  if (maxWidth == null && maxHeight == null) return _shapes;
+  return _shapes.where((shape) {
+    final dims = _shapeSize(shape);
+    final withinWidth = maxWidth == null || dims.width <= maxWidth;
+    final withinHeight = maxHeight == null || dims.height <= maxHeight;
+    return withinWidth && withinHeight;
+  }).toList();
+}
+
+({int width, int height}) _shapeSize(List<List<int>> shape) {
+  var maxRow = 0;
+  var maxCol = 0;
+  for (final offset in shape) {
+    if (offset[0] > maxRow) maxRow = offset[0];
+    if (offset[1] > maxCol) maxCol = offset[1];
+  }
+  return (width: maxCol + 1, height: maxRow + 1);
 }

@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Arcade de Quebra-cabeças",
-    "subtitle": "Escolha um desafio: lógica deslizante clássica ou a nova aventura de blocos de madeira.",
+    "subtitle": "Escolha um desafio: lógica deslizante clássica ou a nova jornada de blocos de madeira.",
     "cards": {
       "sliding": {
         "title": "Quebra-cabeça Deslizante",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Aventura",
+      "title": "Jornada",
       "subtitle": "Trilha do objetivo"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Modo Aventura",
+    "title": "Modo Jornada",
     "level_label": "Selva {index}",
     "requirement": "Limpe 5 linhas para desbloquear a próxima selva."
   }

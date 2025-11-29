@@ -47,8 +47,7 @@ class PieceWidget extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.all(context.dynamicHeight(0.015)),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(26),
             border: Border.all(
               color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent,
               width: 1,

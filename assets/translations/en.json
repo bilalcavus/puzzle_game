@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "Puzzle Arcade",
-    "subtitle": "Choose a challenge: classic sliding logic or the new wooden block adventure.",
+    "subtitle": "Choose a challenge: classic sliding logic or the new wooden block journey.",
     "cards": {
       "sliding": {
         "title": "Sliding Puzzle",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "Adventure",
+      "title": "Journey",
       "subtitle": "Goal path"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "Adventure Mode",
+    "title": "Journey Mode",
     "level_label": "Jungle {index}",
     "requirement": "Clear 5 lines to unlock the next jungle."
   }

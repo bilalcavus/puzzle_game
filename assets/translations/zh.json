@@ -62,7 +62,7 @@
   },
   "home": {
     "title": "拼图街机",
-    "subtitle": "在经典滑块逻辑和全新木块冒险之间做出选择。",
+    "subtitle": "在经典滑块逻辑和全新木块旅程之间做出选择。",
     "cards": {
       "sliding": {
         "title": "滑块拼图",
@@ -76,7 +76,7 @@
   },
   "block_mode": {
     "adventure": {
-      "title": "冒险",
+      "title": "旅程",
       "subtitle": "目标路径"
     },
     "classic": {
@@ -168,7 +168,7 @@
     }
   },
   "adventure": {
-    "title": "冒险模式",
+    "title": "旅程模式",
     "level_label": "丛林 {index}",
     "requirement": "清除 5 行即可解锁下一片丛林。"
   }

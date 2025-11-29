@@ -10,49 +10,92 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isTablet = media.size.shortestSide >= 700;
+    final horizontalPadding = isTablet ? 32.0 : 24.0;
+    final cardSpacing = isTablet ? 20.0 : 16.0;
+
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: const [LocaleMenuButton()],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              tr('home.title'),
-              style: Theme.of(
-                context,
-              ).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tr('home.subtitle'),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 32),
-            _GameCard(
-              title: tr('home.cards.sliding.title'),
-              description: tr('home.cards.sliding.description'),
-              color: Colors.deepPurple,
-              icon: Icons.grid_4x4,
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const GameView())),
-            ),
-            const SizedBox(height: 16),
-            _GameCard(
-              title: tr('home.cards.block.title'),
-              description: tr('home.cards.block.description'),
-              color: Colors.teal,
-              icon: Icons.crop_square,
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BlockPuzzleModeView()),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final twoColumn = constraints.maxWidth >= 720;
+            return ListView(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 24,
               ),
-            ),
-          ],
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: const [LocaleMenuButton()],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  tr('home.title'),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  tr('home.subtitle'),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 32),
+                if (twoColumn)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _GameCard(
+                          title: tr('home.cards.sliding.title'),
+                          description: tr('home.cards.sliding.description'),
+                          color: Colors.deepPurple,
+                          icon: Icons.grid_4x4,
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).push(MaterialPageRoute(builder: (_) => const GameView())),
+                        ),
+                      ),
+                      SizedBox(width: cardSpacing),
+                      Expanded(
+                        child: _GameCard(
+                          title: tr('home.cards.block.title'),
+                          description: tr('home.cards.block.description'),
+                          color: Colors.teal,
+                          icon: Icons.crop_square,
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const BlockPuzzleModeView()),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else ...[
+                  _GameCard(
+                    title: tr('home.cards.sliding.title'),
+                    description: tr('home.cards.sliding.description'),
+                    color: Colors.deepPurple,
+                    icon: Icons.grid_4x4,
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => const GameView())),
+                  ),
+                  SizedBox(height: cardSpacing),
+                  _GameCard(
+                    title: tr('home.cards.block.title'),
+                    description: tr('home.cards.block.description'),
+                    color: Colors.teal,
+                    icon: Icons.crop_square,
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const BlockPuzzleModeView()),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );

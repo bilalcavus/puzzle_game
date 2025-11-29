@@ -23,6 +23,13 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final shortest = media.size.shortestSide;
+    final isTablet = shortest >= 700;
+    final logoHeight = isTablet ? media.size.height * 0.32 : 300.0;
+    final maxWidth = isTablet ? 520.0 : 380.0;
+    final verticalPadding = isTablet ? 32.0 : 20.0;
+
     return Scaffold(
       body: BlockPuzzleBackground(
         child: SafeArea(
@@ -38,15 +45,15 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
               ),
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 360),
+                  constraints: BoxConstraints(maxWidth: maxWidth),
                   child: Column(
                     children: [
                       const Spacer(),
                       Image.asset(
                         'assets/images/wooden_block_logo2.png',
-                        height: 300,
+                        height: logoHeight,
                       ),
-                      context.dynamicHeight(0.04).height,
+                      SizedBox(height: verticalPadding),
                       _WoodButton(
                         label: tr('block_mode.adventure.title'),
                         subtitle: tr('block_mode.adventure.subtitle'),
@@ -103,16 +110,16 @@ class _WoodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: context.border.normalBorderRadius,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: context.border.normalBorderRadius,
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          padding: context.padding.normal,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: context.border.normalBorderRadius,
             gradient: const LinearGradient(
-              colors: [Color.fromARGB(255, 252, 222, 197), Color(0xFFE1B072)],
+              colors: [Color.fromARGB(255, 242, 205, 174), Color(0xFFE1B072)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),

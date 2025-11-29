@@ -39,12 +39,18 @@ class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
   Widget build(BuildContext context) {
     final state = ref.watch(blockPuzzleProvider);
     final notifier = ref.read(blockPuzzleProvider.notifier);
+    final media = MediaQuery.of(context);
+    final horizontalPadding = media.size.width < 360 ? 12.0 : media.size.width * 0.04;
+    final verticalPadding = media.size.height * 0.02;
 
     return Scaffold(
       body: BlockPuzzleBackground(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.all(context.dynamicHeight(0.02)),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding.clamp(12.0, 32.0),
+              vertical: verticalPadding.clamp(12.0, 28.0),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -84,14 +90,13 @@ class BlockPuzzleBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color.fromARGB(255, 91, 51, 27),
-            Color.fromARGB(255, 66, 38, 20),
-            Color.fromARGB(255, 37, 21, 10),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        image: DecorationImage(
+          image: AssetImage('assets/images/2.png'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(
+            Color.fromARGB(80, 0, 0, 0),
+            BlendMode.darken,
+          ),
         ),
       ),
       child: child,
@@ -119,9 +124,9 @@ class BlockPuzzleBoardSection extends StatelessWidget {
         final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : media.size.width;
         final isWide = maxWidth > 900;
         final base = isWide ? maxWidth * 1.05 : maxWidth;
-        final upperClamp = min(media.size.shortestSide * 0.99, 640.0);
-        final lowerClamp = 360.0;
-        final fallback = min(media.size.width * 0.82, upperClamp);
+        final upperClamp = min(media.size.shortestSide * 0.9, 640.0);
+        final lowerClamp = max(300.0, media.size.shortestSide * 0.58);
+        final fallback = min(media.size.width * 0.9, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
         final board = BlockGameBoard(
           dimension: boardDimension,
@@ -168,27 +173,32 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: state.availablePieces
-            .map(
-              (piece) => Padding(
-                padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
-                child: PieceWidget(
-                  piece: piece,
-                  cellSize: context.dynamicHeight(0.03),
-                  isSelected: state.selectedPieceId == piece.id,
-                  disabled: state.status == BlockGameStatus.failed,
-                  dragController: dragController,
-                  onSelect: () => onPieceSelect(piece.id),
-                  onDragStart: () {
-                    ref.read(soundControllerProvider).playDrag();
-                  },
+    final lift = -context.dynamicHeight(0.02);
+    return Transform.translate(
+      offset: Offset(0, lift),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
+        child: Row(
+          children: state.availablePieces
+              .map(
+                (piece) => Padding(
+                  padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
+                  child: PieceWidget(
+                    piece: piece,
+                    cellSize: min(context.dynamicHeight(0.035), context.dynamicWidth(0.075)),
+                    isSelected: state.selectedPieceId == piece.id,
+                    disabled: state.status == BlockGameStatus.failed,
+                    dragController: dragController,
+                    onSelect: () => onPieceSelect(piece.id),
+                    onDragStart: () {
+                      ref.read(soundControllerProvider).playDrag();
+                    },
+                  ),
                 ),
-              ),
-            )
-            .toList(),
+              )
+              .toList(),
+        ),
       ),
     );
   }
