@@ -619,8 +619,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final emptyRatio = _levelEmptyRatioFor(normalized);
     final easyBias = _levelEasyBiasFor(normalized);
     final size = 8;
-    final goals = _buildLevelGoals(normalized);
+    final rawGoals = _buildLevelGoals(normalized);
     final totalCells = size * size;
+    final maxGoalBudget = (totalCells * 0.75).floor(); // leave room for obstacles/empties
+    final goals = _capLevelGoals(rawGoals, maxGoalBudget);
     final minTokenBudget = goals.fold<int>(0, (sum, goal) => sum + goal.required);
     final maxEmptyCells = totalCells - minTokenBudget;
     final desiredEmptyCells = (totalCells * emptyRatio).round();
@@ -738,6 +740,49 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       final required = adjusted[index];
       return BlockLevelGoal(token: token, required: required, remaining: required);
     });
+  }
+
+  List<BlockLevelGoal> _capLevelGoals(
+    List<BlockLevelGoal> goals,
+    int maxBudget,
+  ) {
+    if (goals.isEmpty || maxBudget <= 0) return goals;
+    final totalRequired = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+    if (totalRequired <= maxBudget) return goals;
+
+    final scaled = <BlockLevelGoal>[];
+    var budget = maxBudget;
+
+    // Proportionally scale down requirements.
+    for (var i = 0; i < goals.length; i++) {
+      final goal = goals[i];
+      final ratio = goal.required / totalRequired;
+      final base = (ratio * maxBudget).floor();
+      final clamped = max(1, base);
+      scaled.add(
+        BlockLevelGoal(
+          token: goal.token,
+          required: clamped,
+          remaining: clamped,
+        ),
+      );
+      budget -= clamped;
+    }
+
+    // Distribute any leftover budget one by one to avoid underfilling.
+    var idx = 0;
+    while (budget > 0 && scaled.isNotEmpty) {
+      final goal = scaled[idx % scaled.length];
+      scaled[idx % scaled.length] = BlockLevelGoal(
+        token: goal.token,
+        required: goal.required + 1,
+        remaining: goal.remaining + 1,
+      );
+      budget--;
+      idx++;
+    }
+
+    return scaled;
   }
 
   Map<int, BlockLevelToken> _generateLevelTargets({

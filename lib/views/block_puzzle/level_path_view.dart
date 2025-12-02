@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kartal/kartal.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
@@ -130,6 +131,7 @@ class LevelPathView extends ConsumerWidget {
   }
 
   Future<int> _loadProgress() async {
+    if (kDebugMode) return _totalLevels;
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(kBlockLevelProgressKey) ?? 1;
   }
