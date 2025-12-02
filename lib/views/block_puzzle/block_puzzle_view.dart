@@ -161,7 +161,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
-    final reservedHeight = cellSize * 5 + context.dynamicHeight(0.04);
+    final reservedHeight = cellSize * 5 + context.dynamicHeight(0.01);
 
     return SizedBox(
       height: reservedHeight,
