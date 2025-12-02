@@ -125,7 +125,7 @@ class BlockPuzzleBoardSection extends StatelessWidget {
         final isWide = maxWidth > 900;
         final base = isWide ? maxWidth * 1.05 : maxWidth;
         final upperClamp = min(media.size.shortestSide * 0.9, 640.0);
-        final lowerClamp = max(300.0, media.size.shortestSide * 0.58);
+        final lowerClamp = max(260.0, media.size.shortestSide * 0.55);
         final fallback = min(media.size.width * 0.9, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
         final board = BlockGameBoard(
@@ -133,24 +133,16 @@ class BlockPuzzleBoardSection extends StatelessWidget {
           provider: blockPuzzleProvider,
           dragController: dragController,
         );
-        
+        final centeredBoard = Center(child: board);
 
         if (isWide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: Center(child: board)),
-            ],
-          );
+          return centeredBoard;
         }
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              Center(child: board),
-              context.dynamicHeight(0.02).height,
-               
-            ],
+        return Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(vertical: context.dynamicHeight(0.01)),
+            child: centeredBoard,
           ),
         );
       },

@@ -18,7 +18,6 @@ import 'particle_burst.dart';
 import 'block_shatter_effect.dart';
 import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
-import 'piece_drag_constants.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
   const BlockGameBoard({
