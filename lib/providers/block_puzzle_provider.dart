@@ -732,7 +732,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     const baseRequirements = [1, 2, 2];
     final adjusted = List<int>.from(baseRequirements);
     final increments = max(0, level - 1);
-    for (var i = 0; i < increments; i++) {
+    final spacedIncrement = (increments / 2).floor(); // grow every two levels
+    for (var i = 0; i < spacedIncrement; i++) {
       adjusted[i % adjusted.length]++;
     }
     return List.generate(adjusted.length, (index) {
