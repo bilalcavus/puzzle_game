@@ -38,7 +38,7 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   static const double _padding = 8;
   static const double _gap = 0.0;
-  static const double _edgeTolerance = 80;
+  static const double _dropSnapMargin = 150;
   static const _frameHighlight = Color(0xFFEBC68E);
   static const _frameMid = Color(0xFFC48337);
   static const _frameShadow = Color(0xFF8B4A1C);
@@ -426,7 +426,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     Offset globalPosition,
     BlockPuzzleState state,
   ) {
-    final coords = _coordsFromGlobal(globalPosition, state);
+    final coords = _coordsFromGlobal(piece, globalPosition, state);
     if (coords == null) {
       _clearHover();
       // Deselect the piece so it returns to the tray when dropped off-board.
@@ -462,7 +462,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     Offset globalPosition,
     BlockPuzzleState state,
   ) {
-    final coords = _coordsFromGlobal(globalPosition, state);
+    final coords = _coordsFromGlobal(piece, globalPosition, state);
     if (coords == null) {
       _clearHover();
       return false;
@@ -536,6 +536,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   ({int row, int col})? _coordsFromGlobal(
+    PieceModel piece,
     Offset globalPosition,
     BlockPuzzleState state,
   ) {
@@ -545,43 +546,25 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (renderBox == null) return null;
     final boardOrigin = renderBox.localToGlobal(Offset.zero);
     final boardRect = boardOrigin & renderBox.size;
-    if (!boardRect.inflate(_edgeTolerance).contains(globalPosition)) {
+    if (!boardRect.inflate(_dropSnapMargin).contains(globalPosition)) {
       return null;
     }
+
     final adjustedOffset =
         globalPosition.translate(0, -kPieceDragPointerYOffset);
     final local = renderBox.globalToLocal(adjustedOffset);
-    return _coordsFromLocal(local, state);
-  }
-
-  ({int row, int col})? _coordsFromLocal(
-    Offset local,
-    BlockPuzzleState state, {
-    bool strictBounds = false,
-  }) {
     final padding = _resolvedPadding();
     final boardStart = padding;
     final boardEnd = widget.dimension - padding;
-    final dynamicTolerance = max(_edgeTolerance, _cellSize(state.size, padding));
-    final tolerance = strictBounds ? 0 : dynamicTolerance;
-    final withinHorizontal =
-        local.dx >= boardStart - tolerance && local.dx <= boardEnd + tolerance;
-    final withinVertical =
-        local.dy >= boardStart - tolerance && local.dy <= boardEnd + tolerance;
-    if (!withinHorizontal || !withinVertical) {
-      return null;
-    }
-    final clampedX = local.dx.clamp(boardStart, boardEnd - 0.0001);
-    final clampedY = local.dy.clamp(boardStart, boardEnd - 0.0001);
+    final clampedX =
+        (local.dx - boardStart).clamp(0, boardEnd - boardStart - 0.0001);
+    final clampedY =
+        (local.dy - boardStart).clamp(0, boardEnd - boardStart - 0.0001);
     final cellSize = _cellSize(state.size, padding);
     final extent = cellSize + _gap;
-    final relativeX = clampedX - boardStart;
-    final relativeY = clampedY - boardStart;
-    final maxIndex = state.size - 1e-3;
-    final columnPosition = (relativeX / extent).clamp(0, maxIndex);
-    final rowPosition = (relativeY / extent).clamp(0, maxIndex);
-    final col = columnPosition.floor();
-    final row = rowPosition.floor();
+    final col = (clampedX / extent).floor().clamp(0, state.size - piece.width);
+    final row =
+        (clampedY / extent).floor().clamp(0, state.size - piece.height);
     return (row: row, col: col);
   }
 

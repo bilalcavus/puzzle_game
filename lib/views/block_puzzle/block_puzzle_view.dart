@@ -139,12 +139,7 @@ class BlockPuzzleBoardSection extends StatelessWidget {
           return centeredBoard;
         }
 
-        return Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(vertical: context.dynamicHeight(0.01)),
-            child: centeredBoard,
-          ),
-        );
+        return centeredBoard;
       },
     );
   }
@@ -165,20 +160,23 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lift = -context.dynamicHeight(0.02);
-    return Transform.translate(
-      offset: Offset(0, lift),
+    final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
+    final reservedHeight = cellSize * 5 + context.dynamicHeight(0.04);
+
+    return SizedBox(
+      height: reservedHeight,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: state.availablePieces
               .map(
                 (piece) => Padding(
                   padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
                   child: PieceWidget(
                     piece: piece,
-                    cellSize: min(context.dynamicHeight(0.035), context.dynamicWidth(0.075)),
+                    cellSize: cellSize,
                     isSelected: state.selectedPieceId == piece.id,
                     disabled: state.status == BlockGameStatus.failed,
                     dragController: dragController,

@@ -69,6 +69,11 @@ class PieceWidget extends StatelessWidget {
       return child;
     }
 
+    // Preserve tray layout during drag so the board doesn't shift when a piece is lifted.
+    final placeholderWhileDragging = IgnorePointer(
+      child: Opacity(opacity: 0, child: child),
+    );
+
     return LongPressDraggable<PieceModel>(
       // Keep a minimal hold so taps don't trigger; effectively instant drag.
       delay: const Duration(milliseconds: 60),
@@ -89,7 +94,7 @@ class PieceWidget extends StatelessWidget {
         ),
       ),
       // Do not leave a ghost copy in the tray while dragging.
-      childWhenDragging: const SizedBox.shrink(),
+      childWhenDragging: placeholderWhileDragging,
       onDragStarted: () {
         onDragStart?.call();
         if (!isSelected) {
