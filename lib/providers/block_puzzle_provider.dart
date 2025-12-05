@@ -52,6 +52,20 @@ class BlockExplosionEffect {
   final Color color;
 }
 
+class BlockLineEffect {
+  const BlockLineEffect({
+    required this.id,
+    required this.index,
+    required this.isRow,
+    required this.color,
+  });
+
+  final int id;
+  final int index;
+  final bool isRow;
+  final Color color;
+}
+
 class BlockPuzzleState {
   const BlockPuzzleState({
     required this.size,
@@ -76,6 +90,7 @@ class BlockPuzzleState {
     required this.levelTargets,
     required this.levelCompleted,
     required this.blockExplosions,
+    required this.lineEffects,
   });
 
   final int size;
@@ -100,6 +115,7 @@ class BlockPuzzleState {
   final Map<int, BlockLevelToken> levelTargets;
   final bool levelCompleted;
   final List<BlockExplosionEffect> blockExplosions;
+  final List<BlockLineEffect> lineEffects;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -136,6 +152,7 @@ class BlockPuzzleState {
     Map<int, BlockLevelToken>? levelTargets,
     bool? levelCompleted,
     List<BlockExplosionEffect>? blockExplosions,
+    List<BlockLineEffect>? lineEffects,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -160,6 +177,7 @@ class BlockPuzzleState {
       levelTargets: levelTargets ?? this.levelTargets,
       levelCompleted: levelCompleted ?? this.levelCompleted,
       blockExplosions: blockExplosions ?? this.blockExplosions,
+      lineEffects: lineEffects ?? this.lineEffects,
     );
   }
 
@@ -191,6 +209,7 @@ class BlockPuzzleState {
       levelTargets: const <int, BlockLevelToken>{},
       levelCompleted: false,
       blockExplosions: const <BlockExplosionEffect>[],
+      lineEffects: const <BlockLineEffect>[],
     );
   }
 }
@@ -286,6 +305,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         levelTargets: const <int, BlockLevelToken>{},
         levelCompleted: false,
         blockExplosions: const <BlockExplosionEffect>[],
+        lineEffects: const <BlockLineEffect>[],
       );
     } catch (_) {
       state = state.copyWith(bestScore: best);
@@ -677,6 +697,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       bestScore: state.bestScore,
       availablePieces: startingPieces,
       selectedPieceId: null,
+      lineEffects: const <BlockLineEffect>[],
     );
   }
 
