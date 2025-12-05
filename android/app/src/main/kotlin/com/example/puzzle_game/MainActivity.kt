@@ -1,4 +1,4 @@
-package com.bilalcavus.woodenblock
+package com.bilalcavus.woodenblock.dev
 
 import io.flutter.embedding.android.FlutterActivity
 

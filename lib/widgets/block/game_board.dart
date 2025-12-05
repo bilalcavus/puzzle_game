@@ -697,9 +697,16 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       return null;
     }
 
-    final adjustedOffset =
-        globalPosition.translate(0, -kPieceDragPointerYOffset);
-    final local = renderBox.globalToLocal(adjustedOffset);
+    final adjustedOffset = globalPosition.translate(0, -kPieceDragPointerYOffset);
+    Offset local = renderBox.globalToLocal(adjustedOffset);
+    // Accelerate upward motion so small finger lifts move the piece higher.
+    final boardHeight = renderBox.size.height;
+    final centerY = boardHeight / 2;
+    final normalizedY = (local.dy - centerY) / centerY;
+    if (normalizedY < 0) {
+      final boosted = (normalizedY * kPieceDragUpwardBoost).clamp(-1.0, 1.0);
+      local = Offset(local.dx, centerY + boosted * centerY);
+    }
     final padding = _resolvedPadding();
     final boardStart = padding;
     final boardEnd = widget.dimension - padding;
