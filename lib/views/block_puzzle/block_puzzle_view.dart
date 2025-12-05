@@ -166,7 +166,6 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
     return SizedBox(
       height: reservedHeight,
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

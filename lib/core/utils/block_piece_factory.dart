@@ -15,6 +15,7 @@ const _palette = [
   Color(0xFFCC9650),
   Color(0xFFBD8643),
   Color(0xFFAD7536),
+  
 ];
 
 final List<List<List<int>>> _shapes = [
@@ -95,6 +96,12 @@ final List<List<List<int>>> _shapes = [
     [1,0],
     [1,1],
     [2,0],
+  ],
+  //Short-horizontal L shape
+  [
+    [0,0],
+    [1,0],
+    [1,1],
   ]
 ];
 
