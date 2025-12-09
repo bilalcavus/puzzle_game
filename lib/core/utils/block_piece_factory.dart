@@ -9,13 +9,13 @@ final _random = Random();
 
 int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
+// Default vivid yet soft puzzle palette (distinct, non-clashing hues).
 const _palette = [
-  Color(0xFFE7C07A),
-  Color(0xFFD8AB63),
-  Color(0xFFCC9650),
-  Color(0xFFBD8643),
-  Color(0xFFAD7536),
-  
+  Color(0xFF5DB7DE), // blue
+  Color(0xFF6ED6A0), // green
+  Color(0xFFF2C14E), // amber
+  Color(0xFFEE6C7F), // pink/coral
+  Color(0xFF9B8CFF), // purple
 ];
 
 final List<List<List<int>>> _shapes = [
@@ -90,32 +90,25 @@ final List<List<List<int>>> _shapes = [
     [1, 2],
     [2, 1],
   ],
-  //Horizontal T shape 
+  //Horizontal T shape
   [
-    [0,0],
-    [1,0],
-    [1,1],
-    [2,0],
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [2, 0],
   ],
   //Short-horizontal L shape
   [
-    [0,0],
-    [1,0],
-    [1,1],
-  ]
+    [0, 0],
+    [1, 0],
+    [1, 1],
+  ],
 ];
 
 const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];
 const _singleBlockShapeIndex = 0;
 
-List<PieceModel> generateRandomPieces({
-  int count = 3,
-  double easyBias = 0.65,
-  int? maxWidth,
-  int? maxHeight,
-  List<List<List<int>>> preferredShapes = const [],
-  bool uniqueShapes = false,
-}) {
+List<PieceModel> generateRandomPieces({int count = 3, double easyBias = 0.65, int? maxWidth, int? maxHeight, List<List<List<int>>> preferredShapes = const [], bool uniqueShapes = false}) {
   final target = _normalizeCount(count);
   final pieces = <PieceModel>[];
   final filteredShapes = _filterShapes(maxWidth: maxWidth, maxHeight: maxHeight);
@@ -144,31 +137,14 @@ List<PieceModel> generateRandomPieces({
   return pieces;
 }
 
-List<PieceModel> generatePlayablePieces({
-  required int boardSize,
-  required Map<int, Color> filledCells,
-  int count = 3,
-  int maxAttempts = 32,
-  double easyBias = 0.65,
-}) {
+List<PieceModel> generatePlayablePieces({required int boardSize, required Map<int, Color> filledCells, int count = 3, int maxAttempts = 32, double easyBias = 0.65}) {
   final attemptLimit = max(1, maxAttempts);
   final targetCount = _normalizeCount(count);
   final spans = _maxEmptySpans(boardSize, filledCells);
   for (var i = 0; i < attemptLimit; i++) {
     final clusters = _emptyClusters(boardSize, filledCells);
-    final alignedShapes = _shapesThatFitEmptySpaces(
-      clusters: clusters,
-      maxWidth: spans.maxColSpan,
-      maxHeight: spans.maxRowSpan,
-    );
-    final pieces = generateRandomPieces(
-      count: targetCount,
-      easyBias: easyBias,
-      maxWidth: spans.maxColSpan,
-      maxHeight: spans.maxRowSpan,
-      preferredShapes: alignedShapes,
-      uniqueShapes: true,
-    );
+    final alignedShapes = _shapesThatFitEmptySpaces(clusters: clusters, maxWidth: spans.maxColSpan, maxHeight: spans.maxRowSpan);
+    final pieces = generateRandomPieces(count: targetCount, easyBias: easyBias, maxWidth: spans.maxColSpan, maxHeight: spans.maxRowSpan, preferredShapes: alignedShapes, uniqueShapes: true);
     if (_hasAnyValidMove(pieces, filledCells, boardSize)) {
       return pieces;
     }
@@ -185,27 +161,17 @@ PieceModel _createRandomPiece([List<List<int>>? shapeOverride]) {
   final shape = shapeOverride ?? _shapes[_random.nextInt(_shapes.length)];
   final color = _palette[_random.nextInt(_palette.length)];
   final blocks = shape.map((pair) => BlockModel(rowOffset: pair[0], colOffset: pair[1])).toList();
-  return PieceModel(
-    id: 'piece_${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(9999)}',
-    blocks: blocks,
-    color: color,
-  );
+  return PieceModel(id: 'piece_${DateTime.now().microsecondsSinceEpoch}_${_random.nextInt(9999)}', blocks: blocks, color: color);
 }
 
-List<List<List<int>>> _shapesThatFitEmptySpaces({
-  required List<({int width, int height, int cells})> clusters,
-  int? maxWidth,
-  int? maxHeight,
-}) {
+List<List<List<int>>> _shapesThatFitEmptySpaces({required List<({int width, int height, int cells})> clusters, int? maxWidth, int? maxHeight}) {
   if (clusters.isEmpty) return _filterShapes(maxWidth: maxWidth, maxHeight: maxHeight);
   final filtered = _filterShapes(maxWidth: maxWidth, maxHeight: maxHeight);
   final candidates = <List<List<int>>>{};
   for (final cluster in clusters) {
     for (final shape in filtered) {
       final dims = _shapeSize(shape);
-      if (dims.width <= cluster.width &&
-          dims.height <= cluster.height &&
-          shape.length <= cluster.cells) {
+      if (dims.width <= cluster.width && dims.height <= cluster.height && shape.length <= cluster.cells) {
         candidates.add(shape);
       }
     }
@@ -213,10 +179,7 @@ List<List<List<int>>> _shapesThatFitEmptySpaces({
   return candidates.toList();
 }
 
-List<({int width, int height, int cells})> _emptyClusters(
-  int size,
-  Map<int, Color> filled,
-) {
+List<({int width, int height, int cells})> _emptyClusters(int size, Map<int, Color> filled) {
   final visited = List.generate(size, (_) => List.generate(size, (_) => false));
   final clusters = <({int width, int height, int cells})>[];
 
@@ -238,12 +201,7 @@ List<({int width, int height, int cells})> _emptyClusters(
         maxRow = max(maxRow, current.r);
         minCol = min(minCol, current.c);
         maxCol = max(maxCol, current.c);
-        const dirs = [
-          (dr: 1, dc: 0),
-          (dr: -1, dc: 0),
-          (dr: 0, dc: 1),
-          (dr: 0, dc: -1),
-        ];
+        const dirs = [(dr: 1, dc: 0), (dr: -1, dc: 0), (dr: 0, dc: 1), (dr: 0, dc: -1)];
         for (final dir in dirs) {
           final nr = current.r + dir.dr;
           final nc = current.c + dir.dc;
@@ -253,11 +211,7 @@ List<({int width, int height, int cells})> _emptyClusters(
           queue.add((r: nr, c: nc));
         }
       }
-      clusters.add((
-        width: (maxCol - minCol) + 1,
-        height: (maxRow - minRow) + 1,
-        cells: cells,
-      ));
+      clusters.add((width: (maxCol - minCol) + 1, height: (maxRow - minRow) + 1, cells: cells));
     }
   }
   return clusters;
@@ -268,10 +222,7 @@ bool _isEasyShape(List<List<int>> shape) {
   return index != -1 && _easyShapeIndices.contains(index);
 }
 
-List<List<int>>? _pickShape(
-  List<List<List<int>>> pool,
-  Set<String>? usedKeys,
-) {
+List<List<int>>? _pickShape(List<List<List<int>>> pool, Set<String>? usedKeys) {
   if (pool.isEmpty) return null;
   final wantsUnique = usedKeys != null;
   final maxAttempts = max(pool.length * 2, 12);
