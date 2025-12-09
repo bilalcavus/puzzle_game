@@ -31,7 +31,8 @@ class BlockGameBoard extends ConsumerStatefulWidget {
 }
 
 class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
-  static const double _padding = 8;
+  // Reduce padding so cells gain more usable area.
+  static const double _padding = 4;
   static const double _gap = 0.0;
   static const double _dropSnapMargin = 150;
   static const _frameHighlight = Color(0xFFEBC68E);
@@ -620,7 +621,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return BoxDecoration(
       borderRadius: context.border.lowBorderRadius,
       gradient: const LinearGradient(colors: [_frameHighlight, _frameMid, _frameShadow], begin: Alignment.topLeft, end: Alignment.bottomRight),
-      border: Border.all(color: _frameEdge, width: 2.4),
+      border: Border.all(color: _frameEdge, width: 1.4),
       boxShadow: const [
         BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 10)),
         BoxShadow(color: Color(0x22000000), blurRadius: 6, offset: Offset(0, -2)),
@@ -632,7 +633,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return BoxDecoration(
       borderRadius: context.border.lowBorderRadius,
       gradient: const LinearGradient(colors: [_innerBoardMid, _innerBoardDark], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-      border: Border.all(color: _innerBoardEdge, width: 1.4),
+      border: Border.all(color: _innerBoardEdge, width: 0.9),
     );
   }
 

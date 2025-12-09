@@ -36,9 +36,9 @@ class PieceWidget extends StatelessWidget {
         curve: Curves.easeOutBack,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.all(context.dynamicHeight(0.015)),
+          padding: EdgeInsets.all(context.dynamicHeight(0.010)), // less padding => larger visible piece
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent, width: 1),
           ),
           child: content,
