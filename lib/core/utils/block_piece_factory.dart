@@ -11,11 +11,11 @@ int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
 // Default vivid yet soft puzzle palette (distinct, non-clashing hues).
 const _palette = [
-  Color(0xFF5DB7DE), // blue
-  Color(0xFF6ED6A0), // green
-  Color(0xFFF2C14E), // amber
-  Color(0xFFEE6C7F), // pink/coral
-  Color(0xFF9B8CFF), // purple
+    Color(0xFFE7C07A),
+  Color(0xFFD8AB63),
+  Color(0xFFCC9650),
+  Color(0xFFBD8643),
+  Color(0xFFAD7536),
 ];
 
 final List<List<List<int>>> _shapes = [
@@ -82,14 +82,6 @@ final List<List<List<int>>> _shapes = [
     [1, 1],
     [1, 2],
   ],
-  // Plus shape
-  [
-    [0, 1],
-    [1, 0],
-    [1, 1],
-    [1, 2],
-    [2, 1],
-  ],
   //Horizontal T shape
   [
     [0, 0],
@@ -103,6 +95,19 @@ final List<List<List<int>>> _shapes = [
     [1, 0],
     [1, 1],
   ],
+  // Full 3x3 square
+  [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [1, 0],
+    [1, 1],
+    [1, 2],
+    [2, 0],
+    [2, 1],
+    [2, 2],
+  ],
+  
 ];
 
 const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];

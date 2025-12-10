@@ -1,8 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kartal/kartal.dart';
+import 'package:puzzle_game/app/ads_service.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 import 'package:puzzle_game/core/extension/sized_box.dart';
 import 'package:puzzle_game/widgets/components/locale_menu_button.dart';
@@ -20,6 +22,17 @@ class BlockPuzzleModeView extends ConsumerStatefulWidget {
 }
 
 class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
+final adsService = AdsService();
+  @override
+  void initState() {
+    super.initState();
+    adsService.loadBanner(() {
+    if (mounted) {
+      setState(() {});
+    }
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +42,7 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
     final logoHeight = isTablet ? media.size.height * 0.32 : 300.0;
     final maxWidth = isTablet ? 520.0 : 380.0;
     final verticalPadding = isTablet ? 32.0 : 20.0;
+    
 
     return Scaffold(
       body: BlockPuzzleBackground(
@@ -81,6 +95,11 @@ class _BlockPuzzleModeViewState extends ConsumerState<BlockPuzzleModeView> {
                       ),
                       const Spacer(),
                       const _FooterDecoration(),
+                      if (adsService.isBannerLoaded && adsService.bannerAd != null)
+                        SizedBox(
+                          height: adsService.bannerAd!.size.height.toDouble(),
+                          child: AdWidget(ad: adsService.bannerAd!),
+                      ),
                     ],
                   ),
                 ),

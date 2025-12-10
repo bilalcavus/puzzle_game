@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:kartal/kartal.dart';
+import 'package:puzzle_game/app/ads_service.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
 import '../../models/piece_model.dart';
@@ -58,12 +59,41 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   final Set<int> _seedVisible = <int>{};
   bool _seedAnimationScheduled = false;
   int? _seedSignature;
+  final adsService = AdsService();
+  bool _gameOverAdShown = false;
+  int _gameOverCounter = 0; // 3 oyunda 1 reklam için
+  
+
 
   @override
-  void initState() {
-    super.initState();
-    _attachController();
-  }
+void initState() {
+  super.initState();
+  _attachController();
+  adsService.loadInterstitial(); // ✅ oyun başında hazırlar
+
+  // ✅ GAME OVER OTOMATİK INTERSTITIAL DİNLEYİCİ
+  ref.listenManual<BlockPuzzleState>(
+    widget.provider,
+    (previous, next) {
+      // Sadece NORMAL → FAILED geçişinde çalışsın
+      if (previous?.status != BlockGameStatus.failed &&
+          next.status == BlockGameStatus.failed) {
+        
+        if (_gameOverAdShown) return;
+
+        _gameOverAdShown = true;
+        _gameOverCounter++;
+
+        // ✅ 1 oyunda 1 reklam
+        if (_gameOverCounter % 1 == 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            adsService.showInterstitial();
+          });
+        }
+      }
+    },
+  );
+}
 
   @override
   void didUpdateWidget(covariant BlockGameBoard oldWidget) {
@@ -183,6 +213,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
               ),
             ),
           ),
+          
           if (state.status == BlockGameStatus.failed)
             Container(
               width: widget.dimension,
@@ -194,7 +225,10 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 children: [
                   Text(state.levelMode ? tr('block_game.level_failed') : tr('block_game.no_moves'), style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
                   IconButton(
-                    onPressed: () => ref.read(widget.provider.notifier).restart(),
+                    onPressed: () {
+                      _gameOverAdShown = false;
+                      ref.read(widget.provider.notifier).restart();
+                    },
                     icon: const Icon(Iconsax.refresh, color: Colors.white),
                   ),
                 ],
@@ -383,8 +417,16 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   void _handleDropAt(PieceModel piece, Offset globalPosition, BlockPuzzleState state) {
-    // Prefer last valid hover position (what user saw as green) for this piece.
-    final coords = (_lastHoverPieceId == piece.id && _lastHoverRow != null && _lastHoverCol != null) ? (row: _lastHoverRow!, col: _lastHoverCol!) : _coordsFromGlobal(piece, globalPosition, state);
+    final dropWithinBoardZone = _isWithinDropZone(globalPosition);
+    if (!dropWithinBoardZone) {
+      _clearHover();
+      ref.read(widget.provider.notifier).selectPiece(piece.id);
+      return;
+    }
+
+    // Only honor the last hover location if the pointer is still within the board's snap area.
+    final canReuseHover = _lastHoverPieceId == piece.id && _lastHoverRow != null && _lastHoverCol != null;
+    final coords = canReuseHover ? (row: _lastHoverRow!, col: _lastHoverCol!) : _coordsFromGlobal(piece, globalPosition, state);
     if (coords == null) {
       _clearHover();
       // Deselect the piece so it returns to the tray when dropped off-board.
@@ -526,17 +568,29 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return [brighter.toColor(), shifted.toColor(), deep.toColor()];
   }
 
-  ({int row, int col})? _coordsFromGlobal(PieceModel piece, Offset globalPosition, BlockPuzzleState state) {
+  Rect? _boardRect() {
     final context = _boardKey.currentContext;
     if (context == null) return null;
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return null;
     final boardOrigin = renderBox.localToGlobal(Offset.zero);
-    final boardRect = boardOrigin & renderBox.size;
+    return boardOrigin & renderBox.size;
+  }
+
+  bool _isWithinDropZone(Offset globalPosition) {
+    final rect = _boardRect();
+    if (rect == null) return false;
+    return rect.inflate(_dropSnapMargin).contains(globalPosition);
+  }
+
+  ({int row, int col})? _coordsFromGlobal(PieceModel piece, Offset globalPosition, BlockPuzzleState state) {
+    final boardRect = _boardRect();
+    if (boardRect == null) return null;
     if (!boardRect.inflate(_dropSnapMargin).contains(globalPosition)) {
       return null;
     }
 
+    final boardOrigin = boardRect.topLeft;
     // Pointer + fixed lift to match drag feedback (piece shown 100px above finger).
     final adjustedOffset = globalPosition.translate(0, -kPieceDragPointerYOffset);
 

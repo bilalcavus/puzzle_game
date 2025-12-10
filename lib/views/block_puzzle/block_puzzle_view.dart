@@ -72,6 +72,7 @@ class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
                     notifier.selectPiece(pieceId);
                   },
                 ),
+                
               ],
             ),
           ),

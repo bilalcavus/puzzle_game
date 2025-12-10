@@ -83,9 +83,8 @@ class PieceWidget extends StatelessWidget {
       onDragEnd: (details) {
         // Let the board decide; always clear hover so we don't leave floating previews.
         if (!details.wasAccepted) {
-          // If no target accepted, let the board try to place based on final offset.
-          final dropPosition = dragController?.lastHoverPosition ?? details.offset;
-          dragController?.completeDrop(piece, dropPosition);
+          // If no target accepted, let the board try to place based on the final pointer position.
+          dragController?.completeDrop(piece, details.offset);
         }
         dragController?.cancelHover();
       },
