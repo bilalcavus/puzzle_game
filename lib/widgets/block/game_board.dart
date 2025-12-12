@@ -61,39 +61,29 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   int? _seedSignature;
   final adsService = AdsService();
   bool _gameOverAdShown = false;
-  int _gameOverCounter = 0; // 3 oyunda 1 reklam için
+  int _levelFailCounter = 0;
+  int _classicFailCounter = 0;
+  int _nextClassicScoreMilestone = 10000;
   
 
 
   @override
-void initState() {
-  super.initState();
-  _attachController();
-  adsService.loadInterstitial(); // ✅ oyun başında hazırlar
+  void initState() {
+    super.initState();
+    _attachController();
+    _nextClassicScoreMilestone = _computeNextClassicScoreMilestone(ref.read(widget.provider));
+    adsService.loadInterstitial(); // ✅ oyun başında hazırlar
 
-  // ✅ GAME OVER OTOMATİK INTERSTITIAL DİNLEYİCİ
-  ref.listenManual<BlockPuzzleState>(
-    widget.provider,
-    (previous, next) {
-      // Sadece NORMAL → FAILED geçişinde çalışsın
-      if (previous?.status != BlockGameStatus.failed &&
-          next.status == BlockGameStatus.failed) {
-        
-        if (_gameOverAdShown) return;
-
-        _gameOverAdShown = true;
-        _gameOverCounter++;
-
-        // ✅ 1 oyunda 1 reklam
-        if (_gameOverCounter % 1 == 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            adsService.showInterstitial();
-          });
-        }
-      }
-    },
-  );
-}
+    // ✅ GAME OVER OTOMATİK INTERSTITIAL DİNLEYİCİ
+    ref.listenManual<BlockPuzzleState>(
+      widget.provider,
+      (previous, next) {
+        _handleModeSwitch(previous, next);
+        _handleGameOverAd(previous, next);
+        _handleClassicScoreMilestones(previous, next);
+      },
+    );
+  }
 
   @override
   void didUpdateWidget(covariant BlockGameBoard oldWidget) {
@@ -108,6 +98,66 @@ void initState() {
   void dispose() {
     widget.dragController.detach();
     super.dispose();
+  }
+
+  void _handleModeSwitch(BlockPuzzleState? previous, BlockPuzzleState next) {
+    final previousMode = previous?.levelMode;
+    if (previousMode == null || previousMode == next.levelMode) return;
+    _gameOverAdShown = false;
+    if (next.levelMode) {
+      _classicFailCounter = 0;
+    } else {
+      _levelFailCounter = 0;
+      _nextClassicScoreMilestone = _computeNextClassicScoreMilestone(next);
+    }
+  }
+
+  void _handleGameOverAd(BlockPuzzleState? previous, BlockPuzzleState next) {
+    final hasFailed = previous?.status != BlockGameStatus.failed && next.status == BlockGameStatus.failed;
+    if (hasFailed) {
+      if (next.levelMode) {
+        _levelFailCounter++;
+        final shouldShow = next.level > 10 ? true : _levelFailCounter % 3 == 0;
+        if (shouldShow) {
+          _showInterstitial(markGameOver: true);
+        }
+      } else {
+        _classicFailCounter++;
+        if (_classicFailCounter % 2 == 0) {
+          _showInterstitial(markGameOver: true);
+        }
+      }
+      return;
+    }
+    if (previous?.status == BlockGameStatus.failed && next.status == BlockGameStatus.playing) {
+      _gameOverAdShown = false;
+    }
+  }
+
+  void _handleClassicScoreMilestones(BlockPuzzleState? previous, BlockPuzzleState next) {
+    if (next.levelMode || next.status != BlockGameStatus.playing) return;
+    final prevScore = previous?.score ?? next.score;
+    if (next.score >= _nextClassicScoreMilestone && prevScore < _nextClassicScoreMilestone) {
+      _showInterstitial();
+    }
+    while (_nextClassicScoreMilestone <= next.score) {
+      _nextClassicScoreMilestone += 10000;
+    }
+  }
+
+  int _computeNextClassicScoreMilestone(BlockPuzzleState state) {
+    final next = ((state.score ~/ 10000) + 1) * 10000;
+    return max(10000, next);
+  }
+
+  void _showInterstitial({bool markGameOver = false}) {
+    if (markGameOver && _gameOverAdShown) return;
+    if (markGameOver) {
+      _gameOverAdShown = true;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      adsService.showInterstitial();
+    });
   }
 
   void _attachController() {
