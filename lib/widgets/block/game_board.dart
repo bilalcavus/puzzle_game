@@ -21,7 +21,12 @@ import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
 
 class BlockGameBoard extends ConsumerStatefulWidget {
-  const BlockGameBoard({super.key, required this.dimension, required this.provider, required this.dragController});
+  const BlockGameBoard({
+    super.key,
+    required this.dimension,
+    required this.provider,
+    required this.dragController,
+  });
 
   final double dimension;
   final StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState> provider;
@@ -64,25 +69,22 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   int _levelFailCounter = 0;
   int _classicFailCounter = 0;
   int _nextClassicScoreMilestone = 10000;
-  
-
 
   @override
   void initState() {
     super.initState();
     _attachController();
-    _nextClassicScoreMilestone = _computeNextClassicScoreMilestone(ref.read(widget.provider));
+    _nextClassicScoreMilestone = _computeNextClassicScoreMilestone(
+      ref.read(widget.provider),
+    );
     adsService.loadInterstitial(); // ✅ oyun başında hazırlar
 
     // ✅ GAME OVER OTOMATİK INTERSTITIAL DİNLEYİCİ
-    ref.listenManual<BlockPuzzleState>(
-      widget.provider,
-      (previous, next) {
-        _handleModeSwitch(previous, next);
-        _handleGameOverAd(previous, next);
-        _handleClassicScoreMilestones(previous, next);
-      },
-    );
+    ref.listenManual<BlockPuzzleState>(widget.provider, (previous, next) {
+      _handleModeSwitch(previous, next);
+      _handleGameOverAd(previous, next);
+      _handleClassicScoreMilestones(previous, next);
+    });
   }
 
   @override
@@ -113,7 +115,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   void _handleGameOverAd(BlockPuzzleState? previous, BlockPuzzleState next) {
-    final hasFailed = previous?.status != BlockGameStatus.failed && next.status == BlockGameStatus.failed;
+    final hasFailed =
+        previous?.status != BlockGameStatus.failed &&
+        next.status == BlockGameStatus.failed;
     if (hasFailed) {
       if (next.levelMode) {
         _levelFailCounter++;
@@ -129,15 +133,20 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       }
       return;
     }
-    if (previous?.status == BlockGameStatus.failed && next.status == BlockGameStatus.playing) {
+    if (previous?.status == BlockGameStatus.failed &&
+        next.status == BlockGameStatus.playing) {
       _gameOverAdShown = false;
     }
   }
 
-  void _handleClassicScoreMilestones(BlockPuzzleState? previous, BlockPuzzleState next) {
+  void _handleClassicScoreMilestones(
+    BlockPuzzleState? previous,
+    BlockPuzzleState next,
+  ) {
     if (next.levelMode || next.status != BlockGameStatus.playing) return;
     final prevScore = previous?.score ?? next.score;
-    if (next.score >= _nextClassicScoreMilestone && prevScore < _nextClassicScoreMilestone) {
+    if (next.score >= _nextClassicScoreMilestone &&
+        prevScore < _nextClassicScoreMilestone) {
       _showInterstitial();
     }
     while (_nextClassicScoreMilestone <= next.score) {
@@ -160,10 +169,67 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     });
   }
 
+  Widget _buildComboOverlay(BlockPuzzleState state, BuildContext context) {
+    final textStyle =
+        Theme.of(context).textTheme.displaySmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          letterSpacing: 3,
+          color: const Color(0xFFFFE9CC),
+          shadows: const [
+            Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 6),
+          ],
+        ) ??
+        const TextStyle(
+          fontSize: 42,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 3,
+          color: Color(0xFFFFE9CC),
+          shadows: [
+            Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 6),
+          ],
+        );
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.linear,
+      switchOutCurve: Curves.linear,
+      transitionBuilder: (child, animation) {
+        final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final scale = Tween<double>(begin: 0.9, end: 1.0).animate(fade);
+        return FadeTransition(
+          opacity: fade,
+          child: ScaleTransition(scale: scale, child: child),
+        );
+      },
+      child: state.showComboText
+          ? RepaintBoundary(
+              key: const ValueKey('combo-visible'),
+              child: Center(
+                child: Transform.rotate(
+                  angle: -pi / 18,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      tr(
+                        'block_game.combo',
+                        namedArgs: {'count': '${state.comboCount}'},
+                      ),
+                      style: textStyle,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : const SizedBox(key: ValueKey('combo-hidden')),
+    );
+  }
+
   void _attachController() {
     final controller = widget.dragController;
-    controller.onHover = (piece, position) => _updateHoverFromGlobal(piece, position);
-    controller.onDrop = (piece, position) => _handleDropAt(piece, position, ref.read(widget.provider));
+    controller.onHover = (piece, position) =>
+        _updateHoverFromGlobal(piece, position);
+    controller.onDrop = (piece, position) =>
+        _handleDropAt(piece, position, ref.read(widget.provider));
     controller.onCancelHover = _clearHover;
   }
 
@@ -193,8 +259,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          AnimatedScale(scale: state.pulseBoard ? 1.02 : 1.0, duration: const Duration(milliseconds: 200), child: board),
-          ParticleBurst(visible: state.showParticleBurst, size: widget.dimension),
+          AnimatedScale(
+            scale: state.pulseBoard ? 1.02 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            child: board,
+          ),
+          ParticleBurst(
+            visible: state.showParticleBurst,
+            size: widget.dimension,
+          ),
           Positioned(
             top: 24,
             child: AnimatedOpacity(
@@ -205,48 +278,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.amberAccent,
                   fontWeight: FontWeight.bold,
-                  shadows: const [Shadow(color: Colors.black45, blurRadius: 12)],
+                  shadows: const [
+                    Shadow(color: Colors.black45, blurRadius: 12),
+                  ],
                 ),
               ),
             ),
           ),
           Positioned.fill(
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: state.showComboText ? 1 : 0,
-                duration: const Duration(milliseconds: 260),
-                child: Center(
-                  child: AnimatedScale(
-                    scale: state.showComboText ? 1 : 0.92,
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeOutBack,
-                    child: Transform.rotate(
-                      angle: -pi / 18,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          tr('block_game.combo', namedArgs: {'count': '${state.comboCount}'}),
-                          style:
-                              Theme.of(context).textTheme.displaySmall?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 3,
-                                color: const Color(0xFFFFE9CC),
-                                shadows: const [Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 10)],
-                              ) ??
-                              const TextStyle(
-                                fontSize: 42,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 3,
-                                color: Color(0xFFFFE9CC),
-                                shadows: [Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 10)],
-                              ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            child: IgnorePointer(child: _buildComboOverlay(state, context)),
           ),
           IgnorePointer(
             ignoring: true,
@@ -255,25 +295,41 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
               duration: const Duration(milliseconds: 200),
               child: Container(
                 padding: context.padding.low,
-                decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: Text(
                   tr('block_game.invalid_placement'),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
           ),
-          
+
           if (state.status == BlockGameStatus.failed)
             Container(
               width: widget.dimension,
               height: widget.dimension,
-              decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(32)),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(32),
+              ),
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(state.levelMode ? tr('block_game.level_failed') : tr('block_game.no_moves'), style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                  Text(
+                    state.levelMode
+                        ? tr('block_game.level_failed')
+                        : tr('block_game.no_moves'),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                  ),
                   IconButton(
                     onPressed: () {
                       _gameOverAdShown = false;
@@ -290,7 +346,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   void _maybeStartSeedIntro(BlockPuzzleState state) {
-    final shouldAnimate = !state.seedIntroPlayed && state.seedIndices.isNotEmpty;
+    final shouldAnimate =
+        !state.seedIntroPlayed && state.seedIndices.isNotEmpty;
     if (!shouldAnimate) {
       if (_seedVisible.isNotEmpty) {
         setState(() {
@@ -352,7 +409,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final blockSize = cellSize * innerScale;
     final explosionMap = <int, List<BlockExplosionEffect>>{};
     for (final effect in state.blockExplosions) {
-      explosionMap.putIfAbsent(effect.index, () => <BlockExplosionEffect>[]).add(effect);
+      explosionMap
+          .putIfAbsent(effect.index, () => <BlockExplosionEffect>[])
+          .add(effect);
     }
     final rowGlow = <int, Color>{};
     final colGlow = <int, Color>{};
@@ -392,21 +451,33 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
           primary: false,
           shrinkWrap: true,
           itemCount: state.size * state.size,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: state.size, crossAxisSpacing: _gap, mainAxisSpacing: _gap),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: state.size,
+            crossAxisSpacing: _gap,
+            mainAxisSpacing: _gap,
+          ),
           itemBuilder: (context, index) {
             final row = index ~/ state.size;
             final col = index % state.size;
             final color = state.colorAt(row, col);
             final isPreviewCell = previewCells.contains(index);
             final isSeedCell = state.seedIndices.contains(index);
-            final seedVisible = state.seedIntroPlayed || _seedVisible.contains(index);
+            final seedVisible =
+                state.seedIntroPlayed || _seedVisible.contains(index);
             final shatters = explosionMap[index];
-            final gradientColors = rowGlowGradients[row] ?? colGlowGradients[col];
-            final glowColor = gradientColors != null ? gradientColors[gradientColors.length ~/ 2] : (rowGlow[row] ?? colGlow[col]);
+            final gradientColors =
+                rowGlowGradients[row] ?? colGlowGradients[col];
+            final glowColor = gradientColors != null
+                ? gradientColors[gradientColors.length ~/ 2]
+                : (rowGlow[row] ?? colGlow[col]);
             Widget tile = Stack(
               alignment: Alignment.center,
               children: [
-                Container(width: cellSize, height: cellSize, decoration: _cellDecoration(baseRadius)),
+                Container(
+                  width: cellSize,
+                  height: cellSize,
+                  decoration: _cellDecoration(baseRadius),
+                ),
                 if (glowColor != null)
                   AnimatedOpacity(
                     opacity: 0.95,
@@ -417,18 +488,53 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(baseRadius),
                         gradient: LinearGradient(
-                          colors: gradientColors ?? [glowColor.withValues(alpha: 0.12), glowColor.withValues(alpha: 0.45), glowColor.withValues(alpha: 0.14)],
-                          begin: rowGlow.containsKey(row) ? Alignment.centerLeft : Alignment.topCenter,
-                          end: rowGlow.containsKey(row) ? Alignment.centerRight : Alignment.bottomCenter,
+                          colors:
+                              gradientColors ??
+                              [
+                                glowColor.withValues(alpha: 0.12),
+                                glowColor.withValues(alpha: 0.45),
+                                glowColor.withValues(alpha: 0.14),
+                              ],
+                          begin: rowGlow.containsKey(row)
+                              ? Alignment.centerLeft
+                              : Alignment.topCenter,
+                          end: rowGlow.containsKey(row)
+                              ? Alignment.centerRight
+                              : Alignment.bottomCenter,
                         ),
-                        boxShadow: [BoxShadow(color: glowColor.withValues(alpha: 0.35), blurRadius: 16, spreadRadius: 2)],
+                        boxShadow: [
+                          BoxShadow(
+                            color: glowColor.withValues(alpha: 0.35),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
                       child: _SparkleOverlay(color: glowColor, seed: index),
                     ),
                   ),
-                if (color != null) BlockTile(size: blockSize, color: color, pulse: false, borderRadius: pieceRadius, bounceOnAppear: isSeedCell && seedVisible),
-                if (shatters != null) ...shatters.map((effect) => BlockShatterEffect(key: ValueKey(effect.id), size: blockSize, color: effect.color, seed: effect.id)),
-                if (state.levelMode && !state.levelCompleted) _LevelTokenOverlay(token: state.levelTokenAt(row, col), cellSize: cellSize),
+                if (color != null)
+                  BlockTile(
+                    size: blockSize,
+                    color: color,
+                    pulse: false,
+                    borderRadius: pieceRadius,
+                    bounceOnAppear: isSeedCell && seedVisible,
+                  ),
+                if (shatters != null)
+                  ...shatters.map(
+                    (effect) => BlockShatterEffect(
+                      key: ValueKey(effect.id),
+                      size: blockSize,
+                      color: effect.color,
+                      seed: effect.id,
+                    ),
+                  ),
+                if (state.levelMode && !state.levelCompleted)
+                  _LevelTokenOverlay(
+                    token: state.levelTokenAt(row, col),
+                    cellSize: cellSize,
+                  ),
                 if (isPreviewCell)
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
@@ -437,7 +543,12 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(baseRadius),
                       color: _previewColor(),
-                      border: Border.all(color: _hoverValid ? Colors.green.shade600 : Colors.transparent, width: 1.0),
+                      border: Border.all(
+                        color: _hoverValid
+                            ? Colors.green.shade600
+                            : Colors.transparent,
+                        width: 1.0,
+                      ),
                     ),
                   ),
               ],
@@ -447,7 +558,12 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
                 opacity: seedVisible ? 1 : 0,
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOut,
-                child: AnimatedScale(scale: seedVisible ? 1 : 0.7, duration: const Duration(milliseconds: 240), curve: Curves.easeOutBack, child: tile),
+                child: AnimatedScale(
+                  scale: seedVisible ? 1 : 0.7,
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutBack,
+                  child: tile,
+                ),
               );
             }
             return tile;
@@ -462,11 +578,18 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return max(usable / size, 18);
   }
 
-  void _handleDrop(DragTargetDetails<PieceModel> details, BlockPuzzleState state) {
+  void _handleDrop(
+    DragTargetDetails<PieceModel> details,
+    BlockPuzzleState state,
+  ) {
     _handleDropAt(details.data, details.offset, state);
   }
 
-  void _handleDropAt(PieceModel piece, Offset globalPosition, BlockPuzzleState state) {
+  void _handleDropAt(
+    PieceModel piece,
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
     final dropWithinBoardZone = _isWithinDropZone(globalPosition);
     if (!dropWithinBoardZone) {
       _clearHover();
@@ -475,15 +598,22 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     }
 
     // Only honor the last hover location if the pointer is still within the board's snap area.
-    final canReuseHover = _lastHoverPieceId == piece.id && _lastHoverRow != null && _lastHoverCol != null;
-    final coords = canReuseHover ? (row: _lastHoverRow!, col: _lastHoverCol!) : _coordsFromGlobal(piece, globalPosition, state);
+    final canReuseHover =
+        _lastHoverPieceId == piece.id &&
+        _lastHoverRow != null &&
+        _lastHoverCol != null;
+    final coords = canReuseHover
+        ? (row: _lastHoverRow!, col: _lastHoverCol!)
+        : _coordsFromGlobal(piece, globalPosition, state);
     if (coords == null) {
       _clearHover();
       // Deselect the piece so it returns to the tray when dropped off-board.
       ref.read(widget.provider.notifier).selectPiece(piece.id);
       return;
     }
-    final success = ref.read(widget.provider.notifier).tryPlacePiece(piece.id, coords.row, coords.col);
+    final success = ref
+        .read(widget.provider.notifier)
+        .tryPlacePiece(piece.id, coords.row, coords.col);
     _clearHover();
     if (success) {
       _handleFeedback();
@@ -495,14 +625,20 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     _setHoverState(piece, globalPosition, state);
   }
 
-  bool _setHoverState(PieceModel piece, Offset globalPosition, BlockPuzzleState state) {
+  bool _setHoverState(
+    PieceModel piece,
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
     final coords = _coordsFromGlobal(piece, globalPosition, state);
     if (coords == null) {
       _clearHover();
       return false;
     }
     final fits = _canPreviewPlace(piece, coords.row, coords.col, state);
-    final hoverClears = fits ? _predictClears(piece, coords.row, coords.col, state) : (rows: <int>[], cols: <int>[]);
+    final hoverClears = fits
+        ? _predictClears(piece, coords.row, coords.col, state)
+        : (rows: <int>[], cols: <int>[]);
     setState(() {
       _hoverRow = coords.row;
       _hoverCol = coords.col;
@@ -520,7 +656,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   void _clearHover() {
-    if (_hoverPiece == null && _hoverRow == null && _hoverCol == null && !_hoverValid) return;
+    if (_hoverPiece == null &&
+        _hoverRow == null &&
+        _hoverCol == null &&
+        !_hoverValid)
+      return;
     setState(() {
       _hoverRow = null;
       _hoverCol = null;
@@ -531,11 +671,19 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     });
   }
 
-  bool _canPreviewPlace(PieceModel piece, int row, int col, BlockPuzzleState state) {
+  bool _canPreviewPlace(
+    PieceModel piece,
+    int row,
+    int col,
+    BlockPuzzleState state,
+  ) {
     for (final block in piece.blocks) {
       final targetRow = row + block.rowOffset;
       final targetCol = col + block.colOffset;
-      if (targetRow < 0 || targetCol < 0 || targetRow >= state.size || targetCol >= state.size) {
+      if (targetRow < 0 ||
+          targetCol < 0 ||
+          targetRow >= state.size ||
+          targetCol >= state.size) {
         return false;
       }
       final index = targetRow * state.size + targetCol;
@@ -546,13 +694,21 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return true;
   }
 
-  ({List<int> rows, List<int> cols}) _predictClears(PieceModel piece, int row, int col, BlockPuzzleState state) {
+  ({List<int> rows, List<int> cols}) _predictClears(
+    PieceModel piece,
+    int row,
+    int col,
+    BlockPuzzleState state,
+  ) {
     final size = state.size;
     final filled = Map<int, Color>.from(state.filledCells);
     for (final block in piece.blocks) {
       final targetRow = row + block.rowOffset;
       final targetCol = col + block.colOffset;
-      if (targetRow < 0 || targetCol < 0 || targetRow >= size || targetCol >= size) {
+      if (targetRow < 0 ||
+          targetCol < 0 ||
+          targetRow >= size ||
+          targetCol >= size) {
         continue;
       }
       filled[targetRow * size + targetCol] = piece.color;
@@ -584,7 +740,10 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   }
 
   Set<int> _previewCells(BlockPuzzleState state) {
-    if (!_hoverValid || _hoverPiece == null || _hoverRow == null || _hoverCol == null) {
+    if (!_hoverValid ||
+        _hoverPiece == null ||
+        _hoverRow == null ||
+        _hoverCol == null) {
       return <int>{};
     }
     final size = state.size;
@@ -613,8 +772,12 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   List<Color> _lineGradient(Color base) {
     final hsl = HSLColor.fromColor(base);
     final brighter = hsl.withLightness((hsl.lightness + 0.28).clamp(0.0, 1.0));
-    final shifted = hsl.withHue((hsl.hue + 24) % 360).withSaturation((hsl.saturation + 0.2).clamp(0.0, 1.0));
-    final deep = hsl.withLightness((hsl.lightness + 0.12).clamp(0.0, 1.0)).withSaturation((hsl.saturation + 0.1).clamp(0.0, 1.0));
+    final shifted = hsl
+        .withHue((hsl.hue + 24) % 360)
+        .withSaturation((hsl.saturation + 0.2).clamp(0.0, 1.0));
+    final deep = hsl
+        .withLightness((hsl.lightness + 0.12).clamp(0.0, 1.0))
+        .withSaturation((hsl.saturation + 0.1).clamp(0.0, 1.0));
     return [brighter.toColor(), shifted.toColor(), deep.toColor()];
   }
 
@@ -633,7 +796,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return rect.inflate(_dropSnapMargin).contains(globalPosition);
   }
 
-  ({int row, int col})? _coordsFromGlobal(PieceModel piece, Offset globalPosition, BlockPuzzleState state) {
+  ({int row, int col})? _coordsFromGlobal(
+    PieceModel piece,
+    Offset globalPosition,
+    BlockPuzzleState state,
+  ) {
     final boardRect = _boardRect();
     if (boardRect == null) return null;
     if (!boardRect.inflate(_dropSnapMargin).contains(globalPosition)) {
@@ -642,7 +809,10 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
 
     final boardOrigin = boardRect.topLeft;
     // Pointer + fixed lift to match drag feedback (piece shown 100px above finger).
-    final adjustedOffset = globalPosition.translate(0, -kPieceDragPointerYOffset);
+    final adjustedOffset = globalPosition.translate(
+      0,
+      -kPieceDragPointerYOffset,
+    );
 
     final padding = _resolvedPadding();
     final cellSize = _cellSize(state.size, padding);
@@ -652,7 +822,12 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     final pieceHeightPx = piece.height * extent - _gap;
     final pieceLeft = adjustedOffset.dx - (pieceWidthPx / 2);
     final pieceTop = adjustedOffset.dy - (pieceHeightPx / 2);
-    final pieceRect = Rect.fromLTWH(pieceLeft, pieceTop, pieceWidthPx, pieceHeightPx);
+    final pieceRect = Rect.fromLTWH(
+      pieceLeft,
+      pieceTop,
+      pieceWidthPx,
+      pieceHeightPx,
+    );
     final pieceArea = pieceRect.width * pieceRect.height;
 
     double bestRatio = -1;
@@ -665,7 +840,12 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       for (var c = 0; c <= state.size - piece.width; c++) {
         if (!_isPlacementClear(piece, r, c, state)) continue;
         final cellLeftGlobal = boardOrigin.dx + padding + c * extent;
-        final placementRect = Rect.fromLTWH(cellLeftGlobal, cellTopGlobal, pieceWidthPx, pieceHeightPx);
+        final placementRect = Rect.fromLTWH(
+          cellLeftGlobal,
+          cellTopGlobal,
+          pieceWidthPx,
+          pieceHeightPx,
+        );
         final overlap = _rectIntersectionArea(pieceRect, placementRect);
         if (overlap <= 0) continue;
         final ratio = overlap / pieceArea;
@@ -683,7 +863,12 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     return (row: bestRow, col: bestCol);
   }
 
-  bool _isPlacementClear(PieceModel piece, int baseRow, int baseCol, BlockPuzzleState state) {
+  bool _isPlacementClear(
+    PieceModel piece,
+    int baseRow,
+    int baseCol,
+    BlockPuzzleState state,
+  ) {
     for (final block in piece.blocks) {
       final r = baseRow + block.rowOffset;
       final c = baseCol + block.colOffset;
@@ -713,7 +898,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     }
   }
 
-  double _boardPadding(BuildContext context) => max(_padding, context.dynamicHeight(0.005));
+  double _boardPadding(BuildContext context) =>
+      max(_padding, context.dynamicHeight(0.005));
 
   double _resolvedPadding() {
     final context = _boardKey.currentContext;
@@ -724,11 +910,23 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   BoxDecoration _outerFrameDecoration() {
     return BoxDecoration(
       borderRadius: context.border.lowBorderRadius,
-      gradient: const LinearGradient(colors: [_frameHighlight, _frameMid, _frameShadow], begin: Alignment.topLeft, end: Alignment.bottomRight),
+      gradient: const LinearGradient(
+        colors: [_frameHighlight, _frameMid, _frameShadow],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
       border: Border.all(color: _frameEdge, width: 1.4),
       boxShadow: const [
-        BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 10)),
-        BoxShadow(color: Color(0x22000000), blurRadius: 6, offset: Offset(0, -2)),
+        BoxShadow(
+          color: Color(0x33000000),
+          blurRadius: 18,
+          offset: Offset(0, 10),
+        ),
+        BoxShadow(
+          color: Color(0x22000000),
+          blurRadius: 6,
+          offset: Offset(0, -2),
+        ),
       ],
     );
   }
@@ -736,7 +934,11 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   BoxDecoration _innerBoardDecoration() {
     return BoxDecoration(
       borderRadius: context.border.lowBorderRadius,
-      gradient: const LinearGradient(colors: [_innerBoardMid, _innerBoardDark], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+      gradient: const LinearGradient(
+        colors: [_innerBoardMid, _innerBoardDark],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
       border: Border.all(color: _innerBoardEdge, width: 0.9),
     );
   }
@@ -744,11 +946,23 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   BoxDecoration _cellDecoration(double radius) {
     return BoxDecoration(
       borderRadius: BorderRadius.circular(radius + 6),
-      gradient: const LinearGradient(colors: [_cellHighlight, _cellBase], begin: Alignment.topLeft, end: Alignment.bottomRight),
+      gradient: const LinearGradient(
+        colors: [_cellHighlight, _cellBase],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
       border: Border.all(color: Colors.black.withValues(alpha: 0.35), width: 1),
       boxShadow: const [
-        BoxShadow(color: Color(0x55000000), offset: Offset(0, 1.6), blurRadius: 2.2),
-        BoxShadow(color: Color(0x22000000), offset: Offset(0, -1.2), blurRadius: 1.6),
+        BoxShadow(
+          color: Color(0x55000000),
+          offset: Offset(0, 1.6),
+          blurRadius: 2.2,
+        ),
+        BoxShadow(
+          color: Color(0x22000000),
+          offset: Offset(0, -1.2),
+          blurRadius: 1.6,
+        ),
       ],
     );
   }
@@ -765,7 +979,12 @@ class _LevelTokenOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (token == null) return const SizedBox.shrink();
-    return Image.asset(token!.asset, width: cellSize * 0.78, height: cellSize * 0.78, fit: BoxFit.contain);
+    return Image.asset(
+      token!.asset,
+      width: cellSize * 0.78,
+      height: cellSize * 0.78,
+      fit: BoxFit.contain,
+    );
   }
 }
 
@@ -790,7 +1009,13 @@ class _SparkleOverlay extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.9),
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: color.withValues(alpha: 0.55), blurRadius: 8, spreadRadius: 0.8)],
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.55),
+                blurRadius: 8,
+                spreadRadius: 0.8,
+              ),
+            ],
           ),
         ),
       );
