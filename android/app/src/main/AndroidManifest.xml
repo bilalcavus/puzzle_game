@@ -13,7 +13,10 @@
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-7009157199599410~5128587024"/>
+            android:value="ca-app-pub-3940256099942544~3347511713"/>  <!-- PROD ID'Sİ -->
+            
+            <!-- TEST MODE ID'Sİ: ca-app-pub-3940256099942544~3347511713 -->
+            <!-- PROD ID'Sİ: ca-app-pub-7009157199599410~5128587024-->
 
         <activity
             android:name=".MainActivity"

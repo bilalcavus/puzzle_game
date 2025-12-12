@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'package:flutter/foundation.dart'; // ⬅️ ÖNEMLİ
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdsService {
@@ -14,28 +15,28 @@ class AdsService {
   bool isBannerLoaded = false;
 
   void loadBanner(VoidCallback onLoaded) {
-    final bannerId = Platform.isAndroid
-        ? "ca-app-pub-7009157199599410/3095829364" // ✅ ANDROID
-        : "ca-app-pub-7009157199599410/2569215757"; // ✅ iOS
+    final bannerId = kDebugMode
+        ? "ca-app-pub-3940256099942544/6300978111"
+        : (Platform.isAndroid
+            ? "ca-app-pub-7009157199599410/3095829364" // ANDROID PROD
+            : "ca-app-pub-7009157199599410/2569215757"); // iOS PROD
 
     bannerAd = BannerAd(
       adUnitId: bannerId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (ad) {
+        onAdLoaded: (_) {
           isBannerLoaded = true;
           onLoaded();
         },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-        },
+        onAdFailedToLoad: (ad, _) => ad.dispose(),
       ),
     )..load();
   }
 
   // ============================
-  // 🔹 INTERSTITIAL (GAME OVER)
+  // 🔹 INTERSTITIAL
   // ============================
   InterstitialAd? _interstitialAd;
   bool _isLoading = false;
@@ -44,9 +45,11 @@ class AdsService {
     if (_isLoading) return;
     _isLoading = true;
 
-    final interstitialId = Platform.isAndroid
-        ? "ca-app-pub-7009157199599410/3344732068" // ✅ ANDROID
-        : "ca-app-pub-7009157199599410/9243926005"; // ✅ iOS
+    final interstitialId = kDebugMode
+        ? "ca-app-pub-3940256099942544/1033173712"
+        : (Platform.isAndroid
+            ? "ca-app-pub-7009157199599410/3344732068" // ANDROID PROD
+            : "ca-app-pub-7009157199599410/9243926005"); // iOS PROD
 
     InterstitialAd.load(
       adUnitId: interstitialId,
@@ -56,7 +59,7 @@ class AdsService {
           _interstitialAd = ad;
           _isLoading = false;
         },
-        onAdFailedToLoad: (error) {
+        onAdFailedToLoad: (_) {
           _interstitialAd = null;
           _isLoading = false;
         },
@@ -64,7 +67,7 @@ class AdsService {
     );
   }
 
-  /// ✅ Game Over'da otomatik çağır
+  /// ✅ Game Over'da çağrılır
   void showInterstitial({VoidCallback? onClosed}) {
     if (_interstitialAd == null) {
       onClosed?.call();
@@ -76,10 +79,10 @@ class AdsService {
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _interstitialAd = null;
-        loadInterstitial(); // sıradaki reklamı hazırla
+        loadInterstitial();
         onClosed?.call();
       },
-      onAdFailedToShowFullScreenContent: (ad, error) {
+      onAdFailedToShowFullScreenContent: (ad, _) {
         ad.dispose();
         _interstitialAd = null;
         loadInterstitial();
