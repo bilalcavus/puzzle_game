@@ -1,3 +1,6 @@
-// Shared lift offset so drag feedback and board hit testing stay aligned.
-// Keep the dragged piece above the finger and close to the board.
-const double kPieceDragPointerYOffset = 120;
+// Apply a fixed upward lift so the piece centers 100px above the finger.
+const double kPieceDragPointerYOffset = 100;
+const double kPieceDragDynamicYOffset = 0;
+const double kPieceDragHitYOffsetFactor = 0;
+const double kPieceDragBoardYOffsetFactor = 0;
+const double kPieceDragUpwardBoost = 0;

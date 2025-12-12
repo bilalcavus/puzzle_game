@@ -72,6 +72,7 @@ class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
                     notifier.selectPiece(pieceId);
                   },
                 ),
+                
               ],
             ),
           ),
@@ -125,7 +126,7 @@ class BlockPuzzleBoardSection extends StatelessWidget {
         final isWide = maxWidth > 900;
         final base = isWide ? maxWidth * 1.05 : maxWidth;
         final upperClamp = min(media.size.shortestSide * 0.9, 640.0);
-        final lowerClamp = max(300.0, media.size.shortestSide * 0.58);
+        final lowerClamp = max(260.0, media.size.shortestSide * 0.55);
         final fallback = min(media.size.width * 0.9, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
         final board = BlockGameBoard(
@@ -133,26 +134,13 @@ class BlockPuzzleBoardSection extends StatelessWidget {
           provider: blockPuzzleProvider,
           dragController: dragController,
         );
-        
+        final centeredBoard = Center(child: board);
 
         if (isWide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: Center(child: board)),
-            ],
-          );
+          return centeredBoard;
         }
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              Center(child: board),
-              context.dynamicHeight(0.02).height,
-               
-            ],
-          ),
-        );
+        return centeredBoard;
       },
     );
   }
@@ -173,20 +161,22 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lift = -context.dynamicHeight(0.02);
-    return Transform.translate(
-      offset: Offset(0, lift),
+    final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
+    final reservedHeight = cellSize * 5 + context.dynamicHeight(0.01);
+
+    return SizedBox(
+      height: reservedHeight,
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: state.availablePieces
               .map(
                 (piece) => Padding(
                   padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
                   child: PieceWidget(
                     piece: piece,
-                    cellSize: min(context.dynamicHeight(0.035), context.dynamicWidth(0.075)),
+                    cellSize: cellSize,
                     isSelected: state.selectedPieceId == piece.id,
                     disabled: state.status == BlockGameStatus.failed,
                     dragController: dragController,

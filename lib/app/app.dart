@@ -9,7 +9,7 @@ class PuzzleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      onGenerateTitle: (context) => tr('app.title'),
+      onGenerateTitle: (context) => 'Wooden Puzzle',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,

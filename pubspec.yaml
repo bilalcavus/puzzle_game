@@ -1,11 +1,10 @@
 name: puzzle_game
 description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 1.1.2+1
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+version: 1.1.4+1
 
 environment:
   sdk: ^3.9.2
-
 
 dependencies:
   flutter:
@@ -22,22 +21,18 @@ dependencies:
   lottie: ^3.1.2
   flutter_launcher_icons: ^0.14.4
   flame: ^1.19.0
+  google_mobile_ads: ^6.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/icons/ic_launcher.png"
 
-
   flutter_lints: ^5.0.0
-
-
-
 
 flutter:
   uses-material-design: true
@@ -62,4 +57,3 @@ flutter:
           weight: 700
         - asset: assets/fonts/Baloo2-ExtraBold.ttf
           weight: 800
-

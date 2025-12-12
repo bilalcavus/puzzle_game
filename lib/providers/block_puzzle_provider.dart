@@ -15,9 +15,7 @@ import 'sound_provider.dart';
 
 const String kBlockLevelProgressKey = 'block_level_progress';
 
-final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>(
-  (ref) => BlockPuzzleNotifier(ref),
-);
+final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>((ref) => BlockPuzzleNotifier(ref));
 
 enum BlockGameStatus { playing, failed }
 
@@ -41,14 +39,19 @@ double _levelEasyBiasFor(int level) {
 }
 
 class BlockExplosionEffect {
-  const BlockExplosionEffect({
-    required this.id,
-    required this.index,
-    required this.color,
-  });
+  const BlockExplosionEffect({required this.id, required this.index, required this.color});
 
   final int id;
   final int index;
+  final Color color;
+}
+
+class BlockLineEffect {
+  const BlockLineEffect({required this.id, required this.index, required this.isRow, required this.color});
+
+  final int id;
+  final int index;
+  final bool isRow;
   final Color color;
 }
 
@@ -76,6 +79,7 @@ class BlockPuzzleState {
     required this.levelTargets,
     required this.levelCompleted,
     required this.blockExplosions,
+    required this.lineEffects,
   });
 
   final int size;
@@ -100,6 +104,7 @@ class BlockPuzzleState {
   final Map<int, BlockLevelToken> levelTargets;
   final bool levelCompleted;
   final List<BlockExplosionEffect> blockExplosions;
+  final List<BlockLineEffect> lineEffects;
 
   PieceModel? get selectedPiece {
     if (selectedPieceId == null) return null;
@@ -136,6 +141,7 @@ class BlockPuzzleState {
     Map<int, BlockLevelToken>? levelTargets,
     bool? levelCompleted,
     List<BlockExplosionEffect>? blockExplosions,
+    List<BlockLineEffect>? lineEffects,
   }) {
     return BlockPuzzleState(
       size: size ?? this.size,
@@ -160,6 +166,7 @@ class BlockPuzzleState {
       levelTargets: levelTargets ?? this.levelTargets,
       levelCompleted: levelCompleted ?? this.levelCompleted,
       blockExplosions: blockExplosions ?? this.blockExplosions,
+      lineEffects: lineEffects ?? this.lineEffects,
     );
   }
 
@@ -169,10 +176,7 @@ class BlockPuzzleState {
       size: size,
       filledCells: initialCells,
       seedIndices: Set<int>.unmodifiable(initialCells.keys.toSet()),
-      availablePieces: generatePlayablePieces(
-        boardSize: size,
-        filledCells: initialCells,
-      ),
+      availablePieces: generatePlayablePieces(boardSize: size, filledCells: initialCells),
       selectedPieceId: null,
       score: 0,
       bestScore: 0,
@@ -191,14 +195,13 @@ class BlockPuzzleState {
       levelTargets: const <int, BlockLevelToken>{},
       levelCompleted: false,
       blockExplosions: const <BlockExplosionEffect>[],
+      lineEffects: const <BlockLineEffect>[],
     );
   }
 }
 
 class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
-  BlockPuzzleNotifier(this._ref, {bool enablePersistence = true})
-      : _enablePersistence = enablePersistence,
-        super(BlockPuzzleState.initial()) {
+  BlockPuzzleNotifier(this._ref, {bool enablePersistence = true}) : _enablePersistence = enablePersistence, super(BlockPuzzleState.initial()) {
     if (_enablePersistence) {
       unawaited(_restoreState());
     }
@@ -257,9 +260,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       }
       final seedIntroPlayed = decoded['seedIntroPlayed'] as bool? ?? true;
       final comboCount = decoded['comboCount'] as int? ?? 0;
-      final piecesRaw = (decoded['pieces'] as List<dynamic>? ?? <dynamic>[])
-          .map((e) => PieceModel.fromJson(e as String))
-          .toList();
+      final piecesRaw = (decoded['pieces'] as List<dynamic>? ?? <dynamic>[]).map((e) => PieceModel.fromJson(e as String)).toList();
       final score = decoded['score'] as int? ?? 0;
       final selected = decoded['selected'] as String?;
       final playablePieces = _ensurePiecesPlayable(piecesRaw, filledMap, size);
@@ -286,6 +287,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         levelTargets: const <int, BlockLevelToken>{},
         levelCompleted: false,
         blockExplosions: const <BlockExplosionEffect>[],
+        lineEffects: const <BlockLineEffect>[],
       );
     } catch (_) {
       state = state.copyWith(bestScore: best);
@@ -348,27 +350,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final clearResult = _clearCompletedLines(updatedCells);
     if (updatedPieces.isEmpty) {
       final bias = state.levelMode ? _levelEasyBiasFor(state.level) : 0.65;
-      updatedPieces.addAll(
-        generatePlayablePieces(
-          boardSize: state.size,
-          filledCells: clearResult.cells,
-          easyBias: bias,
-        ),
-      );
+      updatedPieces.addAll(generatePlayablePieces(boardSize: state.size, filledCells: clearResult.cells, easyBias: bias));
     }
     final newExplosions = clearResult.removedCells.entries
-        .map(
-          (entry) => BlockExplosionEffect(
-            id: DateTime.now().microsecondsSinceEpoch + entry.key + _random.nextInt(1000),
-            index: entry.key,
-            color: entry.value,
-          ),
-        )
+        .map((entry) => BlockExplosionEffect(id: DateTime.now().microsecondsSinceEpoch + entry.key + _random.nextInt(1000), index: entry.key, color: entry.value))
         .toList(growable: false);
-    final explosionQueue = List<BlockExplosionEffect>.unmodifiable([
-      ...state.blockExplosions,
-      ...newExplosions,
-    ]);
+    final explosionQueue = List<BlockExplosionEffect>.unmodifiable([...state.blockExplosions, ...newExplosions]);
     final linesCleared = clearResult.linesCleared;
     final earnedCombo = linesCleared > 0;
     final triggeredPerfect = linesCleared >= 2;
@@ -468,12 +455,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
 
     if (clearedRows.isEmpty && clearedCols.isEmpty) {
-      return _ClearResult(
-        cells: mutable,
-        linesCleared: 0,
-        removedIndices: const <int>{},
-        removedCells: const <int, Color>{},
-      );
+      return _ClearResult(cells: mutable, linesCleared: 0, removedIndices: const <int>{}, removedCells: const <int, Color>{});
     }
 
     final toRemove = <int>{};
@@ -496,12 +478,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       mutable.remove(index);
     }
 
-    return _ClearResult(
-      cells: mutable,
-      linesCleared: clearedRows.length + clearedCols.length,
-      removedIndices: toRemove,
-      removedCells: removedColors,
-    );
+    return _ClearResult(cells: mutable, linesCleared: clearedRows.length + clearedCols.length, removedIndices: toRemove, removedCells: removedColors);
   }
 
   bool _hasAnyValidMove(List<PieceModel> pieces, Map<int, Color> filled, {int? boardSize}) {
@@ -534,24 +511,14 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     return false;
   }
 
-  List<PieceModel> _ensurePiecesPlayable(
-    List<PieceModel> pieces,
-    Map<int, Color> filled,
-    int size,
-    {double easyBias = 0.65}
-  ) {
+  List<PieceModel> _ensurePiecesPlayable(List<PieceModel> pieces, Map<int, Color> filled, int size, {double easyBias = 0.65}) {
     if (pieces.isEmpty) {
       return generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
     }
     if (_hasAnyValidMove(pieces, filled, boardSize: size)) {
       return pieces;
     }
-    return generatePlayablePieces(
-      boardSize: size,
-      filledCells: filled,
-      count: pieces.length,
-      easyBias: easyBias,
-    );
+    return generatePlayablePieces(boardSize: size, filledCells: filled, count: pieces.length, easyBias: easyBias);
   }
 
   void _scheduleFlagReset(bool perfect, bool particles, bool comboActive) {
@@ -619,8 +586,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final emptyRatio = _levelEmptyRatioFor(normalized);
     final easyBias = _levelEasyBiasFor(normalized);
     final size = 8;
-    final goals = _buildLevelGoals(normalized);
+    final rawGoals = _buildLevelGoals(normalized);
     final totalCells = size * size;
+    final maxGoalBudget = (totalCells * 0.75).floor(); // leave room for obstacles/empties
+    final goals = _capLevelGoals(rawGoals, maxGoalBudget);
     final minTokenBudget = goals.fold<int>(0, (sum, goal) => sum + goal.required);
     final maxEmptyCells = totalCells - minTokenBudget;
     final desiredEmptyCells = (totalCells * emptyRatio).round();
@@ -632,16 +601,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final baseTokenBudget = max(targetFilledCells - desiredObstacleCount, paddedTokenBudget);
     final tokenBudget = min(targetFilledCells, baseTokenBudget);
     final obstacleBudget = targetFilledCells - tokenBudget;
-    final tokens = _generateLevelTargets(
-      size: size,
-      goals: goals,
-      tokenBudget: tokenBudget,
-    );
-    final obstacles = _generateLevelObstacles(
-      size: size,
-      exclude: tokens.keys.toSet(),
-      count: obstacleBudget,
-    );
+    final tokens = _generateLevelTargets(size: size, goals: goals, tokenBudget: tokenBudget);
+    final obstacles = _generateLevelObstacles(size: size, exclude: tokens.keys.toSet(), count: obstacleBudget);
     final filled = <int, Color>{};
     tokens.forEach((index, token) {
       filled[index] = token.color;
@@ -650,11 +611,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       filled[index] = const Color(0xFF9B6A3C);
     }
     _breakFullLines(filled, size, Random(DateTime.now().millisecondsSinceEpoch));
-    final startingPieces = generatePlayablePieces(
-      boardSize: size,
-      filledCells: filled,
-      easyBias: easyBias,
-    );
+    final startingPieces = generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
     state = BlockPuzzleState.initial(size: size).copyWith(
       filledCells: filled,
       seedIndices: {...tokens.keys, ...obstacles},
@@ -675,6 +632,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       bestScore: state.bestScore,
       availablePieces: startingPieces,
       selectedPieceId: null,
+      lineEffects: const <BlockLineEffect>[],
     );
   }
 
@@ -693,12 +651,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       state = state.copyWith(status: BlockGameStatus.failed);
       return;
     }
-    final entry = BlockLeaderboardEntry(
-      name: 'Blocker',
-      score: score,
-      linesCleared: linesCleared,
-      completedAt: DateTime.now(),
-    );
+    final entry = BlockLeaderboardEntry(name: 'Blocker', score: score, linesCleared: linesCleared, completedAt: DateTime.now());
     unawaited(_ref.read(blockLeaderboardProvider.notifier).addEntry(entry));
     unawaited(_ref.read(soundControllerProvider).playFailure());
   }
@@ -716,10 +669,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   void _triggerInvalidPlacement() {
     _errorTimer?.cancel();
     // Clear selection so the dragged piece returns to the tray after an invalid drop.
-    state = state.copyWith(
-      showInvalidPlacement: true,
-      selectedPieceId: null,
-    );
+    state = state.copyWith(showInvalidPlacement: true, selectedPieceId: null);
     _errorTimer = Timer(const Duration(milliseconds: 900), () {
       state = state.copyWith(showInvalidPlacement: false);
     });
@@ -730,7 +680,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     const baseRequirements = [1, 2, 2];
     final adjusted = List<int>.from(baseRequirements);
     final increments = max(0, level - 1);
-    for (var i = 0; i < increments; i++) {
+    final spacedIncrement = (increments / 2).floor(); // grow every two levels
+    for (var i = 0; i < spacedIncrement; i++) {
       adjusted[i % adjusted.length]++;
     }
     return List.generate(adjusted.length, (index) {
@@ -740,11 +691,37 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     });
   }
 
-  Map<int, BlockLevelToken> _generateLevelTargets({
-    required int size,
-    required List<BlockLevelGoal> goals,
-    required int tokenBudget,
-  }) {
+  List<BlockLevelGoal> _capLevelGoals(List<BlockLevelGoal> goals, int maxBudget) {
+    if (goals.isEmpty || maxBudget <= 0) return goals;
+    final totalRequired = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+    if (totalRequired <= maxBudget) return goals;
+
+    final scaled = <BlockLevelGoal>[];
+    var budget = maxBudget;
+
+    // Proportionally scale down requirements.
+    for (var i = 0; i < goals.length; i++) {
+      final goal = goals[i];
+      final ratio = goal.required / totalRequired;
+      final base = (ratio * maxBudget).floor();
+      final clamped = max(1, base);
+      scaled.add(BlockLevelGoal(token: goal.token, required: clamped, remaining: clamped));
+      budget -= clamped;
+    }
+
+    // Distribute any leftover budget one by one to avoid underfilling.
+    var idx = 0;
+    while (budget > 0 && scaled.isNotEmpty) {
+      final goal = scaled[idx % scaled.length];
+      scaled[idx % scaled.length] = BlockLevelGoal(token: goal.token, required: goal.required + 1, remaining: goal.remaining + 1);
+      budget--;
+      idx++;
+    }
+
+    return scaled;
+  }
+
+  Map<int, BlockLevelToken> _generateLevelTargets({required int size, required List<BlockLevelGoal> goals, required int tokenBudget}) {
     final targets = <int, BlockLevelToken>{};
     if (tokenBudget <= 0 || goals.isEmpty) return targets;
     final used = <int>{};
@@ -761,13 +738,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       if (remainingCells <= 0) break;
       final quota = min(goal.required + additional, min(remainingBudget, remainingCells));
       if (quota <= 0) continue;
-      final cluster = _claimClusterIndices(
-        size: size,
-        count: quota,
-        used: used,
-        random: _random,
-        scatterProbability: 0.45,
-      );
+      final cluster = _claimClusterIndices(size: size, count: quota, used: used, random: _random, scatterProbability: 0.45);
       for (final index in cluster) {
         targets[index] = goal.token;
         used.add(index);
@@ -781,13 +752,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final totalCells = size * size;
     final targetCount = max(0, min(count, totalCells - exclude.length));
     final used = exclude.toSet();
-    final cluster = _claimClusterIndices(
-      size: size,
-      count: targetCount,
-      used: used,
-      random: _random,
-      scatterProbability: 0.4,
-    );
+    final cluster = _claimClusterIndices(size: size, count: targetCount, used: used, random: _random, scatterProbability: 0.4);
     final obstacles = cluster.toSet();
     return obstacles;
   }
@@ -808,11 +773,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       state = state.copyWith(levelTargets: targets);
       return;
     }
-    final updatedGoals = state.levelGoals
-        .map(
-          (goal) => removedCounts.containsKey(goal.token) ? goal.decrement(removedCounts[goal.token]!) : goal,
-        )
-        .toList();
+    final updatedGoals = state.levelGoals.map((goal) => removedCounts.containsKey(goal.token) ? goal.decrement(removedCounts[goal.token]!) : goal).toList();
     final completed = updatedGoals.every((goal) => goal.isComplete);
     final unlockedLevel = state.level + 1;
     final alreadyCompleted = state.levelCompleted;
@@ -832,13 +793,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         seedIndices: clearedSeeds,
       );
     } else {
-      state = state.copyWith(
-        levelGoals: updatedGoals,
-        levelTargets: targets,
-        levelCompleted: false,
-        showPerfectText: state.showPerfectText,
-        showParticleBurst: state.showParticleBurst,
-      );
+      state = state.copyWith(levelGoals: updatedGoals, levelTargets: targets, levelCompleted: false, showPerfectText: state.showPerfectText, showParticleBurst: state.showParticleBurst);
     }
     if (completed && !alreadyCompleted) {
       final soundController = _ref.read(soundControllerProvider);
@@ -859,12 +814,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 }
 
 class _ClearResult {
-  const _ClearResult({
-    required this.cells,
-    required this.linesCleared,
-    required this.removedIndices,
-    required this.removedCells,
-  });
+  const _ClearResult({required this.cells, required this.linesCleared, required this.removedIndices, required this.removedCells});
 
   final Map<int, Color> cells;
   final int linesCleared;
@@ -872,13 +822,7 @@ class _ClearResult {
   final Map<int, Color> removedCells;
 }
 
-const List<Color> _seedBoardColors = [
-  Color(0xFFB37744),
-  Color(0xFFCB9A63),
-  Color(0xFF8B5130),
-  Color(0xFF6E3A23),
-  Color(0xFFD4AF8A),
-];
+const List<Color> _seedBoardColors = [Color(0xFFB37744), Color(0xFFCB9A63), Color(0xFF8B5130), Color(0xFF6E3A23), Color(0xFFD4AF8A)];
 
 List<int> _adjacentIndices(int index, int size, {bool includeDiagonals = false}) {
   final row = index ~/ size;
@@ -902,14 +846,7 @@ List<int> _adjacentIndices(int index, int size, {bool includeDiagonals = false})
   return neighbors;
 }
 
-List<int> _claimClusterIndices({
-  required int size,
-  required int count,
-  required Set<int> used,
-  required Random random,
-  double scatterProbability = 0.35,
-  bool allowDiagonalAdjacency = false,
-}) {
+List<int> _claimClusterIndices({required int size, required int count, required Set<int> used, required Random random, double scatterProbability = 0.35, bool allowDiagonalAdjacency = false}) {
   if (count <= 0) return const [];
   final totalCells = size * size;
   if (used.length >= totalCells) return const [];
@@ -999,10 +936,7 @@ Map<int, Color> _generateInitialFilledCells(int size) {
   void growCluster(int start) {
     if (filled.contains(start)) return;
     final span = clusterMaxSize - clusterMinSize;
-    final clusterTarget = min(
-      targetFilled - filled.length,
-      clusterMinSize + (span <= 0 ? 0 : random.nextInt(span + 1)),
-    );
+    final clusterTarget = min(targetFilled - filled.length, clusterMinSize + (span <= 0 ? 0 : random.nextInt(span + 1)));
     final queue = <int>[start];
     final visited = <int>{};
     var produced = 0;
