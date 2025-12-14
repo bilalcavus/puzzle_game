@@ -68,7 +68,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   bool _gameOverAdShown = false;
   int _levelFailCounter = 0;
   int _classicFailCounter = 0;
-  int _nextClassicScoreMilestone = 10000;
+  int _nextClassicScoreMilestone = 2000;
 
   @override
   void initState() {
@@ -121,8 +121,9 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (hasFailed) {
       if (next.levelMode) {
         _levelFailCounter++;
-        final shouldShow = next.level > 10 ? true : _levelFailCounter % 3 == 0;
-        if (shouldShow) {
+        final bool isEarlyLevel = next.level <= 10;
+        final int failThreshold = isEarlyLevel ? 3 : 2;
+        if (_levelFailCounter % failThreshold == 0) {
           _showInterstitial(markGameOver: true);
         }
       } else {

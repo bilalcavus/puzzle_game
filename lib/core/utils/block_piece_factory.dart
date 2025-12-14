@@ -107,6 +107,11 @@ final List<List<List<int>>> _shapes = [
     [2, 1],
     [2, 2],
   ],
+  //vertical two line
+  [
+    [0, 0],
+    [1, 0],
+  ]
   
 ];
 

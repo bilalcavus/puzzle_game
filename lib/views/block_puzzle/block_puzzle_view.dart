@@ -153,41 +153,50 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
     required this.state,
     required this.onPieceSelect,
     required this.dragController,
+    this.locked = false,
   });
 
   final BlockPuzzleState state;
   final ValueChanged<String> onPieceSelect;
   final BlockDragController dragController;
+  final bool locked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
     final reservedHeight = cellSize * 5 + context.dynamicHeight(0.01);
+    final bool disablePieces = locked || state.status == BlockGameStatus.failed;
 
-    return SizedBox(
-      height: reservedHeight,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: state.availablePieces
-              .map(
-                (piece) => Padding(
-                  padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
-                  child: PieceWidget(
-                    piece: piece,
-                    cellSize: cellSize,
-                    isSelected: state.selectedPieceId == piece.id,
-                    disabled: state.status == BlockGameStatus.failed,
-                    dragController: dragController,
-                    onSelect: () => onPieceSelect(piece.id),
-                    onDragStart: () {
-                      ref.read(soundControllerProvider).playDrag();
-                    },
-                  ),
-                ),
-              )
-              .toList(),
+    return IgnorePointer(
+      ignoring: disablePieces,
+      child: Opacity(
+        opacity: disablePieces ? 0.6 : 1,
+        child: SizedBox(
+          height: reservedHeight,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: state.availablePieces
+                  .map(
+                    (piece) => Padding(
+                      padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
+                      child: PieceWidget(
+                        piece: piece,
+                        cellSize: cellSize,
+                        isSelected: state.selectedPieceId == piece.id,
+                        disabled: disablePieces,
+                        dragController: dragController,
+                        onSelect: () => onPieceSelect(piece.id),
+                        onDragStart: () {
+                          ref.read(soundControllerProvider).playDrag();
+                        },
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
         ),
       ),
     );

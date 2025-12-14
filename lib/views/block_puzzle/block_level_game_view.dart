@@ -73,6 +73,7 @@ class _BlockPuzzleLevelGameViewState extends ConsumerState<BlockPuzzleLevelGameV
                   child: BlockPuzzlePiecesTray(
                     state: state,
                     dragController: _dragController,
+                    locked: state.levelCompleted,
                     onPieceSelect: (pieceId) {
                       HapticFeedback.selectionClick();
                       notifier.selectPiece(pieceId);
