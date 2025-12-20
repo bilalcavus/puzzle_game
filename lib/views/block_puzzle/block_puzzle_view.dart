@@ -47,21 +47,14 @@ class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
       body: BlockPuzzleBackground(
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: horizontalPadding.clamp(12.0, 32.0),
-              vertical: verticalPadding.clamp(12.0, 28.0),
-            ),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding.clamp(12.0, 32.0), vertical: verticalPadding.clamp(12.0, 28.0)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ScorePanel(state: state),
                 context.dynamicHeight(0.02).height,
                 Expanded(
-                  child: BlockPuzzleBoardSection(
-                    state: state,
-                    onSizeChanged: notifier.changeBoardSize,
-                    dragController: _dragController,
-                  ),
+                  child: BlockPuzzleBoardSection(state: state, onSizeChanged: notifier.changeBoardSize, dragController: _dragController),
                 ),
                 context.dynamicHeight(0.01).height,
                 BlockPuzzlePiecesTray(
@@ -72,7 +65,6 @@ class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
                     notifier.selectPiece(pieceId);
                   },
                 ),
-                
               ],
             ),
           ),
@@ -91,14 +83,7 @@ class BlockPuzzleBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/2.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            Color.fromARGB(80, 0, 0, 0),
-            BlendMode.darken,
-          ),
-        ),
+        image: DecorationImage(image: AssetImage('assets/images/2.png'), fit: BoxFit.cover, colorFilter: ColorFilter.mode(Color.fromARGB(80, 0, 0, 0), BlendMode.darken)),
       ),
       child: child,
     );
@@ -106,12 +91,7 @@ class BlockPuzzleBackground extends StatelessWidget {
 }
 
 class BlockPuzzleBoardSection extends StatelessWidget {
-  const BlockPuzzleBoardSection({
-    super.key,
-    required this.state,
-    required this.onSizeChanged,
-    required this.dragController,
-  });
+  const BlockPuzzleBoardSection({super.key, required this.state, required this.onSizeChanged, required this.dragController});
 
   final BlockPuzzleState state;
   final ValueChanged<int> onSizeChanged;
@@ -129,11 +109,7 @@ class BlockPuzzleBoardSection extends StatelessWidget {
         final lowerClamp = max(260.0, media.size.shortestSide * 0.55);
         final fallback = min(media.size.width * 0.9, upperClamp);
         final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
-        final board = BlockGameBoard(
-          dimension: boardDimension,
-          provider: blockPuzzleProvider,
-          dragController: dragController,
-        );
+        final board = BlockGameBoard(dimension: boardDimension, provider: blockPuzzleProvider, dragController: dragController);
         final centeredBoard = Center(child: board);
 
         if (isWide) {
@@ -146,15 +122,8 @@ class BlockPuzzleBoardSection extends StatelessWidget {
   }
 }
 
-
 class BlockPuzzlePiecesTray extends ConsumerWidget {
-  const BlockPuzzlePiecesTray({
-    super.key,
-    required this.state,
-    required this.onPieceSelect,
-    required this.dragController,
-    this.locked = false,
-  });
+  const BlockPuzzlePiecesTray({super.key, required this.state, required this.onPieceSelect, required this.dragController, this.locked = false});
 
   final BlockPuzzleState state;
   final ValueChanged<String> onPieceSelect;
@@ -176,6 +145,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: state.availablePieces
                   .map(
