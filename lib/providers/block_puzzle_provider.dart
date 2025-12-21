@@ -824,8 +824,7 @@ class _ClearResult {
 
 // Tahta başlangıç dolu hücreleri için canlı palet (blok renkleriyle uyumlu tonlar)
 const List<Color> _seedBoardColors = [
-  Color(0xFF1EA7E1), // mavi
-  Color(0xFF00C6FF), // açık mavi
+  Color(0xFF0D6EAE), // mavi
   Color(0xFFF67C1F), // turuncu
   Color(0xFF2FB34A), // yeşil
   Color(0xFF9C4DFF), // mor

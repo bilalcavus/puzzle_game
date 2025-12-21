@@ -195,7 +195,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                         scale: scale,
                         alignment: Alignment.center,
                         child: SizedBox(
-                          height: reservedHeight,
+                          height: slotHeight,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.center,

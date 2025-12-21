@@ -11,8 +11,7 @@ int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
 // Canlı, yüksek kontrastlı blok paleti (örnek görseldeki tarzda).
 const _palette = [
-  Color(0xFF1EA7E1), // mavi
-  Color(0xFF00C6FF), // açık mavi / cyan
+  Color(0xFF0D6EAE), // mavi (koyu)
   Color(0xFFF67C1F), // turuncu
   Color(0xFF2FB34A), // yeşil
   Color(0xFF9C4DFF), // mor
