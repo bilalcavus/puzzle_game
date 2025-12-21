@@ -10,24 +10,24 @@ class ParticleBurst extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Daha hafif patlama: daha az parça, daha küçük gölge → FPS düşüşünü azaltır.
+    const particleCount = 8;
     final random = Random();
-    final particles = List.generate(12, (index) {
-      final angle = (index / 12) * 2 * pi;
-      final radius = size * 0.4;
-      final dx = radius * cos(angle) + random.nextDouble() * 12 - 6;
-      final dy = radius * sin(angle) + random.nextDouble() * 12 - 6;
+    final particles = List.generate(particleCount, (index) {
+      final angle = (index / particleCount) * 2 * pi;
+      final radius = size * 0.32;
+      final dx = radius * cos(angle) + random.nextDouble() * 8 - 4;
+      final dy = radius * sin(angle) + random.nextDouble() * 8 - 4;
       return Positioned(
         left: size / 2 + dx,
         top: size / 2 + dy,
         child: Container(
-          width: 8,
-          height: 8,
+          width: 6,
+          height: 6,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.yellowAccent.withValues(alpha: 0.8),
-            boxShadow: const [
-              BoxShadow(color: Colors.white54, blurRadius: 6),
-            ],
+            color: Colors.yellowAccent.withValues(alpha: 0.85),
+            boxShadow: const [BoxShadow(color: Colors.white38, blurRadius: 3, spreadRadius: 0.2)],
           ),
         ),
       );
@@ -37,7 +37,7 @@ class ParticleBurst extends StatelessWidget {
       ignoring: true,
       child: AnimatedOpacity(
         opacity: visible ? 1 : 0,
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 240),
         child: Stack(children: particles),
       ),
     );

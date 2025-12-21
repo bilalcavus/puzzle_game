@@ -133,7 +133,8 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
-    final reservedHeight = cellSize * 5 + context.dynamicHeight(0.01);
+    // Bir parça seçildiğinde boyutu büyüyeceği için yüksekliği biraz artır.
+    final reservedHeight = cellSize * 5.4 + context.dynamicHeight(0.01);
     final bool disablePieces = locked || state.status == BlockGameStatus.failed;
 
     return IgnorePointer(
@@ -142,29 +143,77 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
         opacity: disablePieces ? 0.6 : 1,
         child: SizedBox(
           height: reservedHeight,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: state.availablePieces
-                  .map(
-                    (piece) => Padding(
-                      padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
-                      child: PieceWidget(
-                        piece: piece,
-                        cellSize: cellSize,
-                        isSelected: state.selectedPieceId == piece.id,
-                        disabled: disablePieces,
-                        dragController: dragController,
-                        onSelect: () => onPieceSelect(piece.id),
-                        onDragStart: () {
-                          ref.read(soundControllerProvider).playDrag();
-                        },
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.01)),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const double unselectedScale = 0.72;
+                final pieces = state.availablePieces;
+                final slotCount = max(3, pieces.length);
+                // Slot boyutlarını dar tut ve toplam genişliği ekrana göre ölçekle.
+                final slotWidth = cellSize * 3.6;
+                final slotHeight = cellSize * 3.6;
+                final slotSpacing = context.dynamicHeight(0.006);
+                final totalWidth = slotWidth * slotCount + slotSpacing * (slotCount - 1);
+
+                List<Widget> buildSlot(int index) {
+                  if (index >= pieces.length) {
+                    return [SizedBox(width: slotWidth, height: slotHeight)];
+                  }
+                  final piece = pieces[index];
+                  final isSelected = state.selectedPieceId == piece.id;
+                  final scale = isSelected ? 1.0 : unselectedScale;
+                  return [
+                    SizedBox(
+                      width: slotWidth,
+                      height: slotHeight,
+                      child: Center(
+                        child: Transform.scale(
+                          scale: scale,
+                          child: PieceWidget(
+                            piece: piece,
+                            cellSize: cellSize,
+                            isSelected: isSelected,
+                            disabled: disablePieces,
+                            dragController: dragController,
+                            onSelect: () => onPieceSelect(piece.id),
+                            onDragStart: () {
+                              ref.read(soundControllerProvider).playDrag();
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  )
-                  .toList(),
+                  ];
+                }
+
+                return LayoutBuilder(
+                  builder: (context, innerConstraints) {
+                    final scale = totalWidth > innerConstraints.maxWidth && innerConstraints.maxWidth.isFinite ? innerConstraints.maxWidth / totalWidth : 1.0;
+                    return Center(
+                      child: Transform.scale(
+                        scale: scale,
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          height: reservedHeight,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: List<Widget>.generate(slotCount, (index) {
+                              final slot = buildSlot(index).first;
+                              if (index == slotCount - 1) return slot;
+                              return Padding(
+                                padding: EdgeInsets.only(right: slotSpacing),
+                                child: slot,
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ),

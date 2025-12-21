@@ -9,13 +9,14 @@ final _random = Random();
 
 int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
-// Default vivid yet soft puzzle palette (distinct, non-clashing hues).
+// Canlı, yüksek kontrastlı blok paleti (örnek görseldeki tarzda).
 const _palette = [
-    Color(0xFFE7C07A),
-  Color(0xFFD8AB63),
-  Color(0xFFCC9650),
-  Color(0xFFBD8643),
-  Color(0xFFAD7536),
+  Color(0xFF1EA7E1), // mavi
+  Color(0xFF00C6FF), // açık mavi / cyan
+  Color(0xFFF67C1F), // turuncu
+  Color(0xFF2FB34A), // yeşil
+  Color(0xFF9C4DFF), // mor
+  Color(0xFFF4C542), // sarı
 ];
 
 final List<List<List<int>>> _shapes = [
@@ -111,8 +112,7 @@ final List<List<List<int>>> _shapes = [
   [
     [0, 0],
     [1, 0],
-  ]
-  
+  ],
 ];
 
 const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];
@@ -154,7 +154,29 @@ List<PieceModel> generatePlayablePieces({required int boardSize, required Map<in
   for (var i = 0; i < attemptLimit; i++) {
     final clusters = _emptyClusters(boardSize, filledCells);
     final alignedShapes = _shapesThatFitEmptySpaces(clusters: clusters, maxWidth: spans.maxColSpan, maxHeight: spans.maxRowSpan);
-    final pieces = generateRandomPieces(count: targetCount, easyBias: easyBias, maxWidth: spans.maxColSpan, maxHeight: spans.maxRowSpan, preferredShapes: alignedShapes, uniqueShapes: true);
+
+    // ✅ Boşluk hissini iyileştirmek için: En büyük boş kümenin ölçülerine en iyi uyan
+    // şekilleri önceliklendir. Böylece gelen set içinde en az bir parça büyük boşluğa
+    // “oturma” eğiliminde olur.
+    List<List<List<int>>> preferredShapes = alignedShapes;
+    if (clusters.isNotEmpty) {
+      final largest = clusters.reduce((a, b) {
+        if (a.cells != b.cells) return a.cells > b.cells ? a : b;
+        final aArea = a.width * a.height;
+        final bArea = b.width * b.height;
+        return aArea >= bArea ? a : b;
+      });
+      final ranked = _rankShapesForCluster(
+        shapes: alignedShapes.isNotEmpty ? alignedShapes : _filterShapes(maxWidth: spans.maxColSpan, maxHeight: spans.maxRowSpan),
+        clusterWidth: largest.width,
+        clusterHeight: largest.height,
+      );
+      if (ranked.isNotEmpty) {
+        preferredShapes = ranked.take(12).toList(); // küçük havuz: en iyi eşleşmeler
+      }
+    }
+
+    final pieces = generateRandomPieces(count: targetCount, easyBias: easyBias, maxWidth: spans.maxColSpan, maxHeight: spans.maxRowSpan, preferredShapes: preferredShapes, uniqueShapes: true);
     if (_hasAnyValidMove(pieces, filledCells, boardSize)) {
       return pieces;
     }
@@ -240,7 +262,7 @@ List<List<int>>? _pickShape(List<List<List<int>>> pool, Set<String>? usedKeys) {
     final shape = pool[_random.nextInt(pool.length)];
     if (!wantsUnique) return shape;
     final key = _shapeKey(shape);
-    if (usedKeys!.add(key)) {
+    if (usedKeys.add(key)) {
       return shape;
     }
   }
@@ -326,4 +348,47 @@ List<List<List<int>>> _filterShapes({int? maxWidth, int? maxHeight}) {
     if (offset[1] > maxCol) maxCol = offset[1];
   }
   return (width: maxCol + 1, height: maxRow + 1);
+}
+
+/// En büyük boş küme ölçülerine göre şekilleri “ne kadar iyi oturduklarına” göre sıralar.
+/// Skor: klaster alanı - şekil alanı; daha küçük fark ve daha benzer en-boy oranı öne çıkar.
+List<List<int>> _normalizeShape(List<List<int>> shape) {
+  final sorted = List<List<int>>.from(shape);
+  sorted.sort((a, b) {
+    if (a[0] == b[0]) return a[1].compareTo(b[1]);
+    return a[0].compareTo(b[0]);
+  });
+  return sorted;
+}
+
+List<List<List<int>>> _rankShapesForCluster({required List<List<List<int>>> shapes, required int clusterWidth, required int clusterHeight}) {
+  if (shapes.isEmpty) return const [];
+
+  final clusterArea = clusterWidth * clusterHeight;
+
+  int fitScore(List<List<int>> shape) {
+    final dims = _shapeSize(shape);
+    // Filtre: kümeden büyükse uygun değil.
+    if (dims.width > clusterWidth || dims.height > clusterHeight) return 1 << 30;
+
+    final area = dims.width * dims.height;
+    final unused = clusterArea - area;
+    final aspectDelta = (dims.width - dims.height).abs() + (clusterWidth - clusterHeight).abs();
+    // Daha az atık alan ve daha yakın en-boy oranı öncelikli.
+    return unused * 10 + aspectDelta;
+  }
+
+  final ranked = List<List<List<int>>>.from(shapes);
+  ranked.sort((a, b) {
+    final sa = fitScore(a);
+    final sb = fitScore(b);
+    if (sa == sb) {
+      // deterministik bir sıra için normalize edilmiş koordinatlarla ek karşılaştırma
+      final na = _normalizeShape(a).map((p) => '${p[0]}_${p[1]}').join();
+      final nb = _normalizeShape(b).map((p) => '${p[0]}_${p[1]}').join();
+      return na.compareTo(nb);
+    }
+    return sa.compareTo(sb);
+  });
+  return ranked;
 }

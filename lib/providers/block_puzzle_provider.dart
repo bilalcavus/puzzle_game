@@ -211,7 +211,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   final bool _enablePersistence;
   static const _stateKey = 'block_puzzle_state';
   static const _bestKey = 'block_puzzle_best';
-  static const _seedVersion = 1;
+  static const _seedVersion = 2; // palette/seed reset to apply new colors on load
 
   Timer? _perfectTimer;
   Timer? _particleTimer;
@@ -822,7 +822,15 @@ class _ClearResult {
   final Map<int, Color> removedCells;
 }
 
-const List<Color> _seedBoardColors = [Color(0xFFB37744), Color(0xFFCB9A63), Color(0xFF8B5130), Color(0xFF6E3A23), Color(0xFFD4AF8A)];
+// Tahta başlangıç dolu hücreleri için canlı palet (blok renkleriyle uyumlu tonlar)
+const List<Color> _seedBoardColors = [
+  Color(0xFF1EA7E1), // mavi
+  Color(0xFF00C6FF), // açık mavi
+  Color(0xFFF67C1F), // turuncu
+  Color(0xFF2FB34A), // yeşil
+  Color(0xFF9C4DFF), // mor
+  Color(0xFFF4C542), // sarı
+];
 
 List<int> _adjacentIndices(int index, int size, {bool includeDiagonals = false}) {
   final row = index ~/ size;
@@ -915,7 +923,7 @@ Map<int, Color> _generateInitialFilledCells(int size) {
   final clusterSeedCount = max(3, size ~/ 2);
   final clusterMinSize = max(6, size);
   final clusterMaxSize = max(clusterMinSize + 4, size * 2);
-  final filled = <int>{};
+  final filled = <int, Color>{};
 
   List<int> neighborsOf(int index) {
     final row = index ~/ size;
@@ -933,8 +941,8 @@ Map<int, Color> _generateInitialFilledCells(int size) {
     return neighbors;
   }
 
-  void growCluster(int start) {
-    if (filled.contains(start)) return;
+  void growCluster(int start, Color color) {
+    if (filled.containsKey(start)) return;
     final span = clusterMaxSize - clusterMinSize;
     final clusterTarget = min(targetFilled - filled.length, clusterMinSize + (span <= 0 ? 0 : random.nextInt(span + 1)));
     final queue = <int>[start];
@@ -942,8 +950,8 @@ Map<int, Color> _generateInitialFilledCells(int size) {
     var produced = 0;
     while (queue.isNotEmpty && filled.length < targetFilled && produced < clusterTarget) {
       final current = queue.removeAt(random.nextInt(queue.length));
-      if (!visited.add(current) || filled.contains(current)) continue;
-      filled.add(current);
+      if (!visited.add(current) || filled.containsKey(current)) continue;
+      filled[current] = color;
       produced++;
       final neighbors = neighborsOf(current)..shuffle(random);
       for (final neighbor in neighbors) {
@@ -954,32 +962,42 @@ Map<int, Color> _generateInitialFilledCells(int size) {
     }
   }
 
+  Color pickColor(Set<Color> used) {
+    // Döngüyü renk tekrarlarıyla da doldur, ancak mümkünse farklı renk seç.
+    final available = _seedBoardColors.where((c) => !used.contains(c)).toList();
+    if (available.isEmpty) return _seedBoardColors[random.nextInt(_seedBoardColors.length)];
+    return available[random.nextInt(available.length)];
+  }
+
+  final usedColors = <Color>{};
   for (var i = 0; i < clusterSeedCount && filled.length < targetFilled; i++) {
-    growCluster(random.nextInt(total));
+    final color = pickColor(usedColors);
+    usedColors.add(color);
+    growCluster(random.nextInt(total), color);
   }
 
   while (filled.length < targetFilled) {
     if (filled.isEmpty) {
-      filled.add(random.nextInt(total));
+      final color = pickColor(usedColors);
+      usedColors.add(color);
+      filled[random.nextInt(total)] = color;
       continue;
     }
-    final anchor = filled.elementAt(random.nextInt(filled.length));
+    final anchor = filled.keys.elementAt(random.nextInt(filled.length));
     final neighbors = neighborsOf(anchor);
     if (neighbors.isEmpty) {
-      filled.add(random.nextInt(total));
+      final color = pickColor(usedColors);
+      usedColors.add(color);
+      filled[random.nextInt(total)] = color;
     } else {
       neighbors.shuffle(random);
-      filled.add(neighbors.first);
+      final color = filled[anchor] ?? pickColor(usedColors);
+      filled[neighbors.first] = color;
     }
   }
 
-  final cells = <int, Color>{};
-  for (final index in filled) {
-    cells[index] = _seedBoardColors[random.nextInt(_seedBoardColors.length)];
-  }
-
-  _breakFullLines(cells, size, random);
-  return cells;
+  _breakFullLines(filled, size, random);
+  return filled;
 }
 
 void _breakFullLines(Map<int, Color> cells, int size, Random random) {
