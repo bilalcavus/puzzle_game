@@ -135,6 +135,8 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
     final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
     // Bir parça seçildiğinde boyutu büyüyeceği için yüksekliği biraz artır.
     final reservedHeight = cellSize * 5.4 + context.dynamicHeight(0.01);
+    final extraGrabHeight = context.dynamicHeight(0.05);
+    final hitAreaHeight = reservedHeight + extraGrabHeight;
     final bool disablePieces = locked || state.status == BlockGameStatus.failed;
 
     return IgnorePointer(
@@ -142,7 +144,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
       child: Opacity(
         opacity: disablePieces ? 0.6 : 1,
         child: SizedBox(
-          height: reservedHeight,
+          height: hitAreaHeight,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.01)),
             child: LayoutBuilder(
@@ -170,7 +172,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
                     List<Widget> buildSlot(int index) {
                       if (index >= pieces.length) {
-                        return [SizedBox(width: scaledSlotWidth, height: reservedHeight)];
+                        return [SizedBox(width: scaledSlotWidth, height: hitAreaHeight)];
                       }
                       final piece = pieces[index];
                       final isSelected = state.selectedPieceId == piece.id;
@@ -178,7 +180,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                       return [
                         SizedBox(
                           width: scaledSlotWidth,
-                          height: reservedHeight,
+                          height: hitAreaHeight,
                           child: PieceWidget(
                             piece: piece,
                             cellSize: cellSize,
@@ -190,7 +192,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                               ref.read(soundControllerProvider).playDrag();
                             },
                             visualScale: pieceScale * fitScale,
-                            hitBoxSize: Size(scaledSlotWidth, reservedHeight),
+                            hitBoxSize: Size(scaledSlotWidth, hitAreaHeight),
                           ),
                         ),
                       ];
@@ -198,7 +200,7 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
                     return SizedBox(
                       width: availableWidth,
-                      height: reservedHeight,
+                      height: hitAreaHeight,
                       child: Center(
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
