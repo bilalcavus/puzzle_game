@@ -7,7 +7,18 @@ import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
 
 class PieceWidget extends StatelessWidget {
-  const PieceWidget({super.key, required this.piece, required this.cellSize, required this.onSelect, this.onDragStart, this.dragController, this.isSelected = false, this.disabled = false});
+  const PieceWidget({
+    super.key,
+    required this.piece,
+    required this.cellSize,
+    required this.onSelect,
+    this.onDragStart,
+    this.dragController,
+    this.isSelected = false,
+    this.disabled = false,
+    this.visualScale = 1.0,
+    this.hitBoxSize,
+  });
 
   final PieceModel piece;
   final double cellSize;
@@ -16,6 +27,8 @@ class PieceWidget extends StatelessWidget {
   final BlockDragController? dragController;
   final bool isSelected;
   final bool disabled;
+  final double visualScale;
+  final Size? hitBoxSize;
   static const double _dragFeedbackScale = 1.4;
   static const double _liftDistance = 100;
 
@@ -28,7 +41,10 @@ class PieceWidget extends StatelessWidget {
     final dragWidth = (piece.width * dragCellSize) + 8;
     final dragHeight = (piece.height * dragCellSize) + 8;
     final content = _buildContent(footprintWidth, footprintHeight);
-    final child = Opacity(
+    final padding = context.dynamicHeight(0.010);
+    final visualWidth = (footprintWidth + (padding * 2)) * visualScale;
+    final visualHeight = (footprintHeight + (padding * 2)) * visualScale;
+    final visual = Opacity(
       opacity: disabled ? 0.4 : 1,
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: liftOffsetY),
@@ -36,7 +52,7 @@ class PieceWidget extends StatelessWidget {
         curve: Curves.easeOutBack,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.all(context.dynamicHeight(0.010)), // less padding => larger visible piece
+          padding: EdgeInsets.all(padding), // less padding => larger visible piece
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent, width: 1),
@@ -48,6 +64,23 @@ class PieceWidget extends StatelessWidget {
         },
       ),
     );
+    final scaledVisual = visualScale == 1.0
+        ? visual
+        : Transform.scale(
+            scale: visualScale,
+            alignment: Alignment.center,
+            child: visual,
+          );
+    final child = hitBoxSize == null
+        ? scaledVisual
+        : SizedBox(
+            width: hitBoxSize!.width,
+            height: hitBoxSize!.height,
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: Center(child: scaledVisual),
+            ),
+          );
 
     if (disabled) {
       return child;
@@ -61,8 +94,21 @@ class PieceWidget extends StatelessWidget {
       delay: const Duration(milliseconds: 60),
       hapticFeedbackOnStart: true,
       data: piece,
-      // Anchor drag to the widget center so lift/drag is purely vertical, regardless of tap position.
-      dragAnchorStrategy: childDragAnchorStrategy,
+      // Map taps in the hit area to the actual block content so drag feels like touching the piece.
+      dragAnchorStrategy: (draggable, context, position) {
+        final renderBox = context.findRenderObject() as RenderBox;
+        final size = renderBox.size;
+        final local = renderBox.globalToLocal(position);
+        final contentWidth = (footprintWidth * visualScale).clamp(1.0, double.infinity);
+        final contentHeight = (footprintHeight * visualScale).clamp(1.0, double.infinity);
+        final contentLeft = (size.width - contentWidth) / 2;
+        final contentTop = (size.height - contentHeight) / 2;
+        final clampedX = local.dx.clamp(contentLeft, contentLeft + contentWidth) as double;
+        final clampedY = local.dy.clamp(contentTop, contentTop + contentHeight) as double;
+        final anchorX = (clampedX - contentLeft) * (dragWidth / contentWidth);
+        final anchorY = (clampedY - contentTop) * (dragHeight / contentHeight);
+        return Offset(anchorX, anchorY);
+      },
       feedback: Material(
         color: Colors.transparent,
         child: Transform.translate(
