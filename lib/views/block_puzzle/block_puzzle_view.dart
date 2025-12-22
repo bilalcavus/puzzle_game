@@ -150,9 +150,13 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                 const double unselectedScale = 0.72;
                 final pieces = state.availablePieces;
                 final slotCount = max(3, pieces.length);
-                // Slot boyutlarını dar tut ve toplam genişliği ekrana göre ölçekle.
-                final slotWidth = cellSize * 3.6;
-                final slotHeight = cellSize * 3.6;
+                final piecePadding = context.dynamicHeight(0.010);
+                final maxPieceWidth = pieces.isEmpty ? 1 : pieces.map((piece) => piece.width).reduce(max);
+                final maxPieceHeight = pieces.isEmpty ? 1 : pieces.map((piece) => piece.height).reduce(max);
+                // Slot boyutlarını dar tut ve daha büyük parçalar için genişlik ayır.
+                final baseSlotExtent = cellSize * 3.6;
+                final slotWidth = max(baseSlotExtent, (maxPieceWidth * cellSize) + 8 + (piecePadding * 2));
+                final slotHeight = max(baseSlotExtent, (maxPieceHeight * cellSize) + 8 + (piecePadding * 2));
                 final slotSpacing = context.dynamicHeight(0.006);
                 final totalWidth = slotWidth * slotCount + slotSpacing * (slotCount - 1);
 
@@ -189,10 +193,12 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
                 return LayoutBuilder(
                   builder: (context, innerConstraints) {
-                    final scale = totalWidth > innerConstraints.maxWidth && innerConstraints.maxWidth.isFinite ? innerConstraints.maxWidth / totalWidth : 1.0;
-                    return Center(
-                      child: Transform.scale(
-                        scale: scale,
+                    final fallbackWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : MediaQuery.of(context).size.width;
+                    final availableWidth = innerConstraints.maxWidth.isFinite ? innerConstraints.maxWidth : fallbackWidth;
+                    return SizedBox(
+                      width: availableWidth,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
                         alignment: Alignment.center,
                         child: SizedBox(
                           height: slotHeight,
