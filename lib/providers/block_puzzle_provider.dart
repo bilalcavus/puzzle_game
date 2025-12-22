@@ -822,7 +822,13 @@ class _ClearResult {
   final Map<int, Color> removedCells;
 }
 
-const List<Color> _seedBoardColors = [Color(0xFFB37744), Color(0xFFCB9A63), Color(0xFF8B5130), Color(0xFF6E3A23), Color(0xFFD4AF8A)];
+const List<Color> _seedBoardColors = [
+  Color.fromARGB(255, 199, 118, 4), // mavi (koyu)
+  Color(0xFFF67C1F), // turuncu
+  Color(0xFF2FB34A), // yeşil
+  Color(0xFF9C4DFF), // mor
+  Color(0xFFF4C542), // sarı
+];
 
 List<int> _adjacentIndices(int index, int size, {bool includeDiagonals = false}) {
   final row = index ~/ size;

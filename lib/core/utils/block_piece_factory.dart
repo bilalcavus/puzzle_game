@@ -11,11 +11,11 @@ int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
 // Default vivid yet soft puzzle palette (distinct, non-clashing hues).
 const _palette = [
-    Color(0xFFE7C07A),
-  Color(0xFFD8AB63),
-  Color(0xFFCC9650),
-  Color(0xFFBD8643),
-  Color(0xFFAD7536),
+  Color.fromARGB(255, 199, 118, 4), // mavi (koyu)
+  Color(0xFFF67C1F), // turuncu
+  Color.fromARGB(255, 76, 215, 104), // yeşil
+  Color(0xFF9C4DFF), // mor
+  Color(0xFFF4C542), // sarı
 ];
 
 final List<List<List<int>>> _shapes = [
