@@ -16,7 +16,7 @@ class PieceWidget extends StatelessWidget {
   final BlockDragController? dragController;
   final bool isSelected;
   final bool disabled;
-  static const double _dragFeedbackScale = 1.4;
+  static const double _dragFeedbackScale = 1.5;
   static const double _liftDistance = 100;
 
   @override

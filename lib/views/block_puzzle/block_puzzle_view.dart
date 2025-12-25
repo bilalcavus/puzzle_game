@@ -163,40 +163,72 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
-    final reservedHeight = cellSize * 5 + context.dynamicHeight(0.01);
     final bool disablePieces = locked || state.status == BlockGameStatus.failed;
+    final maxCellSize = min(
+      context.dynamicHeight(0.035),
+      context.dynamicWidth(0.075),
+    );
+    final fixedTrayHeight = maxCellSize * 5 + context.dynamicHeight(0.01);
 
     return IgnorePointer(
       ignoring: disablePieces,
       child: Opacity(
         opacity: disablePieces ? 0.6 : 1,
-        child: SizedBox(
-          height: reservedHeight,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: state.availablePieces
-                  .map(
-                    (piece) => Padding(
-                      padding: EdgeInsets.only(right: context.dynamicHeight(0.01)),
-                      child: PieceWidget(
-                        piece: piece,
-                        cellSize: cellSize,
-                        isSelected: state.selectedPieceId == piece.id,
-                        disabled: disablePieces,
-                        dragController: dragController,
-                        onSelect: () => onPieceSelect(piece.id),
-                        onDragStart: () {
-                          ref.read(soundControllerProvider).playDrag();
-                        },
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final spacing = context.dynamicHeight(0.01);
+            final piecePadding = context.dynamicHeight(0.010) * 2;
+            final horizontalPadding = context.dynamicHeight(0.005) * 2;
+            final pieceCount = state.availablePieces.length;
+            final totalBlockWidth =
+                state.availablePieces.fold<int>(0, (sum, piece) => sum + piece.width);
+            final totalSpacing = pieceCount > 1 ? spacing * (pieceCount - 1) : 0.0;
+            final totalPadding =
+                pieceCount > 0 ? (8.0 + piecePadding) * pieceCount : 0.0;
+            final safetyPadding = pieceCount > 0 ? 2.0 * pieceCount : 0.0;
+            final availableWidth = max(
+              0.0,
+              constraints.maxWidth -
+                  horizontalPadding -
+                  totalSpacing -
+                  totalPadding -
+                  safetyPadding,
+            );
+            final fitCellSize = totalBlockWidth > 0
+                ? (availableWidth / totalBlockWidth).clamp(10.0, maxCellSize)
+                : maxCellSize;
+
+            return SizedBox(
+              height: fixedTrayHeight,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(state.availablePieces.length, (index) {
+                      final piece = state.availablePieces[index];
+                      final isLast = index == state.availablePieces.length - 1;
+                      return Padding(
+                        padding: EdgeInsets.only(right: isLast ? 0 : spacing),
+                        child: PieceWidget(
+                          piece: piece,
+                          cellSize: fitCellSize,
+                          isSelected: state.selectedPieceId == piece.id,
+                          disabled: disablePieces,
+                          dragController: dragController,
+                          onSelect: () => onPieceSelect(piece.id),
+                          onDragStart: () {
+                            ref.read(soundControllerProvider).playDrag();
+                          },
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
