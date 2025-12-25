@@ -1,7 +1,7 @@
 name: puzzle_game
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
-version: 1.1.6+1
+version: 1.1.6+2
 
 environment:
   sdk: ^3.9.2
@@ -30,7 +30,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icons/app_icon.png"
+  image_path: "assets/icons/new_app_icon.png"
 
   flutter_lints: ^5.0.0
 

@@ -1014,3 +1014,4 @@ void _breakFullLines(Map<int, Color> cells, int size, Random random) {
     }
   } while (changed && iterations < size * 3);
 }
+

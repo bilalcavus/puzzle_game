@@ -122,13 +122,13 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       if (next.levelMode) {
         _levelFailCounter++;
         final bool isEarlyLevel = next.level <= 10;
-        final int failThreshold = isEarlyLevel ? 3 : 2;
+        final int failThreshold = isEarlyLevel ? 3 : 3;
         if (_levelFailCounter % failThreshold == 0) {
           _showInterstitial(markGameOver: true);
         }
       } else {
         _classicFailCounter++;
-        if (_classicFailCounter % 2 == 0) {
+        if (_classicFailCounter % 3 == 0) {
           _showInterstitial(markGameOver: true);
         }
       }
@@ -151,13 +151,13 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       _showInterstitial();
     }
     while (_nextClassicScoreMilestone <= next.score) {
-      _nextClassicScoreMilestone += 10000;
+      _nextClassicScoreMilestone += 2000;
     }
   }
 
   int _computeNextClassicScoreMilestone(BlockPuzzleState state) {
-    final next = ((state.score ~/ 10000) + 1) * 10000;
-    return max(10000, next);
+    final next = ((state.score ~/ 2000) + 1) * 2000;
+    return max(2000, next);
   }
 
   void _showInterstitial({bool markGameOver = false}) {
