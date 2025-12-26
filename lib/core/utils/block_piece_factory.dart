@@ -111,8 +111,34 @@ final List<List<List<int>>> _shapes = [
   [
     [0, 0],
     [1, 0],
-  ]
-  
+  ],
+  // Mirror of L shape
+  [
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [2, 0],
+  ],
+   // Mirror of Horizontal T shape (arm to left)
+  [
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [1, 0],
+  ],
+    // L shape (upwards)
+  [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [2, 0],
+  ],
+   // Mirror of Short-horizontal L shape
+  [
+    [0, 1],
+    [1, 0],
+    [1, 1],
+  ],
 ];
 
 const List<int> _easyShapeIndices = [0, 1, 2, 3, 4];
