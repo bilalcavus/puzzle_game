@@ -79,6 +79,7 @@ class PieceWidget extends StatelessWidget {
             return Offset(width / 2, visualHeight / 2);
           }
         : childDragAnchorStrategy;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return LongPressDraggable<PieceModel>(
       // Keep a minimal hold so taps don't trigger; effectively instant drag.
@@ -89,9 +90,10 @@ class PieceWidget extends StatelessWidget {
       dragAnchorStrategy: dragAnchorStrategy,
       feedback: Material(
         color: Colors.transparent,
-        child: Transform.translate(
-          offset: const Offset(0, -kPieceDragPointerYOffset),
-          child: _buildContent(dragWidth, dragHeight, feedback: true, cellSizeOverride: dragCellSize),
+        child: _buildFeedback(
+          dragWidth,
+          dragHeight,
+          dragCellSize,
         ),
       ),
       // Do not leave a ghost copy in the tray while dragging.
@@ -102,7 +104,10 @@ class PieceWidget extends StatelessWidget {
           onSelect(); // Select so board drops can succeed during drag.
         }
       },
-      onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
+      onDragUpdate: (details) {
+        dragController?.updateHover(piece, details.globalPosition);
+        dragController?.updateLift(details.globalPosition, screenHeight);
+      },
       // Only allow dragging for visual feedback; always snap back on release.
       onDragEnd: (details) {
         // Let the board decide; always clear hover so we don't leave floating previews.
@@ -111,10 +116,47 @@ class PieceWidget extends StatelessWidget {
           dragController?.completeDrop(piece, details.offset);
         }
         dragController?.cancelHover();
+        dragController?.resetLift();
       },
-      onDraggableCanceled: (_, __) => dragController?.cancelHover(),
-      onDragCompleted: () => dragController?.cancelHover(),
+      onDraggableCanceled: (_, __) {
+        dragController?.cancelHover();
+        dragController?.resetLift();
+      },
+      onDragCompleted: () {
+        dragController?.cancelHover();
+        dragController?.resetLift();
+      },
       child: child,
+    );
+  }
+
+  Widget _buildFeedback(
+    double width,
+    double height,
+    double cellSizeOverride,
+  ) {
+    final content = _buildContent(
+      width,
+      height,
+      feedback: true,
+      cellSizeOverride: cellSizeOverride,
+    );
+    final controller = dragController;
+    if (controller == null) {
+      return Transform.translate(
+        offset: const Offset(0, -kPieceDragMinLift),
+        child: content,
+      );
+    }
+    return ValueListenableBuilder<double>(
+      valueListenable: controller.liftOffset,
+      builder: (context, lift, child) {
+        return Transform.translate(
+          offset: Offset(0, -lift),
+          child: child,
+        );
+      },
+      child: content,
     );
   }
 

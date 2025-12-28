@@ -809,10 +809,14 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     }
 
     final boardOrigin = boardRect.topLeft;
-    // Pointer + fixed lift to match drag feedback (piece shown 100px above finger).
+    final boardContext = _boardKey.currentContext;
+    final screenHeight = boardContext != null
+        ? MediaQuery.of(boardContext).size.height
+        : _fallbackScreenHeight();
+    // Pointer + lift to match drag feedback.
     final adjustedOffset = globalPosition.translate(
       0,
-      -kPieceDragPointerYOffset,
+      -pieceDragLiftForGlobal(globalPosition, screenHeight),
     );
 
     final padding = _resolvedPadding();
@@ -862,6 +866,13 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     if (bestRow == null || bestCol == null) return null;
     if (bestRatio < 0.05) return null;
     return (row: bestRow, col: bestCol);
+  }
+
+  double _fallbackScreenHeight() {
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) return 0;
+    final view = views.first;
+    return view.physicalSize.height / view.devicePixelRatio;
   }
 
   bool _isPlacementClear(
