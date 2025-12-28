@@ -54,16 +54,14 @@ class _BlockPuzzleGameViewState extends ConsumerState<BlockPuzzleGameView> {
                 ScorePanel(state: state),
                 context.dynamicHeight(0.02).height,
                 Expanded(
-                  child: BlockPuzzleBoardSection(state: state, onSizeChanged: notifier.changeBoardSize, dragController: _dragController),
-                ),
-                context.dynamicHeight(0.01).height,
-                BlockPuzzlePiecesTray(
-                  state: state,
-                  dragController: _dragController,
-                  onPieceSelect: (pieceId) {
-                    HapticFeedback.selectionClick();
-                    notifier.selectPiece(pieceId);
-                  },
+                  child: _BlockPuzzleBoardWithTray(
+                    state: state,
+                    dragController: _dragController,
+                    onPieceSelect: (pieceId) {
+                      HapticFeedback.selectionClick();
+                      notifier.selectPiece(pieceId);
+                    },
+                  ),
                 ),
               ],
             ),
@@ -123,18 +121,29 @@ class BlockPuzzleBoardSection extends StatelessWidget {
 }
 
 class BlockPuzzlePiecesTray extends ConsumerWidget {
-  const BlockPuzzlePiecesTray({super.key, required this.state, required this.onPieceSelect, required this.dragController, this.locked = false});
+  const BlockPuzzlePiecesTray({
+    super.key,
+    required this.state,
+    required this.onPieceSelect,
+    required this.dragController,
+    this.locked = false,
+    this.extraHitSlopTop = 0,
+    this.alignBottom = false,
+  });
 
   final BlockPuzzleState state;
   final ValueChanged<String> onPieceSelect;
   final BlockDragController dragController;
   final bool locked;
+  final double extraHitSlopTop;
+  final bool alignBottom;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool disablePieces = locked || state.status == BlockGameStatus.failed;
     final maxCellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
     final fixedTrayHeight = maxCellSize * 5 + context.dynamicHeight(0.01);
+    final trayHeight = fixedTrayHeight + extraHitSlopTop;
 
     return IgnorePointer(
       ignoring: disablePieces,
@@ -152,40 +161,113 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
             final safetyPadding = pieceCount > 0 ? 2.0 * pieceCount : 0.0;
             final availableWidth = max(0.0, constraints.maxWidth - horizontalPadding - totalSpacing - totalPadding - safetyPadding);
             final fitCellSize = totalBlockWidth > 0 ? (availableWidth / totalBlockWidth).clamp(10.0, maxCellSize) : maxCellSize;
+            final contentPadding = context.dynamicHeight(0.010);
+            final row = Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(state.availablePieces.length, (index) {
+                final piece = state.availablePieces[index];
+                final isLast = index == state.availablePieces.length - 1;
+                final visualPieceHeight = (piece.height * fitCellSize) + 8 + (contentPadding * 2);
+                final hitSlopTop = max(0.0, trayHeight - visualPieceHeight);
+                return Padding(
+                  padding: EdgeInsets.only(right: isLast ? 0 : spacing),
+                  child: PieceWidget(
+                    piece: piece,
+                    cellSize: fitCellSize,
+                    isSelected: state.selectedPieceId == piece.id,
+                    disabled: disablePieces,
+                    hitSlopTop: hitSlopTop,
+                    dragController: dragController,
+                    onSelect: () => onPieceSelect(piece.id),
+                    onDragStart: () {
+                      ref.read(soundControllerProvider).playDrag();
+                    },
+                  ),
+                );
+              }),
+            );
+            final content = alignBottom
+                ? Align(alignment: Alignment.bottomCenter, child: row)
+                : Center(child: row);
 
             return SizedBox(
-              height: fixedTrayHeight,
+              height: trayHeight,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: context.dynamicHeight(0.005)),
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: List.generate(state.availablePieces.length, (index) {
-                      final piece = state.availablePieces[index];
-                      final isLast = index == state.availablePieces.length - 1;
-                      return Padding(
-                        padding: EdgeInsets.only(right: isLast ? 0 : spacing),
-                        child: PieceWidget(
-                          piece: piece,
-                          cellSize: fitCellSize,
-                          isSelected: state.selectedPieceId == piece.id,
-                          disabled: disablePieces,
-                          dragController: dragController,
-                          onSelect: () => onPieceSelect(piece.id),
-                          onDragStart: () {
-                            ref.read(soundControllerProvider).playDrag();
-                          },
-                        ),
-                      );
-                    }),
-                  ),
-                ),
+                child: content,
               ),
             );
           },
         ),
       ),
+    );
+  }
+}
+
+class _BlockPuzzleBoardWithTray extends ConsumerWidget {
+  const _BlockPuzzleBoardWithTray({
+    required this.state,
+    required this.dragController,
+    required this.onPieceSelect,
+  });
+
+  final BlockPuzzleState state;
+  final BlockDragController dragController;
+  final ValueChanged<String> onPieceSelect;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final media = MediaQuery.of(context);
+        final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : media.size.width;
+        final isWide = maxWidth > 900;
+        final base = isWide ? maxWidth * 1.05 : maxWidth;
+        final upperClamp = min(media.size.shortestSide * 0.9, 640.0);
+        final lowerClamp = max(260.0, media.size.shortestSide * 0.55);
+        final fallback = min(media.size.width * 0.9, upperClamp);
+        final boardDimension = (base.isFinite ? base.clamp(lowerClamp, upperClamp) : fallback).toDouble();
+
+        final maxCellSize = min(context.dynamicHeight(0.035), context.dynamicWidth(0.075));
+        final fixedTrayHeight = maxCellSize * 5 + context.dynamicHeight(0.01);
+        final traySpacing = context.dynamicHeight(0.01);
+        final stackHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : media.size.height;
+        final availableForBoard = max(0.0, stackHeight - fixedTrayHeight - traySpacing);
+        final boardTop = max(0.0, (availableForBoard - boardDimension) / 2);
+        final boardBottom = boardTop + boardDimension;
+        final trayTop = stackHeight - fixedTrayHeight;
+        final extraHitSlopTop = max(0.0, trayTop - boardBottom);
+
+        return Stack(
+          children: [
+            Positioned(
+              top: boardTop,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: BlockGameBoard(
+                  dimension: boardDimension,
+                  provider: blockPuzzleProvider,
+                  dragController: dragController,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: BlockPuzzlePiecesTray(
+                state: state,
+                dragController: dragController,
+                onPieceSelect: onPieceSelect,
+                extraHitSlopTop: extraHitSlopTop,
+                alignBottom: true,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
