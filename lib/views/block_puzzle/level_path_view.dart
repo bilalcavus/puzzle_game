@@ -448,7 +448,6 @@ class _BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color barColor = const Color(0xFF3b2313).withOpacity(0.9);
     return Container(
       height: context.dynamicHeight(0.1),
       width: double.infinity,

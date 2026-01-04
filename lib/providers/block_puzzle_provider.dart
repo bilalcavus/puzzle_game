@@ -914,32 +914,28 @@ Map<int, Color> _generateInitialFilledCells(int size) {
   if (size <= 0) return {};
   final total = size * size;
   final random = Random(DateTime.now().millisecondsSinceEpoch);
-  final minFilled = size * 4;
-  final maxFilled = (total * 0.6).round();
-  final desired = (total * 0.45).round();
+  final minFilled = size * 2;
+  final maxFilled = (total * 0.4).round();
+  final desired = (total * 0.28).round();
   final targetFilled = min(maxFilled, max(minFilled, desired));
-  final clusterSeedCount = max(3, size ~/ 2);
-  final clusterMinSize = max(6, size);
-  final clusterMaxSize = max(clusterMinSize + 4, size * 2);
+  final clusterSeedCount = max(2, size ~/ 4);
+  final clusterMinSize = max(4, size ~/ 2);
+  final clusterMaxSize = max(clusterMinSize + 3, size);
   final filled = <int>{};
+  final clusterOf = <int, int>{};
 
   List<int> neighborsOf(int index) {
     final row = index ~/ size;
     final col = index % size;
     final neighbors = <int>[];
-    for (var dr = -1; dr <= 1; dr++) {
-      for (var dc = -1; dc <= 1; dc++) {
-        if (dr == 0 && dc == 0) continue;
-        final nr = row + dr;
-        final nc = col + dc;
-        if (nr < 0 || nc < 0 || nr >= size || nc >= size) continue;
-        neighbors.add(nr * size + nc);
-      }
-    }
+    if (row > 0) neighbors.add((row - 1) * size + col);
+    if (row < size - 1) neighbors.add((row + 1) * size + col);
+    if (col > 0) neighbors.add(row * size + col - 1);
+    if (col < size - 1) neighbors.add(row * size + col + 1);
     return neighbors;
   }
 
-  void growCluster(int start) {
+  void growCluster(int start, int clusterId) {
     if (filled.contains(start)) return;
     final span = clusterMaxSize - clusterMinSize;
     final clusterTarget = min(targetFilled - filled.length, clusterMinSize + (span <= 0 ? 0 : random.nextInt(span + 1)));
@@ -950,10 +946,11 @@ Map<int, Color> _generateInitialFilledCells(int size) {
       final current = queue.removeAt(random.nextInt(queue.length));
       if (!visited.add(current) || filled.contains(current)) continue;
       filled.add(current);
+      clusterOf[current] = clusterId;
       produced++;
       final neighbors = neighborsOf(current)..shuffle(random);
       for (final neighbor in neighbors) {
-        if (!visited.contains(neighbor) && random.nextDouble() > 0.35) {
+        if (!visited.contains(neighbor) && random.nextDouble() > 0.2) {
           queue.add(neighbor);
         }
       }
@@ -961,27 +958,37 @@ Map<int, Color> _generateInitialFilledCells(int size) {
   }
 
   for (var i = 0; i < clusterSeedCount && filled.length < targetFilled; i++) {
-    growCluster(random.nextInt(total));
+    growCluster(random.nextInt(total), i);
   }
 
   while (filled.length < targetFilled) {
     if (filled.isEmpty) {
-      filled.add(random.nextInt(total));
+      final index = random.nextInt(total);
+      filled.add(index);
+      clusterOf[index] = 0;
       continue;
     }
     final anchor = filled.elementAt(random.nextInt(filled.length));
     final neighbors = neighborsOf(anchor);
     if (neighbors.isEmpty) {
-      filled.add(random.nextInt(total));
+      final index = random.nextInt(total);
+      filled.add(index);
+      clusterOf[index] = clusterOf[anchor] ?? 0;
     } else {
       neighbors.shuffle(random);
-      filled.add(neighbors.first);
+      final index = neighbors.first;
+      filled.add(index);
+      clusterOf[index] = clusterOf[anchor] ?? 0;
     }
   }
 
+  final palettePool = List<Color>.from(_seedBoardColors)..shuffle(random);
+  final paletteSize = min(3, max(2, clusterSeedCount));
+  final palette = palettePool.take(paletteSize).toList();
   final cells = <int, Color>{};
   for (final index in filled) {
-    cells[index] = _seedBoardColors[random.nextInt(_seedBoardColors.length)];
+    final clusterId = clusterOf[index] ?? 0;
+    cells[index] = palette[clusterId % palette.length];
   }
 
   _breakFullLines(cells, size, random);
@@ -1014,4 +1021,3 @@ void _breakFullLines(Map<int, Color> cells, int size, Random random) {
     }
   } while (changed && iterations < size * 3);
 }
-

@@ -7,7 +7,17 @@ import 'piece_drag_controller.dart';
 import 'piece_drag_constants.dart';
 
 class PieceWidget extends StatelessWidget {
-  const PieceWidget({super.key, required this.piece, required this.cellSize, required this.onSelect, this.onDragStart, this.dragController, this.isSelected = false, this.disabled = false});
+  const PieceWidget({
+    super.key,
+    required this.piece,
+    required this.cellSize,
+    required this.onSelect,
+    this.onDragStart,
+    this.dragController,
+    this.isSelected = false,
+    this.disabled = false,
+    this.hitSlopTop = 0,
+  });
 
   final PieceModel piece;
   final double cellSize;
@@ -16,19 +26,23 @@ class PieceWidget extends StatelessWidget {
   final BlockDragController? dragController;
   final bool isSelected;
   final bool disabled;
-  static const double _dragFeedbackScale = 1.4;
+  final double hitSlopTop;
+  static const double _dragFeedbackScale = 1.5;
   static const double _liftDistance = 100;
 
   @override
   Widget build(BuildContext context) {
+    final contentPadding = context.dynamicHeight(0.010);
     final footprintWidth = (piece.width * cellSize) + 8;
     final footprintHeight = (piece.height * cellSize) + 8;
+    final visualWidth = footprintWidth + (contentPadding * 2);
+    final visualHeight = footprintHeight + (contentPadding * 2);
     final liftOffsetY = isSelected ? -_liftDistance : 0.0;
     final dragCellSize = cellSize * _dragFeedbackScale;
     final dragWidth = (piece.width * dragCellSize) + 8;
     final dragHeight = (piece.height * dragCellSize) + 8;
     final content = _buildContent(footprintWidth, footprintHeight);
-    final child = Opacity(
+    final baseChild = Opacity(
       opacity: disabled ? 0.4 : 1,
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: liftOffsetY),
@@ -36,7 +50,7 @@ class PieceWidget extends StatelessWidget {
         curve: Curves.easeOutBack,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.all(context.dynamicHeight(0.010)), // less padding => larger visible piece
+          padding: EdgeInsets.all(contentPadding), // less padding => larger visible piece
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.transparent, width: 1),
@@ -48,6 +62,7 @@ class PieceWidget extends StatelessWidget {
         },
       ),
     );
+    final child = _wrapWithHitArea(baseChild, visualWidth, visualHeight);
 
     if (disabled) {
       return child;
@@ -56,18 +71,29 @@ class PieceWidget extends StatelessWidget {
     // Preserve tray layout during drag so the board doesn't shift when a piece is lifted.
     final placeholderWhileDragging = IgnorePointer(child: Opacity(opacity: 0, child: child));
 
+    final dragAnchorStrategy = hitSlopTop > 0
+        ? (Draggable<Object> draggable, BuildContext context, Offset position) {
+            final renderBox = context.findRenderObject() as RenderBox?;
+            final width = renderBox?.size.width ?? visualWidth;
+            // Keep feedback anchored to the visible piece center, ignoring extra hit area.
+            return Offset(width / 2, visualHeight / 2);
+          }
+        : childDragAnchorStrategy;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return LongPressDraggable<PieceModel>(
       // Keep a minimal hold so taps don't trigger; effectively instant drag.
       delay: const Duration(milliseconds: 60),
       hapticFeedbackOnStart: true,
       data: piece,
       // Anchor drag to the widget center so lift/drag is purely vertical, regardless of tap position.
-      dragAnchorStrategy: childDragAnchorStrategy,
+      dragAnchorStrategy: dragAnchorStrategy,
       feedback: Material(
         color: Colors.transparent,
-        child: Transform.translate(
-          offset: const Offset(0, -kPieceDragPointerYOffset),
-          child: _buildContent(dragWidth, dragHeight, feedback: true, cellSizeOverride: dragCellSize),
+        child: _buildFeedback(
+          dragWidth,
+          dragHeight,
+          dragCellSize,
         ),
       ),
       // Do not leave a ghost copy in the tray while dragging.
@@ -78,7 +104,10 @@ class PieceWidget extends StatelessWidget {
           onSelect(); // Select so board drops can succeed during drag.
         }
       },
-      onDragUpdate: (details) => dragController?.updateHover(piece, details.globalPosition),
+      onDragUpdate: (details) {
+        dragController?.updateHover(piece, details.globalPosition);
+        dragController?.updateLift(details.globalPosition, screenHeight);
+      },
       // Only allow dragging for visual feedback; always snap back on release.
       onDragEnd: (details) {
         // Let the board decide; always clear hover so we don't leave floating previews.
@@ -87,10 +116,66 @@ class PieceWidget extends StatelessWidget {
           dragController?.completeDrop(piece, details.offset);
         }
         dragController?.cancelHover();
+        dragController?.resetLift();
       },
-      onDraggableCanceled: (_, __) => dragController?.cancelHover(),
-      onDragCompleted: () => dragController?.cancelHover(),
+      onDraggableCanceled: (_, __) {
+        dragController?.cancelHover();
+        dragController?.resetLift();
+      },
+      onDragCompleted: () {
+        dragController?.cancelHover();
+        dragController?.resetLift();
+      },
       child: child,
+    );
+  }
+
+  Widget _buildFeedback(
+    double width,
+    double height,
+    double cellSizeOverride,
+  ) {
+    final content = _buildContent(
+      width,
+      height,
+      feedback: true,
+      cellSizeOverride: cellSizeOverride,
+    );
+    final controller = dragController;
+    if (controller == null) {
+      return Transform.translate(
+        offset: const Offset(0, -kPieceDragMinLift),
+        child: content,
+      );
+    }
+    return ValueListenableBuilder<double>(
+      valueListenable: controller.liftOffset,
+      builder: (context, lift, child) {
+        return Transform.translate(
+          offset: Offset(0, -lift),
+          child: child,
+        );
+      },
+      child: content,
+    );
+  }
+
+  Widget _wrapWithHitArea(Widget content, double width, double height) {
+    if (hitSlopTop <= 0) return content;
+    return SizedBox(
+      width: width,
+      height: height + hitSlopTop,
+      child: Stack(
+        children: [
+          const Positioned.fill(
+            child: ColoredBox(color: Colors.transparent),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: content,
+          ),
+        ],
+      ),
     );
   }
 
