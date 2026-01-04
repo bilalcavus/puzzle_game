@@ -171,7 +171,7 @@ class PieceWidget extends StatelessWidget {
             child: ColoredBox(color: Colors.transparent),
           ),
           Align(
-            alignment: Alignment.bottomCenter,
+            alignment: Alignment.center,
             child: content,
           ),
         ],
