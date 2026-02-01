@@ -11,6 +11,7 @@ import '../models/block_level_models.dart';
 import '../models/piece_model.dart';
 import 'block_leaderboard_provider.dart';
 import '../core/utils/block_piece_factory.dart';
+import '../core/theme/block_palette.dart';
 import 'sound_provider.dart';
 
 const String kBlockLevelProgressKey = 'block_level_progress';
@@ -608,7 +609,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       filled[index] = token.color;
     });
     for (final index in obstacles) {
-      filled[index] = const Color(0xFF9B6A3C);
+      filled[index] = kClassicBlockPalette[0];
     }
     _breakFullLines(filled, size, Random(DateTime.now().millisecondsSinceEpoch));
     final startingPieces = generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
@@ -822,13 +823,7 @@ class _ClearResult {
   final Map<int, Color> removedCells;
 }
 
-const List<Color> _seedBoardColors = [
-  Color.fromARGB(255, 199, 118, 4), // mavi (koyu)
-  Color(0xFFF67C1F), // turuncu
-  Color(0xFF2FB34A), // yeşil
-  Color(0xFF9C4DFF), // mor
-  Color(0xFFF4C542), // sarı
-];
+const List<Color> _seedBoardColors = kClassicBlockPalette;
 
 List<int> _adjacentIndices(int index, int size, {bool includeDiagonals = false}) {
   final row = index ~/ size;
