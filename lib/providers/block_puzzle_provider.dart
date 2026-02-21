@@ -354,6 +354,20 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       final index = targetRow * state.size + targetCol;
       updatedCells[index] = piece.color;
     }
+    Map<int, BlockLevelToken> updatedTargets = state.levelTargets;
+    if (state.levelMode && !state.levelCompleted && piece.tokenBlocks.isNotEmpty) {
+      final targetMap = Map<int, BlockLevelToken>.from(state.levelTargets);
+      piece.tokenBlocks.forEach((blockIndex, token) {
+        if (blockIndex < 0 || blockIndex >= piece.blocks.length) return;
+        final block = piece.blocks[blockIndex];
+        final targetRow = row + block.rowOffset;
+        final targetCol = col + block.colOffset;
+        if (targetRow < 0 || targetCol < 0 || targetRow >= state.size || targetCol >= state.size) return;
+        final index = targetRow * state.size + targetCol;
+        targetMap[index] = token;
+      });
+      updatedTargets = targetMap;
+    }
 
     final updatedPieces = List<PieceModel>.from(state.availablePieces)..removeWhere((element) => element.id == pieceId);
     final clearResult = _clearCompletedLines(updatedCells);
@@ -379,7 +393,11 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         nextCombo = 0;
       }
       final bias = state.levelMode ? _levelEasyBiasFor(state.level) : 0.65;
-      updatedPieces.addAll(generatePlayablePieces(boardSize: state.size, filledCells: clearResult.cells, easyBias: bias));
+      var nextPieces = generatePlayablePieces(boardSize: state.size, filledCells: clearResult.cells, easyBias: bias);
+      if (state.levelMode && !state.levelCompleted) {
+        nextPieces = _applyLevelTokensToPieces(nextPieces, state.levelGoals);
+      }
+      updatedPieces.addAll(nextPieces);
     }
 
     var nextStatus = state.status;
@@ -404,6 +422,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       setHadClear: setEnded ? false : setHadClearNow,
       showComboText: showCombo,
       blockExplosions: explosionQueue,
+      levelTargets: updatedTargets,
     );
     _persistState();
     if (triggeredPerfect) {
@@ -537,6 +556,56 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     return generatePlayablePieces(boardSize: size, filledCells: filled, count: pieces.length, easyBias: easyBias);
   }
 
+  List<PieceModel> _applyLevelTokensToPieces(List<PieceModel> pieces, List<BlockLevelGoal> goals) {
+    if (pieces.isEmpty || goals.isEmpty) return pieces;
+    final remaining = <BlockLevelToken, int>{};
+    for (final goal in goals) {
+      if (goal.remaining > 0) {
+        remaining[goal.token] = (remaining[goal.token] ?? 0) + goal.remaining;
+      }
+    }
+    final totalRemaining = remaining.values.fold<int>(0, (sum, value) => sum + value);
+    if (totalRemaining == 0) return pieces;
+
+    final maxTokenPieces = min(2, pieces.length);
+    final tokenPieceCount = maxTokenPieces == 1 ? 1 : (_random.nextDouble() < 0.6 ? 1 : 2);
+    final indices = List<int>.generate(pieces.length, (index) => index)..shuffle(_random);
+
+    for (final pieceIndex in indices.take(tokenPieceCount)) {
+      final piece = pieces[pieceIndex];
+      if (piece.blocks.isEmpty) continue;
+      final token = _pickTokenWeighted(remaining);
+      if (token == null) continue;
+      final blockIndex = _random.nextInt(piece.blocks.length);
+      final updatedTokens = Map<int, BlockLevelToken>.from(piece.tokenBlocks);
+      updatedTokens[blockIndex] = token;
+      pieces[pieceIndex] = piece.copyWith(tokenBlocks: updatedTokens);
+
+      final current = remaining[token];
+      if (current != null) {
+        final next = current - 1;
+        if (next <= 0) {
+          remaining.remove(token);
+        } else {
+          remaining[token] = next;
+        }
+      }
+    }
+    return pieces;
+  }
+
+  BlockLevelToken? _pickTokenWeighted(Map<BlockLevelToken, int> remaining) {
+    if (remaining.isEmpty) return null;
+    final total = remaining.values.fold<int>(0, (sum, value) => sum + value);
+    if (total <= 0) return null;
+    var roll = _random.nextInt(total);
+    for (final entry in remaining.entries) {
+      roll -= entry.value;
+      if (roll < 0) return entry.key;
+    }
+    return remaining.keys.first;
+  }
+
   void _scheduleFlagReset(bool perfect, bool particles, bool comboActive) {
     _pulseTimer?.cancel();
     _pulseTimer = Timer(const Duration(milliseconds: 260), () {
@@ -627,7 +696,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       filled[index] = kClassicBlockPalette[0];
     }
     _breakFullLines(filled, size, Random(DateTime.now().millisecondsSinceEpoch));
-    final startingPieces = generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
+    var startingPieces = generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
+    startingPieces = _applyLevelTokensToPieces(startingPieces, goals);
     state = BlockPuzzleState.initial(size: size).copyWith(
       filledCells: filled,
       seedIndices: {...tokens.keys, ...obstacles},

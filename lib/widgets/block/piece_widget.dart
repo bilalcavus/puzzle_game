@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:puzzle_game/core/extension/dynamic_size.dart';
 
+import '../../models/block_level_models.dart';
 import '../../models/piece_model.dart';
 import 'block_tile.dart';
 import 'piece_drag_controller.dart';
@@ -185,15 +186,36 @@ class PieceWidget extends StatelessWidget {
       width: width,
       height: height,
       child: Stack(
-        children: piece.blocks
-            .map(
-              (block) => Positioned(
-                top: block.rowOffset * tileSize,
-                left: block.colOffset * tileSize,
-                child: BlockTile(size: tileSize, color: piece.color, pulse: !feedback && isSelected),
-              ),
-            )
-            .toList(),
+        children: List.generate(piece.blocks.length, (index) {
+          final block = piece.blocks[index];
+          final token = piece.tokenForBlockIndex(index);
+          return Positioned(
+            top: block.rowOffset * tileSize,
+            left: block.colOffset * tileSize,
+            child: Stack(
+              children: [
+                BlockTile(
+                  size: tileSize,
+                  color: piece.color,
+                  pulse: !feedback && isSelected,
+                ),
+                if (token != null)
+                  SizedBox(
+                    width: tileSize,
+                    height: tileSize,
+                    child: Center(
+                      child: Image.asset(
+                        token.asset,
+                        width: tileSize * 0.7,
+                        height: tileSize * 0.7,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
