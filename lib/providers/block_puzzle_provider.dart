@@ -73,6 +73,7 @@ class BlockPuzzleState {
     required this.showInvalidPlacement,
     required this.seedIntroPlayed,
     required this.comboCount,
+    required this.setHadClear,
     required this.showComboText,
     required this.levelMode,
     required this.level,
@@ -98,6 +99,7 @@ class BlockPuzzleState {
   final bool showInvalidPlacement;
   final bool seedIntroPlayed;
   final int comboCount;
+  final bool setHadClear;
   final bool showComboText;
   final bool levelMode;
   final int level;
@@ -135,6 +137,7 @@ class BlockPuzzleState {
     bool? showInvalidPlacement,
     bool? seedIntroPlayed,
     int? comboCount,
+    bool? setHadClear,
     bool? showComboText,
     bool? levelMode,
     int? level,
@@ -160,6 +163,7 @@ class BlockPuzzleState {
       showInvalidPlacement: showInvalidPlacement ?? this.showInvalidPlacement,
       seedIntroPlayed: seedIntroPlayed ?? this.seedIntroPlayed,
       comboCount: comboCount ?? this.comboCount,
+      setHadClear: setHadClear ?? this.setHadClear,
       showComboText: showComboText ?? this.showComboText,
       levelMode: levelMode ?? this.levelMode,
       level: level ?? this.level,
@@ -189,6 +193,7 @@ class BlockPuzzleState {
       showInvalidPlacement: false,
       seedIntroPlayed: false,
       comboCount: 0,
+      setHadClear: false,
       showComboText: false,
       levelMode: false,
       level: 1,
@@ -261,6 +266,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       }
       final seedIntroPlayed = decoded['seedIntroPlayed'] as bool? ?? true;
       final comboCount = decoded['comboCount'] as int? ?? 0;
+      final setHadClear = decoded['setHadClear'] as bool? ?? false;
       final piecesRaw = (decoded['pieces'] as List<dynamic>? ?? <dynamic>[]).map((e) => PieceModel.fromJson(e as String)).toList();
       final score = decoded['score'] as int? ?? 0;
       final selected = decoded['selected'] as String?;
@@ -281,6 +287,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
         showInvalidPlacement: false,
         seedIntroPlayed: seedIntroPlayed,
         comboCount: comboCount,
+        setHadClear: setHadClear,
         showComboText: false,
         levelMode: false,
         level: 1,
@@ -309,6 +316,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       'seed': state.seedIndices.toList(),
       'seedIntroPlayed': state.seedIntroPlayed,
       'comboCount': state.comboCount,
+      'setHadClear': state.setHadClear,
     };
     await prefs.setString(_stateKey, jsonEncode(map));
     await prefs.setInt(_bestKey, state.bestScore);
@@ -349,24 +357,30 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
     final updatedPieces = List<PieceModel>.from(state.availablePieces)..removeWhere((element) => element.id == pieceId);
     final clearResult = _clearCompletedLines(updatedCells);
-    if (updatedPieces.isEmpty) {
-      final bias = state.levelMode ? _levelEasyBiasFor(state.level) : 0.65;
-      updatedPieces.addAll(generatePlayablePieces(boardSize: state.size, filledCells: clearResult.cells, easyBias: bias));
-    }
     final newExplosions = clearResult.removedCells.entries
         .map((entry) => BlockExplosionEffect(id: DateTime.now().microsecondsSinceEpoch + entry.key + _random.nextInt(1000), index: entry.key, color: entry.value))
         .toList(growable: false);
     final explosionQueue = List<BlockExplosionEffect>.unmodifiable([...state.blockExplosions, ...newExplosions]);
     final linesCleared = clearResult.linesCleared;
-    final earnedCombo = linesCleared > 0;
+    final earnedClear = linesCleared > 0;
     final triggeredPerfect = linesCleared >= 2;
-    final nextCombo = earnedCombo ? state.comboCount + 1 : 0;
-    final showCombo = earnedCombo && nextCombo >= 2;
+    var nextCombo = earnedClear ? state.comboCount + 1 : state.comboCount;
+    final showCombo = earnedClear && nextCombo >= 2;
+    final setHadClearNow = state.setHadClear || earnedClear;
     final placementScore = piece.cellCount * 5;
     final lineBonus = linesCleared * state.size * 2;
     final newScore = state.score + placementScore + lineBonus;
     final newBest = max(newScore, state.bestScore);
     final totalLines = state.totalLinesCleared + linesCleared;
+
+    final setEnded = updatedPieces.isEmpty;
+    if (setEnded) {
+      if (!setHadClearNow) {
+        nextCombo = 0;
+      }
+      final bias = state.levelMode ? _levelEasyBiasFor(state.level) : 0.65;
+      updatedPieces.addAll(generatePlayablePieces(boardSize: state.size, filledCells: clearResult.cells, easyBias: bias));
+    }
 
     var nextStatus = state.status;
     if (!_hasAnyValidMove(updatedPieces, clearResult.cells)) {
@@ -387,6 +401,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       pulseBoard: true,
       showInvalidPlacement: false,
       comboCount: nextCombo,
+      setHadClear: setEnded ? false : setHadClearNow,
       showComboText: showCombo,
       blockExplosions: explosionQueue,
     );
@@ -624,6 +639,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       pulseBoard: false,
       showInvalidPlacement: false,
       comboCount: 0,
+      setHadClear: false,
       showComboText: false,
       levelMode: true,
       level: normalized,

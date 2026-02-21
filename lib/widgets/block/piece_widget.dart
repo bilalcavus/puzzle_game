@@ -28,7 +28,7 @@ class PieceWidget extends StatelessWidget {
   final bool disabled;
   final double hitSlopTop;
   static const double _dragFeedbackScale = 1.5;
-  static const double _liftDistance = 100;
+  static const double _liftDistance = 60;
 
   @override
   Widget build(BuildContext context) {
