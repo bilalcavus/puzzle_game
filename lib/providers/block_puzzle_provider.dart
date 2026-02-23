@@ -576,9 +576,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       if (piece.blocks.isEmpty) continue;
       final token = _pickTokenWeighted(remaining);
       if (token == null) continue;
-      final blockIndex = _random.nextInt(piece.blocks.length);
       final updatedTokens = Map<int, BlockLevelToken>.from(piece.tokenBlocks);
-      updatedTokens[blockIndex] = token;
+      for (var i = 0; i < piece.blocks.length; i++) {
+        updatedTokens[i] = token;
+      }
       pieces[pieceIndex] = piece.copyWith(tokenBlocks: updatedTokens);
 
       final current = remaining[token];

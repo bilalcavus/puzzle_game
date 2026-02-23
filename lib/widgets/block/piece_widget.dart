@@ -89,14 +89,7 @@ class PieceWidget extends StatelessWidget {
       data: piece,
       // Anchor drag to the widget center so lift/drag is purely vertical, regardless of tap position.
       dragAnchorStrategy: dragAnchorStrategy,
-      feedback: Material(
-        color: Colors.transparent,
-        child: _buildFeedback(
-          dragWidth,
-          dragHeight,
-          dragCellSize,
-        ),
-      ),
+      feedback: Material(color: Colors.transparent, child: _buildFeedback(dragWidth, dragHeight, dragCellSize)),
       // Do not leave a ghost copy in the tray while dragging.
       childWhenDragging: placeholderWhileDragging,
       onDragStarted: () {
@@ -131,31 +124,16 @@ class PieceWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildFeedback(
-    double width,
-    double height,
-    double cellSizeOverride,
-  ) {
-    final content = _buildContent(
-      width,
-      height,
-      feedback: true,
-      cellSizeOverride: cellSizeOverride,
-    );
+  Widget _buildFeedback(double width, double height, double cellSizeOverride) {
+    final content = _buildContent(width, height, feedback: true, cellSizeOverride: cellSizeOverride);
     final controller = dragController;
     if (controller == null) {
-      return Transform.translate(
-        offset: const Offset(0, -kPieceDragMinLift),
-        child: content,
-      );
+      return Transform.translate(offset: const Offset(0, -kPieceDragMinLift), child: content);
     }
     return ValueListenableBuilder<double>(
       valueListenable: controller.liftOffset,
       builder: (context, lift, child) {
-        return Transform.translate(
-          offset: Offset(0, -lift),
-          child: child,
-        );
+        return Transform.translate(offset: Offset(0, -lift), child: child);
       },
       child: content,
     );
@@ -168,13 +146,8 @@ class PieceWidget extends StatelessWidget {
       height: height + hitSlopTop,
       child: Stack(
         children: [
-          const Positioned.fill(
-            child: ColoredBox(color: Colors.transparent),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: content,
-          ),
+          const Positioned.fill(child: ColoredBox(color: Colors.transparent)),
+          Align(alignment: Alignment.center, child: content),
         ],
       ),
     );
@@ -194,22 +167,13 @@ class PieceWidget extends StatelessWidget {
             left: block.colOffset * tileSize,
             child: Stack(
               children: [
-                BlockTile(
-                  size: tileSize,
-                  color: piece.color,
-                  pulse: !feedback && isSelected,
-                ),
+                BlockTile(size: tileSize, color: piece.color, pulse: !feedback && isSelected),
                 if (token != null)
                   SizedBox(
                     width: tileSize,
                     height: tileSize,
                     child: Center(
-                      child: Image.asset(
-                        token.asset,
-                        width: tileSize * 0.7,
-                        height: tileSize * 0.7,
-                        fit: BoxFit.contain,
-                      ),
+                      child: Image.asset(token.asset, width: tileSize * 0.7, height: tileSize * 0.7, fit: BoxFit.contain),
                     ),
                   ),
               ],
