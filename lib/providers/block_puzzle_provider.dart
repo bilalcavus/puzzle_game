@@ -21,9 +21,9 @@ final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzz
 enum BlockGameStatus { playing, failed }
 
 const _selectionSentinel = Object();
-const double _levelObstacleRatio = 0.08;
+const double _levelObstacleRatio = 0.05;
 const int _levelMinObstacleCount = 3;
-const int _extraTokensPerGoal = 2;
+const int _extraTokensPerGoal = 1;
 const Duration _blockExplosionDuration = Duration(milliseconds: 600);
 
 double _levelEmptyRatioFor(int level) {
@@ -674,18 +674,18 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final size = 8;
     final rawGoals = _buildLevelGoals(normalized);
     final totalCells = size * size;
-    final maxGoalBudget = (totalCells * 0.75).floor(); // leave room for obstacles/empties
+    final maxGoalBudget = (totalCells * _levelGoalBudgetFactor(normalized)).floor();
     final goals = _capLevelGoals(rawGoals, maxGoalBudget);
     final minTokenBudget = goals.fold<int>(0, (sum, goal) => sum + goal.required);
-    final maxEmptyCells = totalCells - minTokenBudget;
-    final desiredEmptyCells = (totalCells * emptyRatio).round();
-    final initialEmptyCells = min(desiredEmptyCells, maxEmptyCells);
-    final targetEmptyCells = max(0, min(initialEmptyCells, totalCells));
-    final targetFilledCells = totalCells - targetEmptyCells;
     final desiredObstacleCount = max(_levelMinObstacleCount, (totalCells * _levelObstacleRatio).round());
-    final paddedTokenBudget = minTokenBudget + (goals.length * _extraTokensPerGoal);
-    final baseTokenBudget = max(targetFilledCells - desiredObstacleCount, paddedTokenBudget);
-    final tokenBudget = min(targetFilledCells, baseTokenBudget);
+    final maxBoardTokens = (totalCells / 2).floor();
+    final desiredBoardTokens = max(10, (totalCells * 0.25).round());
+    final desiredEmptyCells = (totalCells * emptyRatio).round();
+    final maxEmptyCells = max(0, totalCells - desiredObstacleCount - desiredBoardTokens);
+    final targetEmptyCells = max(0, min(desiredEmptyCells, maxEmptyCells));
+    final targetFilledCells = totalCells - targetEmptyCells;
+    final maxTokenCapacity = max(0, targetFilledCells - desiredObstacleCount);
+    final tokenBudget = min(min(desiredBoardTokens, maxBoardTokens), maxTokenCapacity);
     final obstacleBudget = targetFilledCells - tokenBudget;
     final tokens = _generateLevelTargets(size: size, goals: goals, tokenBudget: tokenBudget);
     final obstacles = _generateLevelObstacles(size: size, exclude: tokens.keys.toSet(), count: obstacleBudget);
@@ -765,11 +765,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   List<BlockLevelGoal> _buildLevelGoals(int level) {
     final tokens = List<BlockLevelToken>.from(BlockLevelToken.values)..shuffle(_random);
-    const baseRequirements = [1, 2, 2];
+    const baseRequirements = [2, 3, 3];
     final adjusted = List<int>.from(baseRequirements);
-    final increments = max(0, level - 1);
-    final spacedIncrement = (increments / 2).floor(); // grow every two levels
-    for (var i = 0; i < spacedIncrement; i++) {
+    final increments = _levelIncrementCount(level);
+    for (var i = 0; i < increments; i++) {
       adjusted[i % adjusted.length]++;
     }
     return List.generate(adjusted.length, (index) {
@@ -777,6 +776,35 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       final required = adjusted[index];
       return BlockLevelGoal(token: token, required: required, remaining: required);
     });
+  }
+
+  int _levelIncrementCount(int level) {
+    final normalized = max(1, level);
+    if (normalized <= 1) return 0;
+    var remaining = normalized - 1;
+    var total = 0;
+
+    int take(int count, int rate) {
+      final used = min(remaining, count);
+      remaining -= used;
+      return used * rate;
+    }
+
+    total += take(10, 1); // L1-10
+    total += take(19, 2); // L11-29
+    total += take(20, 3); // L30-49
+    total += take(20, 4); // L50-69
+    if (remaining > 0) {
+      total += remaining * 5; // L70+
+    }
+    return total;
+  }
+
+  double _levelGoalBudgetFactor(int level) {
+    if (level >= 70) return 2.0;
+    if (level >= 50) return 1.6;
+    if (level >= 30) return 1.2;
+    return 0.85;
   }
 
   List<BlockLevelGoal> _capLevelGoals(List<BlockLevelGoal> goals, int maxBudget) {

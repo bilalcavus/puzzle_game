@@ -148,6 +148,7 @@ class _LevelHeader extends StatelessWidget {
         context.dynamicHeight(0.04).height,
         Row(
           children: goals
+              .where((goal) => !goal.isComplete)
               .map((goal) => Expanded(child: _GoalBadge(goal: goal)))
               .toList(),
         ),
@@ -314,7 +315,7 @@ class _GoalBadge extends StatelessWidget {
         // ),
         context.dynamicHeight(0.01).height,
         Text(
-          '${goal.remaining}/${goal.required}',
+          '${goal.remaining}',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w900,
