@@ -842,25 +842,52 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final targets = <int, BlockLevelToken>{};
     if (tokenBudget <= 0 || goals.isEmpty) return targets;
     final used = <int>{};
-    final totalRequired = goals.fold<int>(0, (sum, goal) => sum + goal.required);
-    final extraCells = max(0, tokenBudget - totalRequired);
-    final basePadding = extraCells ~/ goals.length;
-    var remainder = extraCells % goals.length;
+    final quotas = List<int>.filled(goals.length, 0);
     var remainingBudget = tokenBudget;
-    for (final goal in goals) {
-      if (remainingBudget <= 0) break;
-      final additional = basePadding + (remainder > 0 ? 1 : 0);
-      if (remainder > 0) remainder--;
+    final minAllocations = min(remainingBudget, goals.length);
+    for (var i = 0; i < minAllocations; i++) {
+      quotas[i] = 1;
+    }
+    remainingBudget -= minAllocations;
+
+    if (remainingBudget > 0) {
+      final totalRequired = goals.fold<int>(0, (sum, goal) => sum + goal.required);
+      if (totalRequired > 0) {
+        var leftover = remainingBudget;
+        for (var i = 0; i < goals.length; i++) {
+          final share = ((goals[i].required / totalRequired) * remainingBudget).floor();
+          if (share > 0) {
+            quotas[i] += share;
+            leftover -= share;
+          }
+        }
+        var idx = 0;
+        while (leftover > 0) {
+          quotas[idx % goals.length] += 1;
+          leftover--;
+          idx++;
+        }
+      } else {
+        var idx = 0;
+        while (remainingBudget > 0) {
+          quotas[idx % goals.length] += 1;
+          remainingBudget--;
+          idx++;
+        }
+      }
+    }
+
+    for (var i = 0; i < goals.length; i++) {
+      final goal = goals[i];
       final remainingCells = (size * size) - used.length;
       if (remainingCells <= 0) break;
-      final quota = min(goal.required + additional, min(remainingBudget, remainingCells));
+      final quota = min(quotas[i], remainingCells);
       if (quota <= 0) continue;
       final cluster = _claimClusterIndices(size: size, count: quota, used: used, random: _random, scatterProbability: 0.2);
       for (final index in cluster) {
         targets[index] = goal.token;
         used.add(index);
       }
-      remainingBudget = max(0, remainingBudget - cluster.length);
     }
     return targets;
   }
