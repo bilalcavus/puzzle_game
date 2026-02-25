@@ -693,9 +693,10 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     tokens.forEach((index, token) {
       filled[index] = token.color;
     });
-    for (final index in obstacles) {
-      filled[index] = kClassicBlockPalette[0];
-    }
+    final obstacleColors = _colorizeObstacleClusters(size, obstacles, _random);
+    obstacleColors.forEach((index, color) {
+      filled[index] = color;
+    });
     _breakFullLines(filled, size, Random(DateTime.now().millisecondsSinceEpoch));
     var startingPieces = generatePlayablePieces(boardSize: size, filledCells: filled, easyBias: easyBias);
     startingPieces = _applyLevelTokensToPieces(startingPieces, goals);
@@ -864,14 +865,48 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     return targets;
   }
 
-  Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int count}) {
-    final totalCells = size * size;
-    final targetCount = max(0, min(count, totalCells - exclude.length));
-    final used = exclude.toSet();
-    final cluster = _claimClusterIndices(size: size, count: targetCount, used: used, random: _random, scatterProbability: 0.4);
-    final obstacles = cluster.toSet();
-    return obstacles;
+Set<int> _generateLevelObstacles({required int size, required Set<int> exclude, required int count}) {
+  final totalCells = size * size;
+  final targetCount = max(0, min(count, totalCells - exclude.length));
+  final used = exclude.toSet();
+  final cluster = _claimClusterIndices(size: size, count: targetCount, used: used, random: _random, scatterProbability: 0.4);
+  final obstacles = cluster.toSet();
+  return obstacles;
+}
+
+Map<int, Color> _colorizeObstacleClusters(int size, Set<int> obstacles, Random random) {
+  if (obstacles.isEmpty) return const {};
+  final palettePool = List<Color>.from(_seedBoardColors)..shuffle(random);
+  final clusters = <List<int>>[];
+  final remaining = obstacles.toSet();
+  while (remaining.isNotEmpty) {
+    final start = remaining.first;
+    final queue = <int>[start];
+    final cluster = <int>[];
+    remaining.remove(start);
+    while (queue.isNotEmpty) {
+      final current = queue.removeLast();
+      cluster.add(current);
+      for (final neighbor in _adjacentIndices(current, size)) {
+        if (remaining.remove(neighbor)) {
+          queue.add(neighbor);
+        }
+      }
+    }
+    clusters.add(cluster);
   }
+
+  final paletteSize = min(3, max(2, clusters.length));
+  final palette = palettePool.take(paletteSize).toList();
+  final colors = <int, Color>{};
+  for (var i = 0; i < clusters.length; i++) {
+    final color = palette[i % palette.length];
+    for (final index in clusters[i]) {
+      colors[index] = color;
+    }
+  }
+  return colors;
+}
 
   void _handleLevelProgress(Set<int> removedIndices) {
     if (!state.levelMode || removedIndices.isEmpty || state.levelTargets.isEmpty) {
