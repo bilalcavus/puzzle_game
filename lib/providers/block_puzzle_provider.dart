@@ -854,7 +854,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       if (remainingCells <= 0) break;
       final quota = min(goal.required + additional, min(remainingBudget, remainingCells));
       if (quota <= 0) continue;
-      final cluster = _claimClusterIndices(size: size, count: quota, used: used, random: _random, scatterProbability: 0.45);
+      final cluster = _claimClusterIndices(size: size, count: quota, used: used, random: _random, scatterProbability: 0.2);
       for (final index in cluster) {
         targets[index] = goal.token;
         used.add(index);
