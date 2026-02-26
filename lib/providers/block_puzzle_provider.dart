@@ -217,6 +217,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   final bool _enablePersistence;
   static const _stateKey = 'block_puzzle_state';
   static const _bestKey = 'block_puzzle_best';
+  static const _failedKey = 'block_puzzle_failed';
   static const _seedVersion = 1;
 
   Timer? _perfectTimer;
@@ -230,6 +231,13 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     if (!_enablePersistence) return;
     final prefs = await SharedPreferences.getInstance();
     final best = prefs.getInt(_bestKey) ?? 0;
+    final failed = prefs.getBool(_failedKey) ?? false;
+    if (failed) {
+      await prefs.remove(_stateKey);
+      await prefs.setBool(_failedKey, false);
+      state = BlockPuzzleState.initial(size: state.size).copyWith(bestScore: best);
+      return;
+    }
     final raw = prefs.getString(_stateKey);
     if (raw == null) {
       state = state.copyWith(bestScore: best);
@@ -305,6 +313,13 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Future<void> _persistState() async {
     if (!_enablePersistence) return;
     final prefs = await SharedPreferences.getInstance();
+    if (state.status == BlockGameStatus.failed) {
+      await prefs.remove(_stateKey);
+      await prefs.setInt(_bestKey, state.bestScore);
+      await prefs.setBool(_failedKey, true);
+      return;
+    }
+    await prefs.setBool(_failedKey, false);
     final map = <String, dynamic>{
       'size': state.size,
       'score': state.score,
