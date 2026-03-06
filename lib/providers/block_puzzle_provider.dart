@@ -15,6 +15,7 @@ import '../core/theme/block_palette.dart';
 import 'sound_provider.dart';
 
 const String kBlockLevelProgressKey = 'block_level_progress';
+const int kBlockMaxLevel = 32;
 
 final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>((ref) => BlockPuzzleNotifier(ref));
 
@@ -683,7 +684,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   }
 
   void startLevelChallenge({int level = 1}) {
-    final normalized = level.clamp(1, 99);
+    final normalized = level.clamp(1, kBlockMaxLevel);
     final emptyRatio = _levelEmptyRatioFor(normalized);
     final easyBias = _levelEasyBiasFor(normalized);
     final size = 8;
@@ -999,7 +1000,7 @@ Map<int, Color> _colorizeObstacleClusters(int size, Set<int> obstacles, Random r
   Future<void> _updateLevelProgress(int unlockedLevel) async {
     final prefs = await SharedPreferences.getInstance();
     final current = prefs.getInt(kBlockLevelProgressKey) ?? 1;
-    final target = unlockedLevel.clamp(1, 99);
+    final target = unlockedLevel.clamp(1, kBlockMaxLevel);
     if (target > current) {
       await prefs.setInt(kBlockLevelProgressKey, target);
     }
