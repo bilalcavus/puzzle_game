@@ -26,7 +26,7 @@ class _BlockShatterEffectState extends State<BlockShatterEffect> with SingleTick
   void initState() {
     super.initState();
     final random = Random(widget.seed & 0x7fffffff);
-    _shards = List.generate(8, (index) {
+    _shards = List.generate(5, (index) {
       final angle = random.nextDouble() * pi * 2;
       final direction = Offset(cos(angle), sin(angle));
       final distance = widget.size * (0.3 + random.nextDouble() * 0.4);
@@ -41,7 +41,7 @@ class _BlockShatterEffectState extends State<BlockShatterEffect> with SingleTick
     });
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 520),
+      duration: const Duration(milliseconds: 420),
     )..forward();
   }
 
@@ -82,9 +82,7 @@ class _BlockShatterEffectState extends State<BlockShatterEffect> with SingleTick
                         decoration: BoxDecoration(
                           color: widget.color.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(shard.size * 0.3),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
-                          ],
+                          boxShadow: const [],
                         ),
                       ),
                     ),

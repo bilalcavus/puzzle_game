@@ -26,6 +26,7 @@ const double _levelObstacleRatio = 0.05;
 const int _levelMinObstacleCount = 3;
 const int _extraTokensPerGoal = 1;
 const Duration _blockExplosionDuration = Duration(milliseconds: 600);
+const int _maxExplosionEffectsPerMove = 12;
 
 double _levelEmptyRatioFor(int level) {
   // Easier early levels: start with more empty space, slowly reduce.
@@ -226,6 +227,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Timer? _pulseTimer;
   Timer? _errorTimer;
   Timer? _comboTimer;
+  Timer? _explosionCleanupTimer;
   final Random _random = Random();
 
   Future<void> _restoreState() async {
@@ -387,7 +389,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
     final updatedPieces = List<PieceModel>.from(state.availablePieces)..removeWhere((element) => element.id == pieceId);
     final clearResult = _clearCompletedLines(updatedCells);
-    final newExplosions = clearResult.removedCells.entries
+    final limitedRemovedCells = clearResult.removedCells.entries.take(_maxExplosionEffectsPerMove);
+    final newExplosions = limitedRemovedCells
         .map((entry) => BlockExplosionEffect(id: DateTime.now().microsecondsSinceEpoch + entry.key + _random.nextInt(1000), index: entry.key, color: entry.value))
         .toList(growable: false);
     final explosionQueue = List<BlockExplosionEffect>.unmodifiable([...state.blockExplosions, ...newExplosions]);
@@ -449,9 +452,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       unawaited(_ref.read(soundControllerProvider).playCombo());
     }
     _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
-    for (final effect in newExplosions) {
-      _scheduleExplosionCleanup(effect.id);
-    }
+    _scheduleExplosionCleanup(newExplosions.map((e) => e.id).toSet());
     return true;
   }
 
@@ -655,10 +656,12 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     }
   }
 
-  void _scheduleExplosionCleanup(int id) {
-    Future.delayed(_blockExplosionDuration, () {
+  void _scheduleExplosionCleanup(Set<int> ids) {
+    if (ids.isEmpty) return;
+    _explosionCleanupTimer?.cancel();
+    _explosionCleanupTimer = Timer(_blockExplosionDuration, () {
       if (!mounted) return;
-      final filtered = state.blockExplosions.where((effect) => effect.id != id).toList(growable: false);
+      final filtered = state.blockExplosions.where((effect) => !ids.contains(effect.id)).toList(growable: false);
       if (filtered.length == state.blockExplosions.length) return;
       state = state.copyWith(blockExplosions: List<BlockExplosionEffect>.unmodifiable(filtered));
     });
@@ -670,6 +673,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
     _comboTimer?.cancel();
+    _explosionCleanupTimer?.cancel();
     if (state.levelMode) {
       startLevelChallenge(level: state.level);
       return;
@@ -768,6 +772,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
     _comboTimer?.cancel();
+    _explosionCleanupTimer?.cancel();
     super.dispose();
   }
 

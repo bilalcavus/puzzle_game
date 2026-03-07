@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -10,24 +10,21 @@ class ParticleBurst extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final random = Random();
-    final particles = List.generate(12, (index) {
-      final angle = (index / 12) * 2 * pi;
-      final radius = size * 0.4;
-      final dx = radius * cos(angle) + random.nextDouble() * 12 - 6;
-      final dy = radius * sin(angle) + random.nextDouble() * 12 - 6;
+    final particles = List.generate(8, (index) {
+      final angle = (index / 8) * 6.283185307179586;
+      final radius = size * 0.32;
+      final dx = radius * math.cos(angle);
+      final dy = radius * math.sin(angle);
       return Positioned(
         left: size / 2 + dx,
         top: size / 2 + dy,
         child: Container(
-          width: 8,
-          height: 8,
+          width: 6,
+          height: 6,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.yellowAccent.withValues(alpha: 0.8),
-            boxShadow: const [
-              BoxShadow(color: Colors.white54, blurRadius: 6),
-            ],
+            boxShadow: const [BoxShadow(color: Colors.white38, blurRadius: 3)],
           ),
         ),
       );
@@ -37,8 +34,8 @@ class ParticleBurst extends StatelessWidget {
       ignoring: true,
       child: AnimatedOpacity(
         opacity: visible ? 1 : 0,
-        duration: const Duration(milliseconds: 300),
-        child: Stack(children: particles),
+        duration: const Duration(milliseconds: 220),
+        child: RepaintBoundary(child: Stack(children: particles)),
       ),
     );
   }
