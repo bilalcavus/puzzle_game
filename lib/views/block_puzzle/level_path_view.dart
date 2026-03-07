@@ -274,7 +274,6 @@ class _LevelTile extends StatelessWidget {
     final current = level == currentLevel;
     final double badgePadding = size * 0.12;
     final double levelFontSize = size * 0.4;
-    final double bottomIconSize = size * 0.22;
     final double spacing = size * 0.08;
 
     final bool isTrunkLevel = level! <= 5;
@@ -327,15 +326,15 @@ class _LevelTile extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: badgePadding.clamp(6, 18), horizontal: (size * 0.05).clamp(2, 10)),
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Column(
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('$level', style: textStyle),
-                  SizedBox(height: spacing.clamp(2, 10)),
                   if (!unlocked)
-                    Icon(Icons.lock, size: bottomIconSize.clamp(8, 18), color: const Color(0xFF7f6a52))
-                  else
-                    Icon(Icons.circle, size: (bottomIconSize * 0.7).clamp(4, 12), color: const Color(0xFFa85c18)),
+                    ...[
+                      SizedBox(height: spacing.clamp(2, 10)),
+                      Icon(Icons.lock, size: (size * 0.22).clamp(8, 18), color: const Color(0xFF7f6a52)),
+                    ],
                 ],
               ),
             ),
