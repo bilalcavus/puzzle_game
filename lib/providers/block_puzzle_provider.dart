@@ -15,7 +15,7 @@ import '../core/theme/block_palette.dart';
 import 'sound_provider.dart';
 
 const String kBlockLevelProgressKey = 'block_level_progress';
-const int kBlockMaxLevel = 32;
+const int kBlockMaxLevel = 96;
 
 final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>((ref) => BlockPuzzleNotifier(ref));
 
