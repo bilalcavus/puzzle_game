@@ -62,7 +62,7 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
   static const int _secondPageStart = 47;
 
   late final PageController _pageController;
-  late final Future<int> _progressFuture;
+  late Future<int> _progressFuture;
   int _currentPage = 0;
   bool _didSetInitialPage = false;
 
@@ -119,9 +119,14 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
             });
           }
 
-          void handleLevelTap(int level) {
+          Future<void> handleLevelTap(int level) async {
             ref.read(blockPuzzleLevelProvider.notifier).startLevelChallenge(level: level);
-            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BlockPuzzleLevelGameView()));
+            await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BlockPuzzleLevelGameView()));
+            if (!mounted) return;
+            setState(() {
+              _progressFuture = _loadProgress();
+              _didSetInitialPage = false;
+            });
           }
 
           return _LevelPathBackground(
