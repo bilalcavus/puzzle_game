@@ -5,7 +5,6 @@ import 'app/app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //await MobileAds.instance.initialize();
   await EasyLocalization.ensureInitialized();
   runApp(
     EasyLocalization(

@@ -4,19 +4,14 @@ import 'package:flutter/material.dart';
 
 import '../../models/block_model.dart';
 import '../../models/piece_model.dart';
+import '../theme/block_palette.dart';
 
 final _random = Random();
 
 int _normalizeCount(int count) => count < 1 ? 1 : (count > 6 ? 6 : count);
 
 // Default vivid yet soft puzzle palette (distinct, non-clashing hues).
-const _palette = [
-  Color.fromARGB(255, 199, 118, 4), // mavi (koyu)
-  Color(0xFFF67C1F), // turuncu
-  Color.fromARGB(255, 76, 215, 104), // yeşil
-  Color(0xFF9C4DFF), // mor
-  Color(0xFFF4C542), // sarı
-];
+const _palette = kClassicBlockPalette;
 
 final List<List<List<int>>> _shapes = [
   // Single block

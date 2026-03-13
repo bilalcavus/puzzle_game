@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/block_palette.dart';
+
 enum BlockLevelToken { leaf, wood, mushroom }
 
 extension BlockLevelTokenVisuals on BlockLevelToken {
@@ -17,11 +19,11 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
   Color get color {
     switch (this) {
       case BlockLevelToken.leaf:
-        return const Color.fromARGB(255, 109, 41, 8);
+        return kClassicBlockPalette[2];
       case BlockLevelToken.wood:
-        return const Color(0xFFC47A47);
+        return kClassicBlockPalette[0];
       case BlockLevelToken.mushroom:
-        return const Color.fromARGB(255, 255, 170, 24);
+        return kClassicBlockPalette[1];
     }
   }
 

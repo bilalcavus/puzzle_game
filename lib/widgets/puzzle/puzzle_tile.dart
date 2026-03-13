@@ -12,6 +12,7 @@ class PuzzleTile extends ConsumerWidget {
 
   final TileModel tile;
   final double tileSize;
+  static const double _dragFeedbackDy = 8;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,9 +24,12 @@ class PuzzleTile extends ConsumerWidget {
       child: LongPressDraggable<int>(
         data: tile.value,
         dragAnchorStrategy: pointerDragAnchorStrategy,
-        feedback: Material(
-          color: Colors.transparent,
-          child: TileWidget(text: '${tile.value}', size: tileSize, highlight: true),
+        feedback: Transform.translate(
+          offset: const Offset(0, _dragFeedbackDy),
+          child: Material(
+            color: Colors.transparent,
+            child: TileWidget(text: '${tile.value}', size: tileSize, highlight: true),
+          ),
         ),
         childWhenDragging: Opacity(
           opacity: 0.2,
