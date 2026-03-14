@@ -166,61 +166,6 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     });
   }
 
-  Widget _buildComboOverlay(BlockPuzzleState state, BuildContext context) {
-    final textStyle =
-        Theme.of(context).textTheme.displaySmall?.copyWith(
-          fontWeight: FontWeight.w900,
-          letterSpacing: 3,
-          color: const Color(0xFFFFE9CC),
-          shadows: const [
-            Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 6),
-          ],
-        ) ??
-        const TextStyle(
-          fontSize: 42,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 3,
-          color: Color(0xFFFFE9CC),
-          shadows: [
-            Shadow(color: Colors.black54, offset: Offset(0, 4), blurRadius: 6),
-          ],
-        );
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
-      switchInCurve: Curves.linear,
-      switchOutCurve: Curves.linear,
-      transitionBuilder: (child, animation) {
-        final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-        final scale = Tween<double>(begin: 0.9, end: 1.0).animate(fade);
-        return FadeTransition(
-          opacity: fade,
-          child: ScaleTransition(scale: scale, child: child),
-        );
-      },
-      child: state.showComboText
-          ? RepaintBoundary(
-              key: const ValueKey('combo-visible'),
-              child: Center(
-                child: Transform.rotate(
-                  angle: -pi / 18,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      tr(
-                        'block_game.combo',
-                        namedArgs: {'count': '${state.comboCount}'},
-                      ),
-                      style: textStyle,
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : const SizedBox(key: ValueKey('combo-hidden')),
-    );
-  }
-
   void _attachController() {
     final controller = widget.dragController;
     controller.onHover = (piece, position) =>
@@ -234,20 +179,15 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   Widget build(BuildContext context) {
     final state = ref.watch(widget.provider);
     _maybeStartSeedIntro(state);
-    final board = SizedBox(
-      key: _boardKey,
-      width: widget.dimension,
-      height: widget.dimension,
-      child: DragTarget<PieceModel>(
-        onWillAcceptWithDetails: (_) => true,
-        onAcceptWithDetails: (details) {
-          _clearHover();
-          _handleDrop(details, state);
-        },
-        builder: (context, candidateData, rejectedData) {
-          return _buildGrid(context, state);
-        },
-      ),
+    final board = _BoardGridLayer(
+      boardKey: _boardKey,
+      dimension: widget.dimension,
+      state: state,
+      onAcceptWithDetails: (details) {
+        _clearHover();
+        _handleDrop(details, state);
+      },
+      gridBuilder: _buildGrid,
     );
 
     return SizedBox(
@@ -261,25 +201,8 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
             visible: state.showParticleBurst,
             size: widget.dimension,
           ),
-          Positioned(
-            top: 24,
-            child: AnimatedOpacity(
-              opacity: state.showPerfectText ? 1 : 0,
-              duration: const Duration(milliseconds: 300),
-              child: Text(
-                tr('block_game.perfect'),
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.amberAccent,
-                  fontWeight: FontWeight.bold,
-                  shadows: const [
-                    Shadow(color: Colors.black45, blurRadius: 12),
-                  ],
-                ),
-              ),
-            ),
-          ),
           Positioned.fill(
-            child: IgnorePointer(child: _buildComboOverlay(state, context)),
+            child: _CelebrationOverlay(provider: widget.provider),
           ),
           IgnorePointer(
             ignoring: true,
@@ -970,6 +893,179 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
 }
 
 double _baseRadius(int size) => 0;
+
+class _BoardGridLayer extends StatelessWidget {
+  const _BoardGridLayer({
+    required this.boardKey,
+    required this.dimension,
+    required this.state,
+    required this.onAcceptWithDetails,
+    required this.gridBuilder,
+  });
+
+  final GlobalKey boardKey;
+  final double dimension;
+  final BlockPuzzleState state;
+  final ValueChanged<DragTargetDetails<PieceModel>> onAcceptWithDetails;
+  final Widget Function(BuildContext context, BlockPuzzleState state) gridBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: boardKey,
+      width: dimension,
+      height: dimension,
+      child: DragTarget<PieceModel>(
+        onWillAcceptWithDetails: (_) => true,
+        onAcceptWithDetails: onAcceptWithDetails,
+        builder: (context, candidateData, rejectedData) {
+          return gridBuilder(context, state);
+        },
+      ),
+    );
+  }
+}
+
+enum _CelebrationType { combo, perfect }
+
+class _CelebrationOverlay extends ConsumerStatefulWidget {
+  const _CelebrationOverlay({required this.provider});
+
+  final StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState> provider;
+
+  @override
+  ConsumerState<_CelebrationOverlay> createState() => _CelebrationOverlayState();
+}
+
+class _CelebrationOverlayState extends ConsumerState<_CelebrationOverlay>
+    with SingleTickerProviderStateMixin {
+  static const TextStyle _style = TextStyle(
+    fontSize: 34,
+    fontWeight: FontWeight.w800,
+    color: Color(0xFFFFF1D6),
+    shadows: <Shadow>[
+      Shadow(color: Color(0x66000000), blurRadius: 4),
+    ],
+  );
+
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+  Timer? _hideTimer;
+  _CelebrationType? _type;
+  int _comboCount = 0;
+  DateTime? _lastShownAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 170),
+      reverseDuration: const Duration(milliseconds: 140),
+    );
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+
+    ref.listenManual<
+      ({
+        int totalLinesCleared,
+        int comboCount,
+        BlockGameStatus status,
+        bool levelCompleted,
+      })
+    >(
+      widget.provider.select(
+        (state) => (
+          totalLinesCleared: state.totalLinesCleared,
+          comboCount: state.comboCount,
+          status: state.status,
+          levelCompleted: state.levelCompleted,
+        ),
+      ),
+      (previous, next) {
+        if (next.status != BlockGameStatus.playing || previous == null) {
+          _hideNow();
+          return;
+        }
+        if (next.levelCompleted && !previous.levelCompleted) {
+          _show(_CelebrationType.perfect, next.comboCount);
+          return;
+        }
+        final linesDelta = next.totalLinesCleared - previous.totalLinesCleared;
+        if (linesDelta <= 0) return;
+
+        final triggeredPerfect = linesDelta >= 2;
+        final triggeredCombo =
+            !triggeredPerfect &&
+            next.comboCount >= 2 &&
+            next.comboCount > previous.comboCount;
+        if (triggeredPerfect) {
+          _show(_CelebrationType.perfect, next.comboCount);
+        } else if (triggeredCombo) {
+          _show(_CelebrationType.combo, next.comboCount);
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _show(_CelebrationType type, int comboCount) {
+    final now = DateTime.now();
+    final last = _lastShownAt;
+    if (last != null && now.difference(last).inMilliseconds < 220) return;
+    _lastShownAt = now;
+
+    _hideTimer?.cancel();
+    setState(() {
+      _type = type;
+      _comboCount = comboCount;
+    });
+    _controller.forward(from: 0);
+    final hold = type == _CelebrationType.perfect ? 1000 : 1200;
+    _hideTimer = Timer(Duration(milliseconds: hold), () {
+      _controller.reverse();
+    });
+  }
+
+  void _hideNow() {
+    _hideTimer?.cancel();
+    _controller.stop();
+    _controller.value = 0;
+    if (_type != null) {
+      setState(() {
+        _type = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final type = _type;
+    if (type == null) {
+      return const SizedBox.shrink();
+    }
+
+    final text = type == _CelebrationType.perfect
+        ? tr('block_game.perfect')
+        : tr('block_game.combo', namedArgs: {'count': '$_comboCount'});
+
+    return IgnorePointer(
+      child: Center(
+        child: RepaintBoundary(
+          child: FadeTransition(
+            opacity: _fade,
+            child: Text(text, style: _style),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _LevelTokenOverlay extends StatelessWidget {
   const _LevelTokenOverlay({required this.token, required this.cellSize});

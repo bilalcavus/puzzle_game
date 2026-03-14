@@ -222,11 +222,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   static const _failedKey = 'block_puzzle_failed';
   static const _seedVersion = 1;
 
-  Timer? _perfectTimer;
   Timer? _particleTimer;
   Timer? _pulseTimer;
   Timer? _errorTimer;
-  Timer? _comboTimer;
   final List<Timer> _explosionCleanupTimers = <Timer>[];
   final Random _random = Random();
 
@@ -398,7 +396,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     final earnedClear = linesCleared > 0;
     final triggeredPerfect = linesCleared >= 2;
     var nextCombo = earnedClear ? state.comboCount + 1 : state.comboCount;
-    final showCombo = earnedClear && nextCombo >= 2;
+    final triggeredCombo = earnedClear && nextCombo >= 2;
+    final celebrationActive = triggeredPerfect || triggeredCombo;
     final setHadClearNow = state.setHadClear || earnedClear;
     final placementScore = piece.cellCount * 5;
     final lineBonus = linesCleared * state.size * 2;
@@ -433,27 +432,31 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       bestScore: newBest,
       totalLinesCleared: totalLines,
       status: nextStatus,
-      showPerfectText: triggeredPerfect,
-      showParticleBurst: linesCleared > 0,
-      pulseBoard: true,
+      // Combo/perfect overlays are now local UI state in the board widget.
+      showPerfectText: false,
+      // Run only one celebration effect path at a time to avoid animation spikes.
+      showParticleBurst: linesCleared > 0 && !celebrationActive,
+      pulseBoard: !celebrationActive,
       showInvalidPlacement: false,
       comboCount: nextCombo,
       setHadClear: setEnded ? false : setHadClearNow,
-      showComboText: showCombo,
-      blockExplosions: explosionQueue,
+      showComboText: false,
+      blockExplosions: celebrationActive
+          ? const <BlockExplosionEffect>[]
+          : explosionQueue,
       levelTargets: updatedTargets,
     );
     _persistState();
     final sounds = _ref.read(soundControllerProvider);
     if (triggeredPerfect) {
       unawaited(sounds.playPerfect().catchError((_) {}));
-    } else if (showCombo) {
+    } else if (triggeredCombo) {
       unawaited(sounds.playCombo().catchError((_) {}));
     } else if (linesCleared > 0) {
       unawaited(sounds.playSuccess().catchError((_) {}));
     }
     _handleLevelProgress(clearResult.removedIndices);
-    _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
+    _scheduleFlagReset(linesCleared > 0 && !celebrationActive, !celebrationActive);
     _scheduleExplosionCleanup(newExplosions.map((e) => e.id).toSet());
     return true;
   }
@@ -626,20 +629,16 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     return remaining.keys.first;
   }
 
-  void _scheduleFlagReset(bool perfect, bool particles, bool comboActive) {
+  void _scheduleFlagReset(bool particles, bool pulse) {
     _pulseTimer?.cancel();
-    _pulseTimer = Timer(const Duration(milliseconds: 260), () {
-      state = state.copyWith(pulseBoard: false);
-    });
-    if (perfect) {
-      _perfectTimer?.cancel();
-      _perfectTimer = Timer(const Duration(milliseconds: 1200), () {
-        if (!mounted || !state.showPerfectText) return;
-        state = state.copyWith(showPerfectText: false);
+    if (pulse) {
+      _pulseTimer = Timer(const Duration(milliseconds: 260), () {
+        state = state.copyWith(pulseBoard: false);
       });
-    } else if (state.showPerfectText) {
-      state = state.copyWith(showPerfectText: false);
+    } else if (state.pulseBoard) {
+      state = state.copyWith(pulseBoard: false);
     }
+
     if (particles) {
       _particleTimer?.cancel();
       _particleTimer = Timer(const Duration(milliseconds: 600), () {
@@ -648,16 +647,6 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       });
     } else if (state.showParticleBurst) {
       state = state.copyWith(showParticleBurst: false);
-    }
-    if (comboActive) {
-      _comboTimer?.cancel();
-      _comboTimer = Timer(const Duration(milliseconds: 1400), () {
-        if (!mounted || !state.showComboText) return;
-        state = state.copyWith(showComboText: false);
-      });
-    } else if (state.showComboText) {
-      _comboTimer?.cancel();
-      state = state.copyWith(showComboText: false);
     }
   }
 
@@ -682,11 +671,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   }
 
   void restart({int? size}) {
-    _perfectTimer?.cancel();
     _particleTimer?.cancel();
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
-    _comboTimer?.cancel();
     _cancelExplosionCleanupTimers();
     if (state.levelMode) {
       startLevelChallenge(level: state.level);
@@ -781,11 +768,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
 
   @override
   void dispose() {
-    _perfectTimer?.cancel();
     _particleTimer?.cancel();
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
-    _comboTimer?.cancel();
     _cancelExplosionCleanupTimers();
     super.dispose();
   }
@@ -1007,7 +992,7 @@ Map<int, Color> _colorizeObstacleClusters(int size, Set<int> obstacles, Random r
         levelGoals: updatedGoals,
         levelTargets: const {},
         levelCompleted: true,
-        showPerfectText: true,
+        showPerfectText: false,
         showParticleBurst: true,
         filledCells: clearedCells,
         seedIndices: clearedSeeds,
