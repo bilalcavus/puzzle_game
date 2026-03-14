@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/block_palette.dart';
 
-enum BlockLevelToken { leaf, wood, mushroom }
+enum BlockLevelToken { leaf, wood, mushroom, pine }
 
 extension BlockLevelTokenVisuals on BlockLevelToken {
   String get asset {
@@ -13,6 +13,8 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
         return 'assets/images/block_wood.png';
       case BlockLevelToken.mushroom:
         return 'assets/images/mushroom.png';
+      case BlockLevelToken.pine:
+        return 'assets/images/pine.png';
     }
   }
 
@@ -24,6 +26,8 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
         return kClassicBlockPalette[0];
       case BlockLevelToken.mushroom:
         return kClassicBlockPalette[1];
+      case BlockLevelToken.pine:
+        return kClassicBlockPalette[3];
     }
   }
 
@@ -35,16 +39,14 @@ extension BlockLevelTokenVisuals on BlockLevelToken {
         return 'Log';
       case BlockLevelToken.mushroom:
         return 'Mushroom';
+      case BlockLevelToken.pine:
+        return 'Pine';
     }
   }
 }
 
 class BlockLevelGoal {
-  const BlockLevelGoal({
-    required this.token,
-    required this.required,
-    required this.remaining,
-  });
+  const BlockLevelGoal({required this.token, required this.required, required this.remaining});
 
   final BlockLevelToken token;
   final int required;
@@ -53,11 +55,7 @@ class BlockLevelGoal {
   bool get isComplete => remaining <= 0;
 
   BlockLevelGoal copyWith({int? remaining}) {
-    return BlockLevelGoal(
-      token: token,
-      required: required,
-      remaining: remaining ?? this.remaining,
-    );
+    return BlockLevelGoal(token: token, required: required, remaining: remaining ?? this.remaining);
   }
 
   BlockLevelGoal decrement(int count) {

@@ -15,7 +15,7 @@ import '../core/theme/block_palette.dart';
 import 'sound_provider.dart';
 
 const String kBlockLevelProgressKey = 'block_level_progress';
-const int kBlockMaxLevel = 96;
+const int kBlockMaxLevel = 150;
 
 final blockPuzzleProvider = StateNotifierProvider<BlockPuzzleNotifier, BlockPuzzleState>((ref) => BlockPuzzleNotifier(ref));
 
@@ -800,8 +800,8 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   }
 
   List<BlockLevelGoal> _buildLevelGoals(int level) {
-    final tokens = List<BlockLevelToken>.from(BlockLevelToken.values)..shuffle(_random);
-    const baseRequirements = [2, 3, 3];
+    final tokens = _tokenPoolForLevel(level)..shuffle(_random);
+    final baseRequirements = level >= 97 ? <int>[2, 3, 3, 2] : <int>[2, 3, 3];
     final adjusted = List<int>.from(baseRequirements);
     final increments = _levelIncrementCount(level);
     for (var i = 0; i < increments; i++) {
@@ -812,6 +812,13 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       final required = adjusted[index];
       return BlockLevelGoal(token: token, required: required, remaining: required);
     });
+  }
+
+  List<BlockLevelToken> _tokenPoolForLevel(int level) {
+    if (level >= 97) {
+      return [BlockLevelToken.leaf, BlockLevelToken.wood, BlockLevelToken.mushroom, BlockLevelToken.pine];
+    }
+    return [BlockLevelToken.leaf, BlockLevelToken.wood, BlockLevelToken.mushroom];
   }
 
   int _levelIncrementCount(int level) {

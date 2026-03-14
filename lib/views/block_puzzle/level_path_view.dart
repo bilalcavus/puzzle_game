@@ -55,11 +55,26 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
     _RowSpec(count: 2, start: 4),
     _RowSpec(count: 2, start: 4),
   ];
+  static const List<_RowSpec> _thirdPageSpecs = [
+    _RowSpec(count: 2, start: 4),
+    _RowSpec(count: 4, start: 3),
+    _RowSpec(count: 6, start: 2),
+    _RowSpec(count: 8, start: 1),
+    _RowSpec(count: 10, start: 0),
+    _RowSpec(count: 8, start: 1),
+    _RowSpec(count: 6, start: 2),
+    _RowSpec(count: 4, start: 3),
+    _RowSpec(count: 2, start: 4),
+    _RowSpec(count: 2, start: 4),
+    _RowSpec(count: 2, start: 4),
+  ];
   static final List<List<int?>> _firstPageGrid = _buildLevelGrid(specs: _firstPageSpecs, startLevel: 1);
   static final List<List<int?>> _secondPageGrid = _buildLevelGrid(specs: _secondPageSpecs, startLevel: 47);
-  static const int _totalLevels = 96;
+  static final List<List<int?>> _thirdPageGrid = _buildLevelGrid(specs: _thirdPageSpecs, startLevel: 97);
+  static const int _totalLevels = 150;
 
   static const int _secondPageStart = 47;
+  static const int _thirdPageStart = 97;
 
   late Future<int> _progressFuture;
 
@@ -86,6 +101,7 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
           // Highlight the furthest level reached/unlocked.
           final currentLevel = unlockedLevel;
           final showSecondPage = unlockedLevel >= _secondPageStart;
+          final showThirdPage = unlockedLevel >= _thirdPageStart;
 
           Future<void> handleLevelTap(int level) async {
             ref.read(blockPuzzleLevelProvider.notifier).startLevelChallenge(level: level);
@@ -107,7 +123,16 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
                     _TrophyIntro(),
                     context.dynamicHeight(0.02).height,
                     Expanded(
-                      child: showSecondPage
+                      child: showThirdPage
+                          ? _AdventurePage(
+                              title: '97-150',
+                              grid: _thirdPageGrid,
+                              unlockedLevel: unlockedLevel,
+                              currentLevel: currentLevel,
+                              onLevelTap: handleLevelTap,
+                              horizontalShiftCols: 0.5,
+                            )
+                          : showSecondPage
                           ? _AdventurePage(
                               title: '47-96',
                               grid: _secondPageGrid,
@@ -128,6 +153,12 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
                     if (!showSecondPage)
                       Text(
                         '47-96 bolumu, 46. level bitince acilir.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFFF5DEB8), fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                      ),
+                    if (showSecondPage && !showThirdPage)
+                      Text(
+                        '97-150 bolumu, 96. level bitince acilir.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFFF5DEB8), fontWeight: FontWeight.w600),
                         textAlign: TextAlign.center,
                       ),
@@ -383,7 +414,7 @@ class _LevelTile extends StatelessWidget {
     final double spacing = size * 0.08;
 
     final bool isStemLevel = level! >= 47 && level! <= 56;
-    final bool isCapLevel = level! >= 57 && level! <= 96;
+    final bool isCapLevel = level! >= 57;
     final bool isTrunkLevel = level! <= 5;
     final Color currentTop = isCapLevel
         ? const Color(0xFFFF8578)
