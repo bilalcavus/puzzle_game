@@ -82,10 +82,7 @@ class PieceWidget extends StatelessWidget {
         : childDragAnchorStrategy;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return LongPressDraggable<PieceModel>(
-      // Keep a minimal hold so taps don't trigger; effectively instant drag.
-      delay: const Duration(milliseconds: 60),
-      hapticFeedbackOnStart: true,
+    return Draggable<PieceModel>(
       data: piece,
       // Anchor drag to the widget center so lift/drag is purely vertical, regardless of tap position.
       dragAnchorStrategy: dragAnchorStrategy,
