@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -181,7 +182,12 @@ class BlockPuzzlePiecesTray extends ConsumerWidget {
                     dragController: dragController,
                     onSelect: () => onPieceSelect(piece.id),
                     onDragStart: () {
-                      ref.read(soundControllerProvider).playDrag();
+                      unawaited(
+                        ref
+                            .read(soundControllerProvider)
+                            .playDrag()
+                            .catchError((_) {}),
+                      );
                     },
                   ),
                 );

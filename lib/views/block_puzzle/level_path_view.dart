@@ -61,22 +61,12 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
 
   static const int _secondPageStart = 47;
 
-  late final PageController _pageController;
   late Future<int> _progressFuture;
-  int _currentPage = 0;
-  bool _didSetInitialPage = false;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
     _progressFuture = _loadProgress();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 
   @override
@@ -96,28 +86,6 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
           // Highlight the furthest level reached/unlocked.
           final currentLevel = unlockedLevel;
           final showSecondPage = unlockedLevel >= _secondPageStart;
-          final targetPage = showSecondPage && currentLevel >= _secondPageStart ? 1 : 0;
-          if (!_didSetInitialPage && _currentPage != targetPage) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              _pageController.jumpToPage(targetPage);
-              setState(() {
-                _currentPage = targetPage;
-                _didSetInitialPage = true;
-              });
-            });
-          } else if (!_didSetInitialPage) {
-            _didSetInitialPage = true;
-          }
-          if (!showSecondPage && _currentPage != 0) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              _pageController.jumpToPage(0);
-              setState(() {
-                _currentPage = 0;
-              });
-            });
-          }
 
           Future<void> handleLevelTap(int level) async {
             ref.read(blockPuzzleLevelProvider.notifier).startLevelChallenge(level: level);
@@ -125,7 +93,6 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
             if (!mounted) return;
             setState(() {
               _progressFuture = _loadProgress();
-              _didSetInitialPage = false;
             });
           }
 
@@ -140,31 +107,25 @@ class _LevelPathViewState extends ConsumerState<LevelPathView> {
                     _TrophyIntro(),
                     context.dynamicHeight(0.02).height,
                     Expanded(
-                      child: PageView(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentPage = index;
-                          });
-                        },
-                        children: [
-                          _AdventurePage(title: '1-46', grid: _firstPageGrid, unlockedLevel: unlockedLevel, currentLevel: currentLevel, onLevelTap: handleLevelTap),
-                          if (showSecondPage)
-                            _AdventurePage(
+                      child: showSecondPage
+                          ? _AdventurePage(
                               title: '47-96',
                               grid: _secondPageGrid,
                               unlockedLevel: unlockedLevel,
                               currentLevel: currentLevel,
                               onLevelTap: handleLevelTap,
                               horizontalShiftCols: 0.5,
+                            )
+                          : _AdventurePage(
+                              title: '1-46',
+                              grid: _firstPageGrid,
+                              unlockedLevel: unlockedLevel,
+                              currentLevel: currentLevel,
+                              onLevelTap: handleLevelTap,
                             ),
-                        ],
-                      ),
                     ),
                     const SizedBox(height: 8),
-                    if (showSecondPage)
-                      _PageLegend(currentPage: _currentPage)
-                    else
+                    if (!showSecondPage)
                       Text(
                         '47-96 bolumu, 46. level bitince acilir.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFFF5DEB8), fontWeight: FontWeight.w600),
@@ -321,49 +282,27 @@ class _AdventurePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: const Color(0xFFFBE8C8)),
-          ),
-          const SizedBox(height: 12),
-          _AdventureBoard(
-            grid: grid,
-            unlockedLevel: unlockedLevel,
-            currentLevel: currentLevel,
-            onLevelTap: onLevelTap,
-            horizontalShiftCols: horizontalShiftCols,
-          ),
-          const SizedBox(height: 24),
-        ],
+    return RepaintBoundary(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: const Color(0xFFFBE8C8)),
+            ),
+            const SizedBox(height: 12),
+            _AdventureBoard(
+              grid: grid,
+              unlockedLevel: unlockedLevel,
+              currentLevel: currentLevel,
+              onLevelTap: onLevelTap,
+              horizontalShiftCols: horizontalShiftCols,
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class _PageLegend extends StatelessWidget {
-  const _PageLegend({required this.currentPage});
-
-  final int currentPage;
-
-  @override
-  Widget build(BuildContext context) {
-    final activeColor = const Color(0xFFF5DEB8);
-    final inactiveColor = const Color(0x66F5DEB8);
-    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(color: activeColor, fontWeight: FontWeight.w700);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('1-46', style: style?.copyWith(color: currentPage == 0 ? activeColor : inactiveColor)),
-        const SizedBox(width: 12),
-        Container(width: 24, height: 2, color: inactiveColor),
-        const SizedBox(width: 12),
-        Text('47-96', style: style?.copyWith(color: currentPage == 1 ? activeColor : inactiveColor)),
-      ],
     );
   }
 }
@@ -520,8 +459,8 @@ class _LevelTile extends StatelessWidget {
         : const Color(0xFF21130c);
 
     final List<BoxShadow> boxShadow = current
-        ? [const BoxShadow(color: Color(0x80FFE29A), blurRadius: 18, offset: Offset(0, 10)), const BoxShadow(color: Color(0x33000000), blurRadius: 12, offset: Offset(0, 6))]
-        : [const BoxShadow(color: Color(0x33000000), blurRadius: 10, offset: Offset(0, 6))];
+        ? [const BoxShadow(color: Color(0x55FFE29A), blurRadius: 8, offset: Offset(0, 4))]
+        : const <BoxShadow>[];
 
     final textStyle = Theme.of(
       context,
@@ -531,12 +470,11 @@ class _LevelTile extends StatelessWidget {
       dimension: size,
       child: GestureDetector(
         onTap: unlocked ? () => onLevelTap(level!) : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Container(
           decoration: BoxDecoration(
             gradient: gradient,
             borderRadius: BorderRadius.zero,
-            border: Border.all(color: borderColor, width: 2),
+            border: Border.all(color: borderColor, width: 1.2),
             boxShadow: boxShadow,
           ),
           child: Padding(

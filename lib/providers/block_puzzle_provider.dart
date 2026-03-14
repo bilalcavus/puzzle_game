@@ -444,16 +444,15 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
       levelTargets: updatedTargets,
     );
     _persistState();
+    final sounds = _ref.read(soundControllerProvider);
     if (triggeredPerfect) {
-      unawaited(_ref.read(soundControllerProvider).playPerfect());
-    }
-    if (linesCleared > 0) {
-      unawaited(_ref.read(soundControllerProvider).playSuccess());
+      unawaited(sounds.playPerfect().catchError((_) {}));
+    } else if (showCombo) {
+      unawaited(sounds.playCombo().catchError((_) {}));
+    } else if (linesCleared > 0) {
+      unawaited(sounds.playSuccess().catchError((_) {}));
     }
     _handleLevelProgress(clearResult.removedIndices);
-    if (showCombo) {
-      unawaited(_ref.read(soundControllerProvider).playCombo());
-    }
     _scheduleFlagReset(linesCleared >= 2, linesCleared > 0, showCombo);
     _scheduleExplosionCleanup(newExplosions.map((e) => e.id).toSet());
     return true;
@@ -1011,8 +1010,8 @@ Map<int, Color> _colorizeObstacleClusters(int size, Set<int> obstacles, Random r
     }
     if (completed && !alreadyCompleted) {
       final soundController = _ref.read(soundControllerProvider);
-      unawaited(soundController.playSuccess());
-      unawaited(soundController.playLevelUp());
+      unawaited(soundController.playSuccess().catchError((_) {}));
+      unawaited(soundController.playLevelUp().catchError((_) {}));
       unawaited(_updateLevelProgress(unlockedLevel));
     }
   }

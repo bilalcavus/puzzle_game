@@ -83,37 +83,38 @@ class SoundController with WidgetsBindingObserver {
   final AudioPlayer _dragPlayer = AudioPlayer();
   final AudioPlayer _backgroundPlayer = AudioPlayer();
   bool _effectsEnabled = true;
+  final Map<AudioPlayer, int> _lastPlayAtMs = <AudioPlayer, int>{};
 
   Future<void> playMove() async {
-    await _playAsset(_slidePlayer, 'audio/move.wav');
+    await _playAsset(_slidePlayer, 'audio/move.wav', minIntervalMs: 50);
   }
 
   Future<void> playDrag() async {
-    await _playAsset(_dragPlayer, 'audio/drag_sound.wav');
+    await _playAsset(_dragPlayer, 'audio/drag_sound.wav', minIntervalMs: 90);
   }
 
   Future<void> playBlockPlace() async {
-    await _playAsset(_blockPlayer, 'audio/block_place.wav');
+    await _playAsset(_blockPlayer, 'audio/block_place.wav', minIntervalMs: 70);
   }
 
   Future<void> playSuccess() async {
-    await _playAsset(_successPlayer, 'audio/success_bell-6776.mp3');
+    await _playAsset(_successPlayer, 'audio/success_bell-6776.mp3', minIntervalMs: 240);
   }
 
   Future<void> playPerfect() async {
-    await _playAsset(_perfectPlayer, 'audio/perfect.wav');
+    await _playAsset(_perfectPlayer, 'audio/perfect.wav', minIntervalMs: 280);
   }
 
   Future<void> playCombo() async {
-    await _playAsset(_comboPlayer, 'audio/combo1.wav');
+    await _playAsset(_comboPlayer, 'audio/combo1.wav', minIntervalMs: 240);
   }
 
   Future<void> playLevelUp() async {
-    await _playAsset(_levelPlayer, 'audio/level_sound.mp3');
+    await _playAsset(_levelPlayer, 'audio/level_sound.mp3', minIntervalMs: 300);
   }
 
   Future<void> playFailure() async {
-    await _playAsset(_failPlayer, 'audio/failure.wav');
+    await _playAsset(_failPlayer, 'audio/failure.wav', minIntervalMs: 220);
   }
 
   Future<void> setEffectsEnabled(bool enabled) async {
@@ -132,10 +133,19 @@ class SoundController with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _playAsset(AudioPlayer player, String asset) async {
+  Future<void> _playAsset(
+    AudioPlayer player,
+    String asset, {
+    int minIntervalMs = 0,
+  }) async {
     if (!_effectsEnabled) return;
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final lastMs = _lastPlayAtMs[player];
+    if (lastMs != null && (nowMs - lastMs) < minIntervalMs) {
+      return;
+    }
+    _lastPlayAtMs[player] = nowMs;
     try {
-      await player.stop();
       await player.play(AssetSource(asset));
     } catch (_) {
       // Ignore audio errors to keep gameplay smooth.

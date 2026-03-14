@@ -145,11 +145,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     BlockPuzzleState next,
   ) {
     if (next.levelMode || next.status != BlockGameStatus.playing) return;
-    final prevScore = previous?.score ?? next.score;
-    if (next.score >= _nextClassicScoreMilestone &&
-        prevScore < _nextClassicScoreMilestone) {
-      _showInterstitial();
-    }
+    // Avoid interstitial work during active gameplay; show only on game-over flow.
     while (_nextClassicScoreMilestone <= next.score) {
       _nextClassicScoreMilestone += 2000;
     }
@@ -904,7 +900,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
   void _handleFeedback() {
     HapticFeedback.mediumImpact();
     final sounds = ref.read(soundControllerProvider);
-    sounds.playBlockPlace();
+    unawaited(sounds.playBlockPlace().catchError((_) {}));
   }
 
   double _boardPadding(BuildContext context) =>
