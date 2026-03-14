@@ -256,11 +256,7 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          AnimatedScale(
-            scale: state.pulseBoard ? 1.02 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: board,
-          ),
+          board,
           ParticleBurst(
             visible: state.showParticleBurst,
             size: widget.dimension,
