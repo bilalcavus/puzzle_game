@@ -905,9 +905,6 @@ class _BlockGameBoardState extends ConsumerState<BlockGameBoard> {
     HapticFeedback.mediumImpact();
     final sounds = ref.read(soundControllerProvider);
     sounds.playBlockPlace();
-    if (ref.read(widget.provider).showParticleBurst) {
-      sounds.playSuccess();
-    }
   }
 
   double _boardPadding(BuildContext context) =>

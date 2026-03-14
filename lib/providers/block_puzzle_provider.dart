@@ -26,7 +26,7 @@ const double _levelObstacleRatio = 0.05;
 const int _levelMinObstacleCount = 3;
 const int _extraTokensPerGoal = 1;
 const Duration _blockExplosionDuration = Duration(milliseconds: 600);
-const int _maxExplosionEffectsPerMove = 12;
+const int _maxExplosionEffectsPerMove = 8;
 
 double _levelEmptyRatioFor(int level) {
   // Easier early levels: start with more empty space, slowly reduce.
@@ -227,7 +227,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
   Timer? _pulseTimer;
   Timer? _errorTimer;
   Timer? _comboTimer;
-  Timer? _explosionCleanupTimer;
+  final List<Timer> _explosionCleanupTimers = <Timer>[];
   final Random _random = Random();
 
   Future<void> _restoreState() async {
@@ -447,6 +447,9 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     if (triggeredPerfect) {
       unawaited(_ref.read(soundControllerProvider).playPerfect());
     }
+    if (linesCleared > 0) {
+      unawaited(_ref.read(soundControllerProvider).playSuccess());
+    }
     _handleLevelProgress(clearResult.removedIndices);
     if (showCombo) {
       unawaited(_ref.read(soundControllerProvider).playCombo());
@@ -632,6 +635,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     if (perfect) {
       _perfectTimer?.cancel();
       _perfectTimer = Timer(const Duration(milliseconds: 1200), () {
+        if (!mounted || !state.showPerfectText) return;
         state = state.copyWith(showPerfectText: false);
       });
     } else if (state.showPerfectText) {
@@ -640,6 +644,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     if (particles) {
       _particleTimer?.cancel();
       _particleTimer = Timer(const Duration(milliseconds: 600), () {
+        if (!mounted || !state.showParticleBurst) return;
         state = state.copyWith(showParticleBurst: false);
       });
     } else if (state.showParticleBurst) {
@@ -648,23 +653,33 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     if (comboActive) {
       _comboTimer?.cancel();
       _comboTimer = Timer(const Duration(milliseconds: 1400), () {
-        state = state.copyWith(showComboText: false, comboCount: state.comboCount);
+        if (!mounted || !state.showComboText) return;
+        state = state.copyWith(showComboText: false);
       });
     } else if (state.showComboText) {
       _comboTimer?.cancel();
-      state = state.copyWith(showComboText: false, comboCount: state.comboCount);
+      state = state.copyWith(showComboText: false);
     }
   }
 
   void _scheduleExplosionCleanup(Set<int> ids) {
     if (ids.isEmpty) return;
-    _explosionCleanupTimer?.cancel();
-    _explosionCleanupTimer = Timer(_blockExplosionDuration, () {
+    late final Timer cleanupTimer;
+    cleanupTimer = Timer(_blockExplosionDuration, () {
+      _explosionCleanupTimers.remove(cleanupTimer);
       if (!mounted) return;
       final filtered = state.blockExplosions.where((effect) => !ids.contains(effect.id)).toList(growable: false);
       if (filtered.length == state.blockExplosions.length) return;
       state = state.copyWith(blockExplosions: List<BlockExplosionEffect>.unmodifiable(filtered));
     });
+    _explosionCleanupTimers.add(cleanupTimer);
+  }
+
+  void _cancelExplosionCleanupTimers() {
+    for (final timer in _explosionCleanupTimers) {
+      timer.cancel();
+    }
+    _explosionCleanupTimers.clear();
   }
 
   void restart({int? size}) {
@@ -673,7 +688,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
     _comboTimer?.cancel();
-    _explosionCleanupTimer?.cancel();
+    _cancelExplosionCleanupTimers();
     if (state.levelMode) {
       startLevelChallenge(level: state.level);
       return;
@@ -772,7 +787,7 @@ class BlockPuzzleNotifier extends StateNotifier<BlockPuzzleState> {
     _pulseTimer?.cancel();
     _errorTimer?.cancel();
     _comboTimer?.cancel();
-    _explosionCleanupTimer?.cancel();
+    _cancelExplosionCleanupTimers();
     super.dispose();
   }
 
