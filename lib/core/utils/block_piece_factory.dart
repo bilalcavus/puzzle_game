@@ -152,8 +152,11 @@ class _Placement {
     required this.row,
     required this.col,
     required this.linesCleared,
-    required this.adjacency,
+    required this.filledAdjacency,
+    required this.borderAdjacency,
     required this.cavityCovered,
+    required this.cavityReduction,
+    required this.deadCellDelta,
     required this.clusterCount,
     required this.largestCluster,
     required this.score,
@@ -163,8 +166,11 @@ class _Placement {
   final int row;
   final int col;
   final int linesCleared;
-  final int adjacency;
+  final int filledAdjacency;
+  final int borderAdjacency;
   final int cavityCovered;
+  final int cavityReduction;
+  final int deadCellDelta;
   final int clusterCount;
   final int largestCluster;
   final int score;
@@ -177,12 +183,16 @@ class _ShapeFit {
     required this.totalPlacements,
     required this.placements,
     required this.bestScore,
+    required this.bestCavityReduction,
+    required this.bestFilledAdjacency,
   });
 
   final List<List<int>> shape;
   final int totalPlacements;
   final List<_Placement> placements;
   final int bestScore;
+  final int bestCavityReduction;
+  final int bestFilledAdjacency;
 }
 
 const int _maxPlacementsPerShape = 10;
@@ -311,13 +321,15 @@ List<_ShapeFit> _shapeFits({required int boardSize, required Map<int, Color> fil
         totalPlacements: placementResult.total,
         placements: placements,
         bestScore: placements.isEmpty ? 0 : placements.first.score,
+        bestCavityReduction: placements.isEmpty ? 0 : placements.first.cavityReduction,
+        bestFilledAdjacency: placements.isEmpty ? 0 : placements.first.filledAdjacency,
       ));
     }
   }
   return fits;
 }
 
-int _placementAdjacencyScore({
+({int filled, int border}) _placementAdjacencyScore({
   required List<List<int>> shape,
   required int baseRow,
   required int baseCol,
@@ -330,7 +342,8 @@ int _placementAdjacencyScore({
     final c = baseCol + block[1];
     occupied.add(r * size + c);
   }
-  var score = 0;
+  var filledAdjacency = 0;
+  var borderAdjacency = 0;
   const dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)];
   for (final block in shape) {
     final r = baseRow + block[0];
@@ -339,15 +352,15 @@ int _placementAdjacencyScore({
       final nr = r + dir.$1;
       final nc = c + dir.$2;
       if (nr < 0 || nc < 0 || nr >= size || nc >= size) {
-        score++;
+        borderAdjacency++;
         continue;
       }
       final index = nr * size + nc;
       if (occupied.contains(index)) continue;
-      if (filledCells.containsKey(index)) score++;
+      if (filledCells.containsKey(index)) filledAdjacency++;
     }
   }
-  return score;
+  return (filled: filledAdjacency, border: borderAdjacency);
 }
 
 Set<int> _cavityCells(int size, Map<int, Color> filledCells) {
@@ -384,7 +397,9 @@ bool _isLineShape(List<List<int>> shape) {
 int _shapeFitWeight(_ShapeFit fit) {
   final scoreBoost = min(12, (fit.bestScore / 10).round());
   final placementBoost = min(4, fit.totalPlacements);
-  return 1 + scoreBoost + placementBoost;
+  final cavityBoost = min(9, max(0, fit.bestCavityReduction) * 3);
+  final boardContactBoost = min(6, (fit.bestFilledAdjacency / 2).round());
+  return 1 + scoreBoost + placementBoost + cavityBoost + boardContactBoost;
 }
 
 _ShapeFit? _pickWeightedShape(List<_ShapeFit> fits, Set<String>? usedKeys) {
@@ -417,6 +432,8 @@ _ShapeFit? _pickWeightedShape(List<_ShapeFit> fits, Set<String>? usedKeys) {
   final placements = <_Placement>[];
   var total = 0;
   final lineShape = _isLineShape(shape);
+  final beforeCavityCount = cavityCells.length;
+  final beforeDeadCells = _deadCellCount(boardSize, filledCells);
   for (var row = 0; row <= boardSize - dims.height; row++) {
     for (var col = 0; col <= boardSize - dims.width; col++) {
       var fitsHere = true;
@@ -451,11 +468,18 @@ _ShapeFit? _pickWeightedShape(List<_ShapeFit> fits, Set<String>? usedKeys) {
         if (cavityCells.contains(r * boardSize + c)) cavityCovered++;
       }
       final clearResult = _clearCompletedLines(placed, boardSize);
+      final afterCavityCount = _cavityCells(boardSize, clearResult.cells).length;
+      final cavityReduction = beforeCavityCount - afterCavityCount;
+      final afterDeadCells = _deadCellCount(boardSize, clearResult.cells);
+      final deadCellDelta = afterDeadCells - beforeDeadCells;
       final clusterStats = _emptyClusterStats(boardSize, clearResult.cells);
       final score = _placementScore(
         linesCleared: clearResult.linesCleared,
-        adjacency: adjacency,
+        filledAdjacency: adjacency.filled,
+        borderAdjacency: adjacency.border,
         cavityCovered: cavityCovered,
+        cavityReduction: cavityReduction,
+        deadCellDelta: deadCellDelta,
         clusterCount: clusterStats.clusterCount,
         largestCluster: clusterStats.largestCluster,
         lineShape: lineShape,
@@ -464,8 +488,11 @@ _ShapeFit? _pickWeightedShape(List<_ShapeFit> fits, Set<String>? usedKeys) {
         row: row,
         col: col,
         linesCleared: clearResult.linesCleared,
-        adjacency: adjacency,
+        filledAdjacency: adjacency.filled,
+        borderAdjacency: adjacency.border,
         cavityCovered: cavityCovered,
+        cavityReduction: cavityReduction,
+        deadCellDelta: deadCellDelta,
         clusterCount: clusterStats.clusterCount,
         largestCluster: clusterStats.largestCluster,
         score: score,
@@ -568,19 +595,42 @@ _ShapeFit? _pickWeightedShape(List<_ShapeFit> fits, Set<String>? usedKeys) {
 
 int _placementScore({
   required int linesCleared,
-  required int adjacency,
+  required int filledAdjacency,
+  required int borderAdjacency,
   required int cavityCovered,
+  required int cavityReduction,
+  required int deadCellDelta,
   required int clusterCount,
   required int largestCluster,
   required bool lineShape,
 }) {
-  final clearScore = linesCleared * 40;
-  final adjacencyScore = adjacency * 4;
-  final cavityScore = cavityCovered * 20;
+  final clearScore = linesCleared * 36;
+  final boardContactScore = filledAdjacency * 7;
+  final borderContactScore = borderAdjacency;
+  final cavityCoverScore = cavityCovered * 24;
+  final cavityDeltaScore = cavityReduction * 22;
   final clusterScore = largestCluster;
-  final fragmentationPenalty = clusterCount * 6;
-  final linePenalty = lineShape && cavityCovered > 0 ? _lineShapePenalty : 0;
-  return clearScore + adjacencyScore + cavityScore + clusterScore - fragmentationPenalty - linePenalty;
+  final fragmentationPenalty = clusterCount * 7;
+  final deadCellPenalty = max(0, deadCellDelta) * 24;
+  final linePenalty = lineShape && cavityReduction < 0 ? _lineShapePenalty : 0;
+  return clearScore + boardContactScore + borderContactScore + cavityCoverScore + cavityDeltaScore + clusterScore - fragmentationPenalty - deadCellPenalty - linePenalty;
+}
+
+int _deadCellCount(int size, Map<int, Color> filledCells) {
+  var count = 0;
+  for (var row = 0; row < size; row++) {
+    for (var col = 0; col < size; col++) {
+      final index = row * size + col;
+      if (filledCells.containsKey(index)) continue;
+      var blocked = 0;
+      if (row == 0 || filledCells.containsKey((row - 1) * size + col)) blocked++;
+      if (row == size - 1 || filledCells.containsKey((row + 1) * size + col)) blocked++;
+      if (col == 0 || filledCells.containsKey(row * size + col - 1)) blocked++;
+      if (col == size - 1 || filledCells.containsKey(row * size + col + 1)) blocked++;
+      if (blocked >= 3) count++;
+    }
+  }
+  return count;
 }
 
 int _fitPreferenceScore(_ShapeFit fit, double easyBias, bool hasCavities) {
@@ -664,13 +714,14 @@ bool _isEasyShape(List<List<int>> shape) {
 
 List<List<int>>? _pickShape(List<List<List<int>>> pool, Set<String>? usedKeys) {
   if (pool.isEmpty) return null;
-  final wantsUnique = usedKeys != null;
+  final keys = usedKeys;
+  final wantsUnique = keys != null;
   final maxAttempts = max(pool.length * 2, 12);
   for (var i = 0; i < maxAttempts; i++) {
     final shape = pool[_random.nextInt(pool.length)];
     if (!wantsUnique) return shape;
     final key = _shapeKey(shape);
-    if (usedKeys!.add(key)) {
+    if (keys.add(key)) {
       return shape;
     }
   }
